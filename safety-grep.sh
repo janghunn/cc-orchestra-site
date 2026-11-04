@@ -70,6 +70,12 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/safety-grep.XXXXXX")" || err "cannot create a 
 trap 'rm -rf "$TMP"' EXIT
 OUT="$TMP/out" ERR="$TMP/err" NAMES="$TMP/names" DENYF="$TMP/deny" ONE="$TMP/one"
 
+# copy an input file to a private temp file; any read error (EIO, EACCES, ...) is exit 2, never CLEAN.
+# All parsing below reads the copy, so a failing read cannot look like end of file.
+slurp() { # src, dest, label
+  cat -- "$1" >"$2" 2>"$ERR" || err "cannot read $3: $(head -1 "$ERR")"
+}
+
 # ---- private patterns ---------------------------------------------------------------------------
 PSRC=""
 if [ $PRIV_SET -eq 1 ]; then
@@ -81,6 +87,7 @@ elif [ -n "${HOME:-}" ] && [ -e "$HOME/.config/cc-orchestra-site/private-pattern
 fi
 PCLS=() PRE=()
 if [ -n "$PSRC" ]; then
+  slurp "$PSRC" "$TMP/private" "private patterns file"
   n=0
   while IFS= read -r line || [ -n "$line" ]; do
     n=$((n + 1)); line="${line%$'\r'}"
@@ -91,7 +98,7 @@ if [ -n "$PSRC" ]; then
     [ -n "$re" ] || err "private patterns file line $n: empty pattern"
     grep -qiE -e "$re" </dev/null 2>/dev/null; [ $? -le 1 ] || err "private patterns file line $n: invalid ERE"
     PCLS+=("$cls"); PRE+=("$re")
-  done <"$PSRC"
+  done <"$TMP/private"
   [ ${#PCLS[@]} -gt 0 ] || { [ $REQPRIV -eq 1 ] && err "private patterns file has no patterns"; }
 else
   [ $REQPRIV -eq 1 ] && err "private patterns required (--require-private) but none found"
@@ -101,8 +108,10 @@ fi
 # ---- denylist -------------------------------------------------------------------------------------
 if [ $DENY_SET -eq 1 ]; then
   [ -n "$DENY" ] && [ -f "$DENY" ] && [ -r "$DENY" ] || err "denylist file not found or unreadable: ${DENY:-<empty>}"
-  { grep -v -e '^[[:space:]]*$' -e '^[[:space:]]*#' -- "$DENY" || true; } | tr -d '\r' >"$DENYF" \
-    || err "cannot read denylist"
+  slurp "$DENY" "$TMP/deny.raw" "denylist"
+  tr -d '\r' <"$TMP/deny.raw" >"$TMP/deny.lf" 2>"$ERR" || err "cannot read denylist: $(head -1 "$ERR")"
+  grep -v -e '^[[:space:]]*$' -e '^[[:space:]]*#' -- "$TMP/deny.lf" >"$DENYF" 2>"$ERR"; g=$?
+  [ $g -le 1 ] || err "cannot read denylist: $(head -1 "$ERR")"
   [ -s "$DENYF" ] || { DENY_SET=0; echo "NOTE: denylist has no entries" >&2; }
 fi
 
@@ -110,12 +119,13 @@ fi
 URLP=()
 if [ $SOURCE -eq 0 ]; then
   [ -f "$URL_ALLOW_FILE" ] && [ -r "$URL_ALLOW_FILE" ] || err "URL allowlist not found: safety-url-allow.txt next to this script"
+  slurp "$URL_ALLOW_FILE" "$TMP/urlallow" "safety-url-allow.txt"
   while IFS= read -r line || [ -n "$line" ]; do
     line="${line%$'\r'}"; line="${line#"${line%%[![:space:]]*}"}"; line="${line%"${line##*[![:space:]]}"}"
     [ -z "$line" ] || [ "${line:0:1}" = "#" ] && continue
     [[ "$line" =~ ^https?://[^/[:space:]]+(/|$) ]] || err "safety-url-allow.txt: not an absolute URL prefix: $line"
     URLP+=("$line")
-  done <"$URL_ALLOW_FILE"
+  done <"$TMP/urlallow"
 fi
 
 # ---- file list (paths relative to BASE) ---------------------------------------------------------
@@ -167,6 +177,7 @@ SYNTH=()
 SYNTH_FILE="$HERE/tests/synthetic-tokens.txt"
 if [ $SOURCE -eq 1 ] && [ -e "$SYNTH_FILE" ]; then
   [ -f "$SYNTH_FILE" ] && [ -r "$SYNTH_FILE" ] || err "tests/synthetic-tokens.txt unreadable"
+  slurp "$SYNTH_FILE" "$TMP/synth" "tests/synthetic-tokens.txt"
   n=0
   while IFS= read -r line || [ -n "$line" ]; do
     n=$((n + 1)); line="${line%$'\r'}"
@@ -174,7 +185,7 @@ if [ $SOURCE -eq 1 ] && [ -e "$SYNTH_FILE" ]; then
     printf '%s\n' "$line" | grep -qiE -e "${B[secret-token]}" \
       || err "tests/synthetic-tokens.txt line $n does not match the secret-token class"
     SYNTH+=("$line")
-  done <"$SYNTH_FILE"
+  done <"$TMP/synth"
 fi
 URLRE='https?://[^][:space:]"<>()`{}|\\^'"'"']+'
 

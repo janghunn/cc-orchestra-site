@@ -43,9 +43,11 @@ const FONT_FILES = ['SCDream4.otf', 'SCDream6.otf', 'SHA256SUMS', 'LICENSE-S-Cor
 const MARKER = '.cc-site-build';
 const MARKER_TEXT = 'cc-orchestra-site build output (scripts/build.mjs); safe to delete with the rest of this directory\n';
 const SOURCE_DIRS = ['src', 'content', 'scripts', 'fonts', 'tests', '.github', 'design'];
-/* copy keys the template does not show on purpose (no "unused" warning): the page's own language name,
-   and the font link, which only renders next to the KO-only font credit */
-const UNUSED_OK = ['meta.langName', 'footer.fontLink'];
+/* Copy keys the page does not render on purpose; any other key no template tag reads fails the build.
+   meta.langName: the page's own language name (the toggle shows the other one); footer.fontLink: renders
+   only next to the KO-only font credit (empty on EN); lifecycle.tree.0.1: the root row's empty note
+   (the root folder is shown in the panel head). */
+const UNUSED_OK = ['meta.langName', 'footer.fontLink', 'lifecycle.tree.0.1'];
 
 class BuildError extends Error {}
 function fail(msg) { throw new BuildError(msg); }
@@ -103,6 +105,14 @@ function compareShape(a, b, where, out) {
   }
 }
 
+/* [path, value] for every leaf (keys may themselves contain dots, as in _claims) */
+function leaves(v, prefix, out) {
+  if (Array.isArray(v)) v.forEach((x, i) => leaves(x, `${prefix}.${i}`, out));
+  else if (isObj(v)) for (const k of Object.keys(v)) leaves(v[k], prefix ? `${prefix}.${k}` : k, out);
+  else out.push([prefix, v]);
+  return out;
+}
+
 function leafPaths(v, prefix, out) {
   if (Array.isArray(v)) v.forEach((x, i) => leafPaths(x, `${prefix}.${i}`, out));
   else if (isObj(v)) for (const k of Object.keys(v)) leafPaths(v[k], prefix ? `${prefix}.${k}` : k, out);
@@ -131,7 +141,7 @@ function makeCopy(fact) {
     return str.replace(/\{\{([^{}]*)\}\}/g, (m, inner) => {
       const mm = /^f:([A-Za-z0-9_.-]+)$/.exec(inner.trim());
       if (!mm) fail(`unknown placeholder ${m} in ${where}`);
-      return escHtml(fact(mm[1]));
+      try { return escHtml(fact(mm[1])); } catch (e) { throw e instanceof BuildError ? new BuildError(`${e.message} in ${where}`) : e; }
     });
   }
   /* Inline HTML: allowed tags kept, entities kept, everything else escaped; stray "<tag>" is an error. */
@@ -217,7 +227,9 @@ function parseTemplate(src) {
 }
 
 function makeRenderer({ content, view, vars, copy, fact, used }) {
-  function lookup(ref, scope, line, optional) {
+  /* mark = record the key as used by the page (outputs and conditions; a loop over an array does not
+     count as using its items, so a key no template tag reads is reported) */
+  function lookup(ref, scope, line, optional, mark = true) {
     const where = `page.html:${line}`;
     if (ref === '@i' || ref === '@n' || ref === '@first' || ref === '@last') {
       if (!scope.loop) fail(`${where}: ${ref} outside {{#each}}`);
@@ -228,7 +240,7 @@ function makeRenderer({ content, view, vars, copy, fact, used }) {
       const segs = ref === '.' ? [] : ref.slice(1).split('.');
       const r = getPath(scope.loop.item, segs);
       if (!r.found && !optional) fail(`${where}: missing content key ${scope.loop.path}${ref === '.' ? '' : ref}`);
-      if (r.found && scope.loop.path) used.add(`${scope.loop.path}${ref === '.' ? '' : ref}`);
+      if (r.found && scope.loop.path && mark) used.add(`${scope.loop.path}${ref === '.' ? '' : ref}`);
       return { ...r, path: scope.loop.path ? `${scope.loop.path}${ref === '.' ? '' : ref}` : null };
     }
     if (ref.startsWith('$')) {
@@ -238,7 +250,7 @@ function makeRenderer({ content, view, vars, copy, fact, used }) {
     }
     const r = getPath(content, ref.split('.'));
     if (!r.found && !optional) fail(`${where}: missing content key ${ref}`);
-    if (r.found) used.add(ref);
+    if (r.found && mark) used.add(ref);
     return { ...r, path: ref };
   }
   function truthy(v) { return Array.isArray(v) ? v.length > 0 : Boolean(v); }
@@ -271,7 +283,7 @@ function makeRenderer({ content, view, vars, copy, fact, used }) {
         const ok = r.found && truthy(r.value);
         out += render((neg ? !ok : ok) ? n.body : (n.alt || []), scope);
       } else if (n.type === 'each') {
-        const r = lookup(n.ref, scope, n.line, false);
+        const r = lookup(n.ref, scope, n.line, false, false);
         if (!Array.isArray(r.value)) fail(`page.html:${n.line}: {{#each ${n.ref}}} needs an array`);
         r.value.forEach((item, i) => {
           out += render(n.body, { loop: { item, i, last: i === r.value.length - 1, path: r.path ? `${r.path}.${i}` : null }, parent: scope });
@@ -371,6 +383,17 @@ function build(opts, outDir) {
 
   const fact = makeFacts(facts);
   const copy = makeCopy(fact);
+  /* Every copy string in both files is validated (placeholders against facts.json, inline markup),
+     whether or not the template renders it. _claims/_nonclaims hold ids and key patterns, not copy,
+     but may still carry no placeholder. */
+  for (const l of LANGS) {
+    for (const [k, v] of leaves(content[l], '', [])) {
+      if (typeof v !== 'string') continue;
+      if (k.startsWith('_')) {
+        if (/\{\{|\}\}/.test(v)) fail(`placeholder in ${l}.json ${k}: ${JSON.stringify(v)}`);
+      } else copy.rich(v, `${l}.json ${k}`);
+    }
+  }
   const tree = parseTemplate(read(path.join(REPO, 'src/page.html')));
 
   const css = ['tokens.css', 'base.css', 'site.css'].map((f) => `/* ${f} */\n` + read(path.join(REPO, 'src/css', f))).join('\n');
@@ -407,9 +430,9 @@ function build(opts, outDir) {
     if (isEn && /SCDream/.test(html)) fail('the EN page must not contain "SCDream"');
     const siteCount = html.split(SITE).length - 1;
     if (siteCount !== 2) fail(`${l} page: expected SITE_URL exactly twice (hreflang pair), found ${siteCount}`);
-    /* unused copy: a warning, so a key dropped from the template is noticed */
-    const unused = leafPaths(content[l], '', []).filter((k) => !k.startsWith('_') && !UNUSED_OK.includes(k) && ![...used].some((u) => k === u || k.startsWith(u + '.')));
-    if (isEn && unused.length) console.warn(`WARN copy keys not used by the template: ${unused.join(', ')}`);
+    /* unused copy is an error, so a key the template never reads cannot carry an unchecked claim */
+    const unused = leafPaths(content[l], '', []).filter((k) => !k.startsWith('_') && !UNUSED_OK.includes(k) && !used.has(k));
+    if (unused.length) fail(`${l}.json: copy keys the template never uses: ${unused.join(', ')}`);
     pages[l] = html;
   }
 

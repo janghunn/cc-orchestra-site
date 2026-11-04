@@ -79,6 +79,20 @@ run 2 "(d) missing target" "$W/does-not-exist"
 run 2 "(d) no target" --redact
 run 2 "(d) missing denylist file" "$W/clean" --denylist "$W/no-such-denylist"
 run 2 "(d) --denylist without a value" "$W/clean" --denylist
+mkfifo "$W/deny-fifo"
+run 2 "(d) denylist is a FIFO" "$W/clean" --denylist "$W/deny-fifo"
+mkdir -p "$W/deny-dir"
+run 2 "(d) denylist is a directory" "$W/clean" --denylist "$W/deny-dir"
+printf 'Alex Example\n' >"$W/deny-000"; chmod 000 "$W/deny-000"
+if [ -r "$W/deny-000" ]; then ok "(d) unreadable denylist (skipped: running as a user that can read mode 000)"
+else run 2 "(d) denylist with mode 000" "$W/clean" --denylist "$W/deny-000"; fi
+if [ -e /proc/self/mem ]; then
+  run 2 "(d) denylist read error (EIO on /proc/self/mem) is never CLEAN" "$W/clean" --denylist /proc/self/mem
+  hasnt "(d) denylist read error does not print CLEAN" "SAFETY-GREP: CLEAN"
+  run 2 "(d) private patterns read error (EIO on /proc/self/mem)" "$W/clean" --private /proc/self/mem
+fi
+: >"$W/deny-empty"
+run 0 "(c) empty denylist matches nothing" "$W/clean" --denylist "$W/deny-empty"
 run 2 "(d) missing --private file" "$W/clean" --private "$W/no-such-private"
 run 2 "(d) --require-private without any private file" "$W/clean" --require-private
 printf 'no-tab-here\n' >"$W/bad-private"

@@ -99,20 +99,36 @@
   });
 
   /* ---- language (site: a link to the other page, not an in-page swap) ----
-     The click keeps the current #hash and remembers the choice; the EN page's head script reads it
-     (and "?lang=en" in the KO page's link wins over it, so English is never bounced back to KO). */
+     The link keeps the CURRENT #hash: its fragment-free base is captured once, and the href is rebuilt
+     from location.hash right before any activation (click, middle/ctrl-click, context menu, keyboard
+     focus) and whenever the hash or history entry changes, so a stale fragment is never reused.
+     A click also remembers the choice; the EN page's head script reads it (and "?lang=en" in the KO
+     page's link wins over it, so English is never bounced back to KO). */
+  var langLinks = all('a[data-lang-link]');
+  langLinks.forEach(function (a) {
+    a.ppkBase = (a.getAttribute('href') || '').split('#')[0];
+  });
+  function syncLangLinks() {
+    var h = window.location.hash;
+    langLinks.forEach(function (a) { a.setAttribute('href', a.ppkBase + (h && h !== '#' ? h : '')); });
+  }
   function setLang(next) {
     var a = doc.querySelector('a[data-lang-link="' + (next === 'ko' ? 'ko' : 'en') + '"]');
-    if (a) a.click();
+    if (a) { syncLangLinks(); a.click(); }
   }
-  all('a[data-lang-link]').forEach(function (a) {
-    a.addEventListener('click', function () {
-      var next = a.getAttribute('data-lang-link') === 'ko' ? 'ko' : 'en';
-      var base = (a.getAttribute('href') || '').split('#')[0];
-      try { window.localStorage.setItem(LANG_KEY, next); } catch (e) { /* storage blocked: the link still works */ }
-      if (window.location.hash) a.setAttribute('href', base + window.location.hash);
+  function saveLang(a) {
+    var next = a.getAttribute('data-lang-link') === 'ko' ? 'ko' : 'en';
+    try { window.localStorage.setItem(LANG_KEY, next); } catch (e) { /* storage blocked: the link still works */ }
+  }
+  langLinks.forEach(function (a) {
+    ['mousedown', 'pointerdown', 'touchstart', 'focus', 'contextmenu', 'keydown'].forEach(function (t) {
+      a.addEventListener(t, syncLangLinks, t === 'touchstart' ? { passive: true } : false);
     });
+    a.addEventListener('click', function () { syncLangLinks(); saveLang(a); });
+    a.addEventListener('auxclick', function (e) { syncLangLinks(); if (e.button === 1) saveLang(a); });
   });
+  ['hashchange', 'popstate', 'pageshow'].forEach(function (t) { window.addEventListener(t, syncLangLinks); });
+  syncLangLinks();
 
   /* ---- copy buttons ---- */
   var globalStatus = null;
