@@ -98,7 +98,7 @@ function parseArgs(argv) {
     const a = argv[i];
     const eq = a.indexOf('=');
     const flag = eq > -1 ? a.slice(0, eq) : a;
-    if (!(flag in names)) fail(`unknown argument: ${a}`);
+    if (!Object.hasOwn(names, flag)) fail(`unknown argument: ${a}`);
     const val = eq > -1 ? a.slice(eq + 1) : argv[++i];
     if (!val) fail(`missing value for ${flag}`);
     opts[names[flag]] = path.resolve(process.cwd(), val);
@@ -118,10 +118,11 @@ const escHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const gz = (buf) => zlib.gzipSync(buf, { level: 9 }).length;
 
+/* Own properties only: `in` would resolve toString, constructor, ... through Object.prototype. */
 function getPath(obj, segs) {
   let cur = obj;
   for (const s of segs) {
-    if (cur === null || typeof cur !== 'object' || !(s in cur)) return { found: false };
+    if (cur === null || typeof cur !== 'object' || !Object.hasOwn(cur, s)) return { found: false };
     cur = cur[s];
   }
   return { found: true, value: cur };
@@ -137,9 +138,9 @@ function compareShape(a, b, where, out) {
     if (a.length !== b.length) out.push(`${where}: array length ${a.length} (en) vs ${b.length} (ko)`);
     for (let i = 0; i < Math.min(a.length, b.length); i++) compareShape(a[i], b[i], `${where}.${i}`, out);
   } else if (isObj(a)) {
-    for (const k of Object.keys(a)) if (!(k in b)) out.push(`${where ? where + '.' : ''}${k}: present in en only`);
-    for (const k of Object.keys(b)) if (!(k in a)) out.push(`${where ? where + '.' : ''}${k}: present in ko only`);
-    for (const k of Object.keys(a)) if (k in b) compareShape(a[k], b[k], where ? `${where}.${k}` : k, out);
+    for (const k of Object.keys(a)) if (!Object.hasOwn(b, k)) out.push(`${where ? where + '.' : ''}${k}: present in en only`);
+    for (const k of Object.keys(b)) if (!Object.hasOwn(a, k)) out.push(`${where ? where + '.' : ''}${k}: present in ko only`);
+    for (const k of Object.keys(a)) if (Object.hasOwn(b, k)) compareShape(a[k], b[k], where ? `${where}.${k}` : k, out);
   }
 }
 
@@ -297,7 +298,7 @@ function makeRenderer({ name, content, view, vars, copy, fact, used }) {
     for (const n of nodes) {
       if (n.type === 'text') out += n.value;
       else if (n.type === 'var') {
-        if (!(n.name in vars)) fail(`${name}:${n.line}: unknown build variable {{${n.name}}}`);
+        if (!Object.hasOwn(vars, n.name)) fail(`${name}:${n.line}: unknown build variable {{${n.name}}}`);
         out += vars[n.name];
       } else if (n.type === 'out') {
         if (n.kind === 'f') { out += escHtml(fact(n.ref)); continue; }

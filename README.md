@@ -47,6 +47,8 @@ SAFETY_PRIVATE_PATTERNS=<private patterns file> npm run qa          # everything
 SAFETY_PRIVATE_PATTERNS=<private patterns file> npm run qa:static   # no browser, no sockets
 npm run test:safety                                                 # safety-grep tests only
 bash tests/check-claims.test.sh                                     # claims-checker tests (synthetic)
+bash tests/build.test.sh                                            # build-script tests (temp copies)
+bash tests/publish-steps.test.sh                                    # Publishing block, throwaway repos
 ```
 
 `npm run qa` prints one `QA <id> PASS|FAIL|SKIP <detail>` line per check and exits 1 on any FAIL.
@@ -124,21 +126,45 @@ publish.
   samples for the private and denylist classes.
 
 **The one listed allowance.** CI passes `--allow <Pages base URL> --allow-count 8`. That single URL
-(`https://<owner>.github.io/<repo>/`, the only accepted form) is exempt from the `private:owner-handle`
-and `unlisted-url` classes, and from nothing else. It must occur exactly 8 times in `dist/` (the two
+(`https://<owner>.github.io/<repo>/`, the only accepted form) is exempt from every private class
+(`private:*`) and from `unlisted-url`, and from no other built-in class and not from the denylist: its
+exact occurrences are blanked and each private pattern is re-tested on the rest of the line, so any other
+match on that line still hits. It must occur exactly 8 times in `dist/` (the two
 hreflang links on each of the four pages); any other count fails with `HIT [allow-count]`. The repository and a local
 build contain the owner handle zero times.
 
 ## Publishing (hand steps, not automated)
 
-1. Create the public GitHub repository and push this repository's `main` branch to it.
-2. Add the repository secret `SAFETY_PRIVATE_PATTERNS` (Settings > Secrets and variables > Actions)
-   whose value is the full text of the private patterns file.
-3. Set Settings > Pages > Source to "GitHub Actions".
-4. Push to `main` or run the `deploy` workflow by hand. The workflow builds with `SITE_URL` taken from the
+`main` starts as an empty initial commit. It holds neither the site nor the deploy workflow, so the
+reviewed branch must be merged into `main` before the push; a push of the empty `main` publishes nothing.
+
+1. Create an empty public repository, with no README, licence or `.gitignore`:
+   `gh repo create <owner>/<repo> --public`.
+2. Set the repository secret `SAFETY_PRIVATE_PATTERNS` from the private patterns file, without printing
+   it: `gh secret set SAFETY_PRIVATE_PATTERNS --repo <owner>/<repo> < <private patterns file>`.
+3. Set Settings > Pages > Source to "GitHub Actions" (or
+   `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`).
+4. Set `SITE_BRANCH` to the reviewed branch and `REMOTE_URL` to the new repository's URL, then run the
+   block below from this repository. It is safe to re-run after any failure: the merge happens only once,
+   an existing `origin` is kept only if it equals `REMOTE_URL`, and `main` must hold the deploy workflow
+   before anything is pushed.
+
+   ```sh
+   # Pushes main only: no other branch, no tags.
+   test -n "$SITE_BRANCH" && test -n "$REMOTE_URL" &&
+     git switch main &&
+     { git merge-base --is-ancestor "$SITE_BRANCH" main || git merge --no-ff --no-edit "$SITE_BRANCH"; } &&
+     git cat-file -e main:.github/workflows/deploy.yml &&
+     { git remote get-url origin >/dev/null 2>&1 || git remote add origin "$REMOTE_URL"; } &&
+     test "$(git remote get-url origin)" = "$REMOTE_URL" &&
+     git push -u origin main
+   ```
+
+5. The push to `main` starts the `deploy` workflow. The workflow builds with `SITE_URL` taken from the
    Pages configuration (and refuses the placeholder), runs the safety grep on `dist` and on the source
    with the private patterns required, and deploys only if both exit 0. Every action is pinned to a full
-   commit SHA.
+   commit SHA. If the run failed because a step above was missing, complete that step and run
+   `gh workflow run deploy`.
 
 ## Fonts
 

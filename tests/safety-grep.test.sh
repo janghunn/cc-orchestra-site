@@ -172,5 +172,83 @@ env -u SAFETY_PRIVATE_PATTERNS HOME="$W/nohome" bash "$W/g2/safety-grep.sh" "$W/
 [ $got -eq 2 ] && ok "(source) a synthetic-tokens line that is not token-shaped is an error (exit 2)" \
   || bad "(source) bad synthetic-tokens line: exit $got, want 2" "$W/out"
 
+# (g) temp-file failures are errors, never a dropped hit or CLEAN -------------------------------
+# PATH shims only. Real binaries are resolved with type -P (a shell function named grep would
+# make a shim that calls "grep" recurse).
+RMKTEMP="$(type -P mktemp)" RGREP="$(type -P grep)" RBASH="$(type -P bash)"
+mkdir -p "$W/shim-mktemp" "$W/shim-grep" "$W/shim-wc"
+printf '#!%s\nd=$(%q "$@") || exit $?\n[ -n "${SHIM_BLOCK:-}" ] && mkdir "$d/$SHIM_BLOCK"\nprintf "%%s\\n" "$d"\n' \
+  "$RBASH" "$RMKTEMP" >"$W/shim-mktemp/mktemp"
+printf '#!%s\ncase "${1:-}" in\n  --*) ;;\n  -*q*) [ "$(readlink /proc/self/fd/0)" != /dev/null ] && { echo "grep: simulated read error" >&2; exit 2; } ;;\nesac\nexec %q "$@"\n' \
+  "$RBASH" "$RGREP" >"$W/shim-grep/grep"
+printf '#!%s\necho "wc: simulated failure" >&2\nexit 1\n' "$RBASH" >"$W/shim-wc/wc"
+chmod 755 "$W/shim-mktemp/mktemp" "$W/shim-grep/grep" "$W/shim-wc/wc"
+# srun: shim dir, target, args... (stdout+stderr in $W/out, exit status in $got)
+srun() {
+  local sd="$1"; shift
+  env -u SAFETY_PRIVATE_PATTERNS HOME="$W/nohome" PATH="$sd:$PATH" "$RBASH" "$G" "$@" >"$W/out" 2>&1; got=$?
+}
+GM="$W/gm"
+mkdir -p "$GM/content" "$GM/name/192.0.2.9" "$GM/url" "$GM/count" "$GM/private" "$GM/deny" "$GM/recheck"
+printf '<p>Host 192.0.2.10</p>\n' >"$GM/content/index.html"
+printf 'x\n' >"$GM/name/192.0.2.9/a.txt"
+printf '<a href="https://unlisted.example.org/x">x</a>\n' >"$GM/url/index.html"
+printf '<link href="%s">\n' "$A" >"$GM/count/index.html"
+printf '<p>Written by exampleowner.</p>\n' >"$GM/private/index.html"
+printf '<p>Alex Example</p>\n' >"$GM/deny/index.html"
+printf '<p>%s by exampleowner</p>\n' "$A" >"$GM/recheck/index.html"
+GNAMES="out one err hits namehits urls count names list private deny.raw deny.lf deny urlallow synth"
+# gtarget: name, expected HIT text, args...
+gtarget() {
+  local t="$1" want="$2" b nf=0; shift 2
+  run 1 "(g) control $t: exit 1 without a shim" "$@"
+  has "(g) control $t: $want" "$want"
+  for b in $GNAMES; do
+    SHIM_BLOCK="$b" srun "$W/shim-mktemp" "$@"
+    if [ $got -eq 0 ] || grep -qF "SAFETY-GREP: CLEAN" "$W/out"; then
+      nf=$((nf + 1)); bad "(g) $t: temp file '$b' blocked gives exit $got (CLEAN or 0)" "$W/out"
+    fi
+  done
+  [ $nf -eq 0 ] && ok "(g) $t: non-zero, no CLEAN with each temp file blocked ($GNAMES)"
+}
+export SHIM_BLOCK=""
+gtarget content "HIT [ipv4]" "$GM/content"
+gtarget name "HIT [file-name] 192.0.2.9 (ipv4)" "$GM/name"
+gtarget url "HIT [unlisted-url]" "$GM/url"
+gtarget count "HIT [allow-count]" "$GM/count" --allow "$A" --allow-count 2
+gtarget private "HIT [private:owner-handle]" "$GM/private" --private "$PS"
+gtarget deny "HIT [denylist]" "$GM/deny" --denylist "$DS"
+gtarget recheck "HIT [private:owner-handle] index.html:1" "$GM/recheck" --private "$PS" --allow "$A" --allow-count 1
+unset SHIM_BLOCK
+if [ -e /proc/self/fd/0 ]; then
+  srun "$W/shim-grep" "$GM/recheck" --private "$PS" --allow "$A" --allow-count 1 </dev/null
+  if [ $got -eq 2 ] && ! grep -qF "SAFETY-GREP: CLEAN" "$W/out"; then ok "(g) grep read error in the exemption re-check is exit 2, no CLEAN"
+  else bad "(g) grep read error in the exemption re-check: exit $got, want 2 and no CLEAN" "$W/out"; fi
+  has "(g) re-check error names the line" "SAFETY-GREP: ERROR exemption re-check failed for [private:owner-handle] index.html:1"
+else
+  ok "(g) grep read error in the exemption re-check (skipped: no /proc/self/fd)"
+fi
+srun "$W/shim-wc" "$GM/count" --allow "$A" --allow-count 0
+if [ $got -eq 2 ] && ! grep -qF "SAFETY-GREP: CLEAN" "$W/out"; then ok "(g) failing wc (count read) is exit 2, no CLEAN"
+else bad "(g) failing wc (count read): exit $got, want 2 and no CLEAN" "$W/out"; fi
+
+# (h) --allow exempts the allowed URL from every private class ------------------------------------
+printf 'owner-handle\texampleowner\nperson\texampleowner\nhandle\t\\bexampleowner\\b\n' >"$W/priv3"
+run 0 "(h) allowed URL twice, three private classes, count 2" "$W/allow" --private "$W/priv3" --allow "$A" --allow-count 2
+run 1 "(h) extra handle on line 3 still hits" "$W/allow2" --private "$W/priv3" --allow "$A" --allow-count 2
+for c in owner-handle person handle; do
+  has "(h) private:$c hits on line 3" "HIT [private:$c] index.html:3"
+done
+hasnt "(h) the URL lines are exempt" "index.html:1"
+mkdir -p "$W/allow5"; printf '<p><a href="%s">site</a> by exampleowner</p>\n' "$A" >"$W/allow5/index.html"
+run 1 "(h) URL and bare handle on one line" "$W/allow5" --private "$W/priv3" --allow "$A" --allow-count 1
+for c in owner-handle person handle; do
+  has "(h) private:$c hits the shared line" "HIT [private:$c] index.html:1"
+done
+run 1 "(h) without --allow the URL hits every private class" "$W/allow" --private "$W/priv3"
+for c in owner-handle person handle; do
+  has "(h) private:$c hits without --allow" "HIT [private:$c] index.html:1"
+done
+
 echo "# safety-grep tests: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

@@ -5,7 +5,8 @@
 #                       [--allow URL --allow-count N] [--redact] [--source-mode]
 #
 # Exit 0 = clean, 1 = hit(s), 2 = error (usage, missing or unreadable target/denylist/private file,
-# bad --allow, grep failure, temp-file failure). An error is never CLEAN.
+# bad --allow, grep failure, temp-file failure). An error is never CLEAN. Every temp-file failure
+# (create, write or read) is exit 2; it never drops a hit.
 #
 # Scans every text file under the target (no extension filter; binary files such as .otf are
 # skipped by grep -I), case-insensitively, plus every file and directory name relative to the
@@ -15,8 +16,10 @@
 # "#" comments. --denylist FILE adds fixed strings (one per line, "#" comments).
 #
 # --allow URL --allow-count N: one Pages base URL (https://<owner>.github.io/<repo>/), exempt from
-#   the private:owner-handle and unlisted-url classes only; the target must contain exactly N
-#   occurrences of it, otherwise HIT [allow-count].
+#   every private class and the unlisted-url class only (no other built-in class, not the
+#   denylist): exact occurrences of it are blanked and the class is re-tested on the line, so any
+#   other match on that line still hits. The target must contain exactly N occurrences of it,
+#   otherwise HIT [allow-count].
 # --redact: print file:line only, never the matched line.
 # --source-mode: scan the repository source (git ls-files, including untracked files that are not
 #   ignored) with the private, denylist and secret-token classes only. The exact synthetic token
@@ -68,12 +71,31 @@ fi
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/safety-grep.XXXXXX")" || err "cannot create a temp directory (check TMPDIR)"
 trap 'rm -rf "$TMP"' EXIT
-OUT="$TMP/out" ERR="$TMP/err" NAMES="$TMP/names" DENYF="$TMP/deny" ONE="$TMP/one"
+# one temp file per scan stage: content hits, file-name hits, unlisted-url matches, allow-count
+ERR="$TMP/err" HITF="$TMP/hits" NAMEHITF="$TMP/namehits" URLF="$TMP/urls" COUNTF="$TMP/count"
+NAMES="$TMP/names" DENYF="$TMP/deny"
 
 # copy an input file to a private temp file; any read error (EIO, EACCES, ...) is exit 2, never CLEAN.
-# All parsing below reads the copy, so a failing read cannot look like end of file.
+# All parsing below reads the copy, so a failing read cannot look like end of file. The copy always
+# ends with a newline (one is appended; the parsers skip blank lines), so load() can count its lines.
 slurp() { # src, dest, label
-  cat -- "$1" >"$2" 2>"$ERR" || err "cannot read $3: $(head -1 "$ERR")"
+  { cat -- "$1" && echo; } >"$2" 2>"$ERR" || err "cannot read $3: $(head -1 "$ERR")"
+}
+
+# load a temp file into array $1, one element per line (or per NUL-terminated record with "nul").
+# The element count must equal an independent count of the file (wc), so a file that opens but
+# cannot be read (a directory, EIO) fails here instead of looking empty. Returns 2 on any failure.
+load() { # array name, file, [nul]
+  local -n _A="$1"; local _f="$2" _want
+  if [ "${3:-}" = nul ]; then
+    _want=$(set -o pipefail; tr -cd '\0' <"$_f" | wc -c) || return 2
+    mapfile -d '' -t _A <"$_f" || return 2
+  else
+    _want=$(wc -l <"$_f") || return 2
+    mapfile -t _A <"$_f" || return 2
+  fi
+  [[ "$_want" =~ ^[[:space:]]*[0-9]+[[:space:]]*$ ]] || return 2
+  [ ${#_A[@]} -eq $((_want)) ] || return 2
 }
 
 # ---- private patterns ---------------------------------------------------------------------------
@@ -88,8 +110,9 @@ fi
 PCLS=() PRE=()
 if [ -n "$PSRC" ]; then
   slurp "$PSRC" "$TMP/private" "private patterns file"
+  load LINES "$TMP/private" || err "cannot read the private patterns copy"
   n=0
-  while IFS= read -r line || [ -n "$line" ]; do
+  for line in ${LINES[@]+"${LINES[@]}"}; do
     n=$((n + 1)); line="${line%$'\r'}"
     [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
     [[ "$line" == *$'\t'* ]] || err "private patterns file line $n: expected class<TAB>ERE"
@@ -98,7 +121,7 @@ if [ -n "$PSRC" ]; then
     [ -n "$re" ] || err "private patterns file line $n: empty pattern"
     grep -qiE -e "$re" </dev/null 2>/dev/null; [ $? -le 1 ] || err "private patterns file line $n: invalid ERE"
     PCLS+=("$cls"); PRE+=("$re")
-  done <"$TMP/private"
+  done
   [ ${#PCLS[@]} -gt 0 ] || { [ $REQPRIV -eq 1 ] && err "private patterns file has no patterns"; }
 else
   [ $REQPRIV -eq 1 ] && err "private patterns required (--require-private) but none found"
@@ -110,7 +133,7 @@ if [ $DENY_SET -eq 1 ]; then
   [ -n "$DENY" ] && [ -f "$DENY" ] && [ -r "$DENY" ] || err "denylist file not found or unreadable: ${DENY:-<empty>}"
   slurp "$DENY" "$TMP/deny.raw" "denylist"
   tr -d '\r' <"$TMP/deny.raw" >"$TMP/deny.lf" 2>"$ERR" || err "cannot read denylist: $(head -1 "$ERR")"
-  grep -v -e '^[[:space:]]*$' -e '^[[:space:]]*#' -- "$TMP/deny.lf" >"$DENYF" 2>"$ERR"; g=$?
+  ( exec >"$DENYF" 2>"$ERR" || exit 2; exec grep -v -e '^[[:space:]]*$' -e '^[[:space:]]*#' -- "$TMP/deny.lf" ); g=$?
   [ $g -le 1 ] || err "cannot read denylist: $(head -1 "$ERR")"
   [ -s "$DENYF" ] || { DENY_SET=0; echo "NOTE: denylist has no entries" >&2; }
 fi
@@ -120,12 +143,13 @@ URLP=()
 if [ $SOURCE -eq 0 ]; then
   [ -f "$URL_ALLOW_FILE" ] && [ -r "$URL_ALLOW_FILE" ] || err "URL allowlist not found: safety-url-allow.txt next to this script"
   slurp "$URL_ALLOW_FILE" "$TMP/urlallow" "safety-url-allow.txt"
-  while IFS= read -r line || [ -n "$line" ]; do
+  load LINES "$TMP/urlallow" || err "cannot read the safety-url-allow.txt copy"
+  for line in ${LINES[@]+"${LINES[@]}"}; do
     line="${line%$'\r'}"; line="${line#"${line%%[![:space:]]*}"}"; line="${line%"${line##*[![:space:]]}"}"
     [ -z "$line" ] || [ "${line:0:1}" = "#" ] && continue
     [[ "$line" =~ ^https?://[^/[:space:]]+(/|$) ]] || err "safety-url-allow.txt: not an absolute URL prefix: $line"
     URLP+=("$line")
-  done <"$TMP/urlallow"
+  done
 fi
 
 # ---- file list (paths relative to BASE) ---------------------------------------------------------
@@ -139,10 +163,11 @@ if [ -d "$TARGET" ]; then
     (cd "$BASE" && find . -mindepth 1 \( -type f -o -type l \) -print0) >"$TMP/list" 2>"$ERR" \
       || err "cannot list files: $(head -1 "$ERR")"
   fi
-  while IFS= read -r -d '' f; do
+  load LIST "$TMP/list" nul || err "cannot read the file list"
+  for f in ${LIST[@]+"${LIST[@]}"}; do
     f="${f#./}"
     [ -f "$BASE/$f" ] && FILES+=("$f")
-  done <"$TMP/list"
+  done
 else
   [ $SOURCE -eq 0 ] || err "--source-mode needs a directory target"
   BASE="$(dirname -- "$TARGET")"; FILES=("$(basename -- "$TARGET")")
@@ -178,34 +203,43 @@ SYNTH_FILE="$HERE/tests/synthetic-tokens.txt"
 if [ $SOURCE -eq 1 ] && [ -e "$SYNTH_FILE" ]; then
   [ -f "$SYNTH_FILE" ] && [ -r "$SYNTH_FILE" ] || err "tests/synthetic-tokens.txt unreadable"
   slurp "$SYNTH_FILE" "$TMP/synth" "tests/synthetic-tokens.txt"
+  load LINES "$TMP/synth" || err "cannot read the tests/synthetic-tokens.txt copy"
   n=0
-  while IFS= read -r line || [ -n "$line" ]; do
+  for line in ${LINES[@]+"${LINES[@]}"}; do
     n=$((n + 1)); line="${line%$'\r'}"
     [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
     printf '%s\n' "$line" | grep -qiE -e "${B[secret-token]}" \
       || err "tests/synthetic-tokens.txt line $n does not match the secret-token class"
     SYNTH+=("$line")
-  done <"$TMP/synth"
+  done
 fi
 URLRE='https?://[^][:space:]"<>()`{}|\\^'"'"']+'
 
 rc=0 HITS=0
 hit() { HITS=$((HITS + 1)); [ $rc -eq 0 ] && rc=1; }
 gerr() { echo "SAFETY-GREP: ERROR scanning [$1]: $(head -1 "$ERR")" >&2; rc=2; }
+lerr() { echo "SAFETY-GREP: ERROR cannot read the scan results of [$1]" >&2; rc=2; }
 
-# run grep over a file list from BASE; $1 = list name (FILES), rest = grep args
-rgrep() {
-  local -n L="$1"; shift
-  [ ${#L[@]} -gt 0 ] || { : >"$OUT"; return 1; }
-  (cd "$BASE" && grep -HnI -i "$@" -- "${L[@]}") >"$OUT" 2>"$ERR"
+# run grep from BASE with stdout to temp file $1; a failed cd or redirect is 2 (error), never 1
+tgrep() { # out file, grep args...
+  local o="$1"; shift
+  ( cd "$BASE" || exit 2; exec >"$o" 2>"$ERR" || exit 2; exec grep "$@" )
 }
 
-# print hits from $OUT. $1 label, $2 show content (1/0), $3 class regex for the exemption re-test
+# run grep over a file list from BASE into $HITF; $1 = list name (FILES), rest = grep args
+rgrep() {
+  local -n L="$1"; shift
+  [ ${#L[@]} -gt 0 ] || return 1
+  tgrep "$HITF" -HnI -i "$@" -- "${L[@]}"
+}
+
+# print hits from $HITF. $1 label, $2 show content (1/0), $3 class regex for the exemption re-test
 # (or empty), $4 exemption: "allow" (the --allow URL) or "synthetic" (tests/synthetic-tokens.txt).
 # Exact occurrences of the exempt strings are blanked out of the line, then the class regex is re-run.
 report() {
-  local label="$1" show="$2" are="$3" ex="${4:-}" l f rest n c c2 t
-  while IFS= read -r l; do
+  local label="$1" show="$2" are="$3" ex="${4:-}" l f rest n c c2 t g R=()
+  load R "$HITF" || { lerr "$label"; return; }
+  for l in ${R[@]+"${R[@]}"}; do
     f="${l%%:*}"; rest="${l#*:}"; n="${rest%%:*}"; c="${rest#*:}"
     if [ -n "$are" ]; then
       c2="$c"
@@ -214,13 +248,14 @@ report() {
         for t in ${SYNTH[@]+"${SYNTH[@]}"}; do c2="${c2//"$t"/ }"; done
       fi
       if [ "$c2" != "$c" ]; then
-        printf '%s\n' "$c2" >"$ONE"
-        grep -qiE -e "$are" -- "$ONE" || continue
+        printf '%s\n' "$c2" | grep -qiE -e "$are"; g=$?
+        [ $g -eq 1 ] && continue
+        [ $g -ge 2 ] && { echo "SAFETY-GREP: ERROR exemption re-check failed for [$label] $f:$n" >&2; rc=2; }
       fi
     fi
     hit; echo "HIT [$label] $f:$n"
     [ "$show" = 1 ] && [ $REDACT -eq 0 ] && printf '    %s\n' "${c:0:240}"
-  done <"$OUT"
+  done
 }
 
 url_allowed() { # $1 url
@@ -236,16 +271,17 @@ url_allowed() { # $1 url
 }
 
 name_scan() { # $1 class label, $2 show (1/0), grep args...
-  local label="$1" show="$2" l; shift 2
+  local label="$1" show="$2" l R=(); shift 2
   [ -s "$NAMES" ] || return 0
-  grep -n -i "$@" -- "$NAMES" >"$OUT" 2>"$ERR"; local g=$?
+  tgrep "$NAMEHITF" -n -i "$@" -- "$NAMES"; local g=$?
   [ $g -ge 2 ] && { gerr "file-name/$label"; return; }
   [ $g -eq 0 ] || return 0
-  while IFS= read -r l; do
+  load R "$NAMEHITF" || { lerr "file-name/$label"; return; }
+  for l in ${R[@]+"${R[@]}"}; do
     hit
     if [ "$show" = 1 ] && [ $REDACT -eq 0 ]; then echo "HIT [file-name] ${l#*:} ($label)"
     else echo "HIT [file-name] (name withheld) ($label)"; fi
-  done <"$OUT"
+  done
 }
 
 if [ $SOURCE -eq 0 ]; then
@@ -257,16 +293,17 @@ if [ $SOURCE -eq 0 ]; then
   done
   # unlisted-url: every absolute http(s) URL must start with a listed prefix
   if [ ${#FILES[@]} -gt 0 ]; then
-    (cd "$BASE" && grep -HnoI -i -E -e "$URLRE" -- "${FILES[@]}") >"$OUT" 2>"$ERR"; g=$?
+    tgrep "$URLF" -HnoI -i -E -e "$URLRE" -- "${FILES[@]}"; g=$?
     if [ $g -ge 2 ]; then gerr unlisted-url
+    elif [ $g -eq 0 ] && ! load R "$URLF"; then lerr unlisted-url
     elif [ $g -eq 0 ]; then
-      while IFS= read -r l; do
+      for l in ${R[@]+"${R[@]}"}; do
         f="${l%%:*}"; rest="${l#*:}"; n="${rest%%:*}"; u="${rest#*:}"
         u="${u%"${u##*[!.,;:]}"}"
         url_allowed "$u" && continue
         hit; echo "HIT [unlisted-url] $f:$n"
         [ $REDACT -eq 0 ] && printf '    %s\n' "${u:0:240}"
-      done <"$OUT"
+      done
     fi
   fi
 else
@@ -278,7 +315,7 @@ fi
 
 for i in ${PCLS[@]+"${!PCLS[@]}"}; do
   label="private:${PCLS[$i]}"; are=""
-  [ "${PCLS[$i]}" = "owner-handle" ] && are="${PRE[$i]}"
+  [ $ALLOW_SET -eq 1 ] && are="${PRE[$i]}"
   rgrep FILES -E -e "${PRE[$i]}"; g=$?
   [ $g -ge 2 ] && { gerr "$label"; continue; }
   [ $g -eq 0 ] && report "$label" 0 "$are" allow
@@ -293,13 +330,15 @@ if [ $DENY_SET -eq 1 ]; then
 fi
 
 if [ $ALLOW_SET -eq 1 ]; then
+  # the occurrence count is the number of loaded lines of $COUNTF; a failed load is an error, never 0
+  found=0 g=1 R=()
   if [ ${#FILES[@]} -gt 0 ]; then
-    (cd "$BASE" && grep -ohIF -e "$ALLOW" -- "${FILES[@]}") >"$OUT" 2>"$ERR"; g=$?
-    [ $g -ge 2 ] && gerr allow-count
+    tgrep "$COUNTF" -ohIF -e "$ALLOW" -- "${FILES[@]}"; g=$?
+    if [ $g -ge 2 ]; then gerr allow-count
+    elif load R "$COUNTF"; then found=${#R[@]}
+    else lerr allow-count; g=2; fi
   fi
-  found=$(wc -l <"$OUT" 2>/dev/null || echo 0); found=$((found + 0))
-  [ ${#FILES[@]} -gt 0 ] || found=0
-  if [ "$found" -ne "$ALLOWN" ]; then
+  if [ $g -le 1 ] && [ "$found" -ne "$ALLOWN" ]; then
     hit; echo "HIT [allow-count] the allowed URL occurs $found times, expected $ALLOWN"
   fi
 fi
