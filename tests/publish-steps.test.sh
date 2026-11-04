@@ -55,7 +55,7 @@ check_remote() {
 
 if [ "$have_block" -ne 0 ] || [ ! -s "$B" ]; then
   bad "README ## Publishing has no sh block" "$W/awk.err"
-  for c in p1 p2 p3 p4 p6 p7; do bad "$c: skipped, no Publishing sh block"; done
+  for c in p1 p2 p3 p4 p6 p7 p8 p9 p10 p11; do bad "$c: skipped, no Publishing sh block"; done
 else
   ok "README ## Publishing sh block found ($(wc -l <"$B") lines)"
 
@@ -95,9 +95,12 @@ else
     else ok "p3: different existing origin stops the block, both remotes untouched"; fi
   fi
 
-  # p4 no forced or bulk pushes
-  if grep -nE -e '--(force|all|mirror|tags)' "$B" >"$W/p4.out"; then bad "p4: block has a forbidden push option" "$W/p4.out"
-  else ok "p4: block has none of --force, --all, --mirror, --tags"; fi
+  # p4 no forced, bulk or tag pushes (only the git push lines; get-url --all is fine)
+  grep -n 'git push' "$B" >"$W/p4.push"
+  if [ ! -s "$W/p4.push" ]; then bad "p4: block has no git push line"
+  elif grep -E -e '--(force|all|mirror|tags|follow-tags)' "$W/p4.push" >"$W/p4.out"; then
+    bad "p4: git push line has a forbidden option" "$W/p4.out"
+  else ok "p4: git push has none of --force, --all, --mirror, --tags, --follow-tags"; fi
 
   # p6 origin whose fetch URL equals REMOTE_URL but whose push URL is another repository stops the block
   S="$W/p6/sb"; RB="$W/p6/b.git"; RC="$W/p6/c.git"
@@ -120,6 +123,32 @@ else
     if why="$(check_remote "$R")"; then ok "p7: remote.origin.push mapping ignored, only refs/heads/main with the site"
     else bad "p7: $why" "$W/p7.log"; fi
   else bad "p7: block exit $?, want 0" "$W/p7.log"; fi
+
+  # stop_case NAME SETUP-CMDS: sandbox S with bare B and C, REMOTE_URL=C, origin = C, then SETUP-CMDS run
+  # in S. The block must exit non-zero and neither B nor C may receive refs.
+  stop_case() {
+    local n="$1" what="$2" S="$W/$1/sb" RB="$W/$1/b.git" RC="$W/$1/c.git" brefs crefs; shift 2
+    { sandbox "$S" && bare "$RB" && bare "$RC" && git -C "$S" remote add origin "$RC" &&
+      (cd "$S" && RB="$RB" RC="$RC" bash -e -c "$1"); } >"$W/$n.setup" 2>&1 || { bad "$n: setup failed" "$W/$n.setup"; return; }
+    if run_block "$S" "$RC" "$W/$n.log"; then bad "$n: block exit 0 with $what" "$W/$n.log"; return; fi
+    brefs="$(git --git-dir="$RB" for-each-ref --format='%(refname)')"
+    crefs="$(git --git-dir="$RC" for-each-ref --format='%(refname)')"
+    if [ -n "$brefs$crefs" ]; then bad "$n: a remote received refs: b=[$brefs] c=[$crefs]" "$W/$n.log"
+    else ok "$n: $what stops the block, neither remote receives refs"; fi
+  }
+  stop_case p8 "push URLs C then B" \
+    'git config --add remote.origin.pushurl "$RC" && git config --add remote.origin.pushurl "$RB"'
+  stop_case p9 "two remote.origin.url values C then B" 'git config --add remote.origin.url "$RB"'
+  stop_case p10 "url.<B>.pushInsteadOf <C>" 'git config "url.$RB.pushInsteadOf" "$RC"'
+
+  # p11 an annotated tag with push.followTags=true: no tag is pushed
+  S="$W/p11/sb"; R="$W/p11/remote.git"
+  { sandbox "$S" && bare "$R" && git -C "$S" tag -a v1 -m v1 site &&
+    git -C "$S" config push.followTags true; } >"$W/p11.setup" 2>&1 || bad "p11: setup failed" "$W/p11.setup"
+  if run_block "$S" "$R" "$W/p11.log"; then
+    if why="$(check_remote "$R")"; then ok "p11: push.followTags set, annotated tag not pushed, only refs/heads/main"
+    else bad "p11: $why" "$W/p11.log"; fi
+  else bad "p11: block exit $?, want 0" "$W/p11.log"; fi
 fi
 
 # p5 negative control: the old instruction pushes the empty main, and the p1 checks must say so.

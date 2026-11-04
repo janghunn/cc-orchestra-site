@@ -146,9 +146,11 @@ reviewed branch must be merged into `main` before the push; a push of the empty 
    `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`).
 4. Set `SITE_BRANCH` to the reviewed branch and `REMOTE_URL` to the new repository's URL, then run the
    block below from this repository. It is safe to re-run after any failure: the merge happens only once,
-   an existing `origin` is kept only if its fetch and push URLs equal `REMOTE_URL`, `main` must hold the
-   deploy workflow before anything is pushed, and the push names its destination (`refs/heads/main`), so
-   no `remote.origin.push` mapping applies.
+   `main` must hold the deploy workflow before anything is pushed, and an existing `origin` is kept only
+   if its one fetch URL and its one push URL, after any `insteadOf` or `pushInsteadOf` rewrite, both equal
+   `REMOTE_URL` (a second URL or a rewrite stops the block). The push names its destination
+   (`refs/heads/main`), so no `remote.origin.push` mapping applies, and sends no tags, even with
+   `push.followTags` set.
 
    ```sh
    # Pushes main only: no other branch, no tags.
@@ -157,9 +159,9 @@ reviewed branch must be merged into `main` before the push; a push of the empty 
      { git merge-base --is-ancestor "$SITE_BRANCH" main || git merge --no-ff --no-edit "$SITE_BRANCH"; } &&
      git cat-file -e main:.github/workflows/deploy.yml &&
      { git remote get-url origin >/dev/null 2>&1 || git remote add origin "$REMOTE_URL"; } &&
-     test "$(git remote get-url origin)" = "$REMOTE_URL" &&
-     test "$(git remote get-url --push origin)" = "$REMOTE_URL" &&
-     git push -u origin main:refs/heads/main
+     test "$(git remote get-url --all origin)" = "$REMOTE_URL" &&
+     test "$(git remote get-url --push --all origin)" = "$REMOTE_URL" &&
+     git push -u --no-follow-tags origin main:refs/heads/main
    ```
 
 5. The push to `main` starts the `deploy` workflow. The workflow builds with `SITE_URL` taken from the
