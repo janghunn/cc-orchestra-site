@@ -106,10 +106,11 @@ const checks = {
       if (!exists(f)) continue;
       for (const m of read(f).matchAll(/\{\{f:([A-Za-z0-9_.]+)\}\}/g)) used.add(m[1]);
     }
-    const isRoute = (v) => v && typeof v === 'object' && 'model' in v && 'effort' in v;
+    // Own properties only, as in build.mjs getPath: `in` and `v[seg]` would resolve toString, constructor, ... through Object.prototype.
+    const isRoute = (v) => v && typeof v === 'object' && Object.hasOwn(v, 'model') && Object.hasOwn(v, 'effort');
     for (const key of used) {
       let v = facts;
-      for (const seg of key.split('.')) v = v != null && typeof v === 'object' ? v[seg] : undefined;
+      for (const seg of key.split('.')) v = v !== null && typeof v === 'object' && Object.hasOwn(v, seg) ? v[seg] : undefined;
       if (v === undefined) problems.push(`{{f:${key}}} does not resolve in facts.json`);
       else if (typeof v === 'object' && !isRoute(v)) problems.push(`{{f:${key}}} resolves to an object that is not a route`);
     }
