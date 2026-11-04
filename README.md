@@ -46,6 +46,8 @@ npm run test:safety                                                 # safety-gre
 ```
 
 `npm run qa` prints one `QA <id> PASS|FAIL|SKIP <detail>` line per check and exits 1 on any FAIL.
+A check that runs a child process passes only if the child launched, exited 0 and printed its own
+success line; a child that cannot start or is killed is a FAIL.
 `DIST=<dir>` checks another output directory (the `build` step writes there).
 
 | id | what it checks | acceptance criteria | in `qa:static` |
@@ -59,7 +61,7 @@ npm run test:safety                                                 # safety-gre
 | `fonts` | `dist/fonts/ko` hashes match `SHA256SUMS` and the official ones; no `SCDream` in the EN page, `site.css`, `site.js`; only `/ko/` links `ko-font.css` | 5 | yes |
 | `budgets` | `gzip -9` sizes: HTML 40 KB per page, CSS 25 KB, JS 30 KB, EN fonts 120 KB; KO OTF sizes reported | 6 | yes |
 | `contrast` | `scripts/contrast.mjs`: theme token pairs, light and dark, 4.5:1 text, 3:1 UI | 7 | yes |
-| `claims` | `scripts/check-claims.mjs`: every content string is in `_claims` or `_nonclaims`; claim ids match `content/claims.md`; every source cell is `path:line[-line]@<sha>`, `framing` or a URL | 2 | yes |
+| `claims` | `scripts/check-claims.mjs`: every content string is in `_claims` or `_nonclaims`; claim ids match `content/claims.md`; every source cell is `path:line[-line]@<sha>` citations, `framing`, a URL, or one `observation: <text>` | 2 | yes |
 | `deps` | lockfile present and in step with `package.json`; exact versions; install scripts listed below | 10 | yes |
 | `browser` | `scripts/browser-qa.mjs` (Playwright + system Chrome over the local server): light + dark, EN + KO, 390 + 1280 px: no horizontal scroll, axe-core 0 violations, reduced motion leaves `document.getAnimations()` empty, keyboard-only operation of every figure control, text twins, `/ko/` font loaded (`document.fonts.check('400 16px SCDream')` and a loaded 400 face) with KO font bytes, no request to another origin | 4, 5, 7 | no |
 | `lighthouse` | `scripts/lighthouse.mjs`: pinned Lighthouse, mobile, `/` and `/ko/`, median of 3 runs: Performance 95, Accessibility 100, Best Practices 95, SEO 95 | 8 | no |
@@ -98,8 +100,9 @@ publish.
   `--require-private` turns that into exit 2. `npm run qa` and CI always require it.
 - `--denylist FILE` adds fixed strings (one per line, `#` comments); hits never print the matched text.
 - `--source-mode` scans the repository source (tracked and untracked, not ignored files) with the
-  private, denylist and secret-token classes only; `tests/fixtures/` is exempt from secret-token there,
-  because its synthetic tokens exist to make the built-in scan hit.
+  private, denylist and secret-token classes only. The exact synthetic token strings listed in
+  `tests/synthetic-tokens.txt` (used on purpose by the fixtures; each must match the secret-token class)
+  are exempt there; any other token-shaped string, in `tests/fixtures/` or anywhere else, is a hit.
 - `--redact` prints `file:line` only.
 - `tests/fixtures/` holds synthetic samples (documentation addresses, `example` domains, fake tokens) that
   hit every built-in class; `tests/private-patterns.sample` and `tests/denylist.sample` are synthetic

@@ -19,8 +19,9 @@
 #   occurrences of it, otherwise HIT [allow-count].
 # --redact: print file:line only, never the matched line.
 # --source-mode: scan the repository source (git ls-files, including untracked files that are not
-#   ignored) with the private, denylist and secret-token classes only. tests/fixtures/ is skipped
-#   by secret-token there, because its synthetic tokens exist to make the built-in scan hit.
+#   ignored) with the private, denylist and secret-token classes only. The exact synthetic token
+#   strings listed in tests/synthetic-tokens.txt (each must match secret-token) are exempt there;
+#   any other token-shaped string, in tests/fixtures/ or anywhere else, is a hit.
 set -u
 umask 077
 export LC_ALL=C
@@ -144,8 +145,6 @@ fi
   done
   [ -d "$TARGET" ] && [ $SOURCE -eq 0 ] && (cd "$BASE" && find . -mindepth 1 -type d | sed 's|^\./||')
 } | sort -u >"$NAMES" || err "cannot build the name list"
-FILES_NOFIX=()
-for f in ${FILES[@]+"${FILES[@]}"}; do [[ "$f" == tests/fixtures/* ]] || FILES_NOFIX+=("$f"); done
 
 # ---- classes -------------------------------------------------------------------------------------
 BCLS=(abs-home-path harness-state-path mount-path ipv4 ipv6 local-host port machine-context email
@@ -163,28 +162,50 @@ declare -A B=(
   [secret-token]='(sk-[A-Za-z0-9_-]{16,}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|Bearer [A-Za-z0-9._-]{20,}|(api|secret|access)[_-]?(key|token)["'"'"']?[[:space:]]*[:=][[:space:]]*(["'"'"'][^"'"'"']{8,}|[A-Za-z0-9_./+=-]{16,}))'
   [source-code-leak]='(^|[[:space:]])(def |class [A-Z][A-Za-z]+\(|#!/usr/bin/env|set -[euo]+|import [a-z_]+$)'
 )
+# --source-mode: exact synthetic token strings that the committed fixtures use on purpose
+SYNTH=()
+SYNTH_FILE="$HERE/tests/synthetic-tokens.txt"
+if [ $SOURCE -eq 1 ] && [ -e "$SYNTH_FILE" ]; then
+  [ -f "$SYNTH_FILE" ] && [ -r "$SYNTH_FILE" ] || err "tests/synthetic-tokens.txt unreadable"
+  n=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    n=$((n + 1)); line="${line%$'\r'}"
+    [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
+    printf '%s\n' "$line" | grep -qiE -e "${B[secret-token]}" \
+      || err "tests/synthetic-tokens.txt line $n does not match the secret-token class"
+    SYNTH+=("$line")
+  done <"$SYNTH_FILE"
+fi
 URLRE='https?://[^][:space:]"<>()`{}|\\^'"'"']+'
 
 rc=0 HITS=0
 hit() { HITS=$((HITS + 1)); [ $rc -eq 0 ] && rc=1; }
 gerr() { echo "SAFETY-GREP: ERROR scanning [$1]: $(head -1 "$ERR")" >&2; rc=2; }
 
-# run grep over a file list from BASE; $1 = list name (FILES or FILES_NOFIX), rest = grep args
+# run grep over a file list from BASE; $1 = list name (FILES), rest = grep args
 rgrep() {
   local -n L="$1"; shift
   [ ${#L[@]} -gt 0 ] || { : >"$OUT"; return 1; }
   (cd "$BASE" && grep -HnI -i "$@" -- "${L[@]}") >"$OUT" 2>"$ERR"
 }
 
-# print hits from $OUT. $1 label, $2 show content (1/0), $3 allow-filter regex (or empty)
+# print hits from $OUT. $1 label, $2 show content (1/0), $3 class regex for the exemption re-test
+# (or empty), $4 exemption: "allow" (the --allow URL) or "synthetic" (tests/synthetic-tokens.txt).
+# Exact occurrences of the exempt strings are blanked out of the line, then the class regex is re-run.
 report() {
-  local label="$1" show="$2" are="$3" l f rest n c c2
+  local label="$1" show="$2" are="$3" ex="${4:-}" l f rest n c c2 t
   while IFS= read -r l; do
     f="${l%%:*}"; rest="${l#*:}"; n="${rest%%:*}"; c="${rest#*:}"
-    if [ -n "$are" ] && [ $ALLOW_SET -eq 1 ]; then
-      c2="${c//"$ALLOW"/ }"
-      printf '%s\n' "$c2" >"$ONE"
-      grep -qiE -e "$are" -- "$ONE" || continue
+    if [ -n "$are" ]; then
+      c2="$c"
+      [ "$ex" = allow ] && [ $ALLOW_SET -eq 1 ] && c2="${c2//"$ALLOW"/ }"
+      if [ "$ex" = synthetic ]; then
+        for t in ${SYNTH[@]+"${SYNTH[@]}"}; do c2="${c2//"$t"/ }"; done
+      fi
+      if [ "$c2" != "$c" ]; then
+        printf '%s\n' "$c2" >"$ONE"
+        grep -qiE -e "$are" -- "$ONE" || continue
+      fi
     fi
     hit; echo "HIT [$label] $f:$n"
     [ "$show" = 1 ] && [ $REDACT -eq 0 ] && printf '    %s\n' "${c:0:240}"
@@ -238,9 +259,9 @@ if [ $SOURCE -eq 0 ]; then
     fi
   fi
 else
-  rgrep FILES_NOFIX -E -e "${B[secret-token]}"; g=$?
+  rgrep FILES -E -e "${B[secret-token]}"; g=$?
   [ $g -ge 2 ] && gerr secret-token
-  [ $g -eq 0 ] && report secret-token 1 ""
+  [ $g -eq 0 ] && report secret-token 1 "${B[secret-token]}" synthetic
   name_scan secret-token 1 -E -e "${B[secret-token]}"
 fi
 
@@ -249,7 +270,7 @@ for i in ${PCLS[@]+"${!PCLS[@]}"}; do
   [ "${PCLS[$i]}" = "owner-handle" ] && are="${PRE[$i]}"
   rgrep FILES -E -e "${PRE[$i]}"; g=$?
   [ $g -ge 2 ] && { gerr "$label"; continue; }
-  [ $g -eq 0 ] && report "$label" 0 "$are"
+  [ $g -eq 0 ] && report "$label" 0 "$are" allow
   name_scan "$label" 0 -E -e "${PRE[$i]}"
 done
 

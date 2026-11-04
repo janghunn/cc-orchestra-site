@@ -3,7 +3,8 @@
 //   (pattern = exact key (covers its subtree), "prefix.*" (below prefix), "*.leaf" (that name in any section));
 // - both files have the same leaf keys, array lengths and the same _claims / _nonclaims;
 // - every id used in _claims exists in claims.md, and every claims.md id is used;
-// - every claims.md source cell is "framing", a URL, or "; "-separated path:line[-line]@<sourceSha>.
+// - every claims.md source cell is "framing", a URL, "observation: <text>" (the whole cell, not split),
+//   or "; "-separated path:line[-line]@<sourceSha>.
 // Optional: CLAIMS_SOURCE_REPO=<git checkout of the source repo> also checks that each cited file
 // exists at <sourceSha> and the cited lines are within it.
 // Exit 0 = PASS, 1 = FAIL. Usage: node scripts/check-claims.mjs
@@ -116,10 +117,17 @@ function linesAt(file) {
   return lineCount.get(file);
 }
 let cites = 0;
+let observations = 0;
 for (const [id, { text, source }] of rows) {
   if (!text) fail(`claims.md ${id}: empty claim text`);
   const s = source.replace(/`/g, '').trim();
   if (s === 'framing' || /^https?:\/\/\S+$/.test(s)) continue;
+  // "observation: <text>" is one source (a dated first-hand observation, no repository path); not split
+  if (/^observation:/.test(s)) {
+    if (!/^observation:\s*\S.{9,}/.test(s)) fail(`claims.md ${id}: observation source needs a description`);
+    observations++;
+    continue;
+  }
   if (!s) {
     fail(`claims.md ${id}: empty source`);
     continue;
@@ -127,7 +135,7 @@ for (const [id, { text, source }] of rows) {
   for (const tok of s.split(/\s*;\s*/)) {
     const m = CITE.exec(tok);
     if (!m) {
-      if (!/^https?:\/\/\S+$/.test(tok)) fail(`claims.md ${id}: source "${tok}" is not path:line[-line]@${SHA}, framing or a URL`);
+      if (!/^https?:\/\/\S+$/.test(tok)) fail(`claims.md ${id}: source "${tok}" is not path:line[-line]@${SHA}, framing, observation: or a URL`);
       continue;
     }
     cites++;
@@ -149,6 +157,6 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `check-claims: PASS (${allKeys.size} leaf keys covered, ${rows.size} claims, ${cites} citations` +
+  `check-claims: PASS (${allKeys.size} leaf keys covered, ${rows.size} claims, ${cites} citations, ${observations} observation(s)` +
     `${repo ? ', line ranges checked against the source repo' : ', line ranges not checked: CLAIMS_SOURCE_REPO unset'})`,
 );

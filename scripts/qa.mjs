@@ -37,10 +37,20 @@ function walk(dir, out = []) {
   }
   return out;
 }
+// Run a child. `ran` is true only if it launched, was not killed and returned an exit status;
+// `code` is that status, or a reason string ("launch failed: EPERM", "killed by SIGTERM").
 function sh(cmd, args, opts = {}) {
   const r = spawnSync(cmd, args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 << 20, ...opts });
-  return { code: r.status ?? (r.error ? 127 : 1), out: (r.stdout || '') + (r.stderr || ''), error: r.error };
+  const out = (r.stdout || '') + (r.stderr || '');
+  if (r.error) return { ran: false, code: `launch failed: ${r.error.code || r.error.message}`, out };
+  if (r.signal) return { ran: false, code: `killed by ${r.signal}`, out };
+  if (typeof r.status !== 'number') return { ran: false, code: 'no exit status', out };
+  return { ran: true, code: r.status, out };
 }
+// PASS only if the child ran, exited 0 and printed its own success line.
+const passed = (r, re) => r.ran && r.code === 0 && re.test(r.out);
+const skipped = (r, re) => r.ran && r.code === 77 && re.test(r.out);
+const show = (s) => s && console.log(s);
 const lastLine = (s) => s.trim().split('\n').filter(Boolean).slice(-1)[0] || '';
 const indent = (s, n = 40) => {
   const ls = s.trimEnd().split('\n').filter(Boolean);
@@ -58,10 +68,12 @@ function line(id, status, detail) {
 const checks = {
   build() {
     if (!exists(path.join(ROOT, 'scripts/build.mjs'))) return line('build', 'FAIL', 'scripts/build.mjs is missing');
+    const started = Date.now() - 2000;
     const r = sh(process.execPath, ['scripts/build.mjs', '--out', DIST]);
-    const ok = r.code === 0 && exists(path.join(DIST, 'index.html')) && exists(path.join(DIST, 'ko/index.html'));
-    if (!ok && r.out.trim()) console.log(indent(r.out));
-    line('build', ok ? 'PASS' : 'FAIL', `node scripts/build.mjs --out ${rel(DIST)} -> exit ${r.code}; ${ok ? 'index.html and ko/index.html written' : 'pages missing'}`);
+    const fresh = (p) => exists(p) && fs.statSync(p).mtimeMs >= started;
+    const ok = r.ran && r.code === 0 && fresh(path.join(DIST, 'index.html')) && fresh(path.join(DIST, 'ko/index.html'));
+    if (!ok && r.out.trim()) show(indent(r.out));
+    line('build', ok ? 'PASS' : 'FAIL', `node scripts/build.mjs --out ${rel(DIST)} -> exit ${r.code}; ${ok ? 'index.html and ko/index.html written by this run' : 'pages missing or not rewritten by this run'}`);
   },
 
   facts() {
@@ -161,9 +173,10 @@ const checks = {
     delete env.SAFETY_PRIVATE_PATTERNS;
     const a = sh('bash', ['safety-grep.sh', rel(DIST), ...base, ...allow], { env });
     const b = sh('bash', ['safety-grep.sh', '.', '--source-mode', ...base], { env });
-    const ok = a.code === 0 && b.code === 0;
-    if (a.code !== 0) console.log(indent(a.out));
-    if (b.code !== 0) console.log(indent(b.out));
+    const clean = /^SAFETY-GREP: CLEAN /m;
+    const ok = passed(a, clean) && passed(b, clean);
+    if (!passed(a, clean)) show(indent(a.out));
+    if (!passed(b, clean)) show(indent(b.out));
     line(
       'safety',
       ok ? 'PASS' : 'FAIL',
@@ -174,8 +187,9 @@ const checks = {
 
   'safety-tests'() {
     const r = sh('bash', ['tests/safety-grep.test.sh'], { env: { ...process.env, DIST } });
-    if (r.code !== 0) console.log(indent(r.out.split('\n').filter((l) => !l.startsWith('ok ')).join('\n')));
-    line('safety-tests', r.code === 0 ? 'PASS' : 'FAIL', `bash tests/safety-grep.test.sh -> exit ${r.code}; ${lastLine(r.out)}`);
+    const ok = passed(r, /^# safety-grep tests: [1-9][0-9]* passed, 0 failed$/m);
+    if (!ok) show(indent(r.out.split('\n').filter((l) => !l.startsWith('ok ')).join('\n')));
+    line('safety-tests', ok ? 'PASS' : 'FAIL', `bash tests/safety-grep.test.sh -> exit ${r.code}; ${lastLine(r.out)}`);
   },
 
   'no-network'() {
@@ -294,7 +308,7 @@ const checks = {
   budgets() {
     const gz = (f) => {
       const r = spawnSync('gzip', ['-9', '-c', f], { maxBuffer: 64 << 20 });
-      if (r.status !== 0) throw new Error(`gzip failed on ${f}`);
+      if (r.error || r.signal || r.status !== 0) throw new Error(`gzip failed on ${f}: ${r.error?.code || r.signal || 'exit ' + r.status}`);
       return r.stdout.length;
     };
     const problems = [];
@@ -337,14 +351,16 @@ const checks = {
 
   contrast() {
     const r = sh(process.execPath, ['scripts/contrast.mjs', '--quiet']);
-    if (r.code !== 0) console.log(indent(r.out));
-    line('contrast', r.code === 0 ? 'PASS' : 'FAIL', lastLine(r.out));
+    const ok = passed(r, /^contrast: PASS \([1-9][0-9]* pair checks, 0 below minimum/m);
+    if (!ok) show(indent(r.out));
+    line('contrast', ok ? 'PASS' : 'FAIL', `exit ${r.code}; ${lastLine(r.out) || 'no output'}`);
   },
 
   claims() {
     const r = sh(process.execPath, ['scripts/check-claims.mjs']);
-    if (r.code !== 0) console.log(indent(r.out));
-    line('claims', r.code === 0 ? 'PASS' : 'FAIL', lastLine(r.out));
+    const ok = passed(r, /^check-claims: PASS \([1-9][0-9]* leaf keys covered, [1-9][0-9]* claims/m);
+    if (!ok) show(indent(r.out));
+    line('claims', ok ? 'PASS' : 'FAIL', `exit ${r.code}; ${lastLine(r.out) || 'no output'}`);
   },
 
   deps() {
@@ -380,17 +396,18 @@ const checks = {
   browser() {
     if (STATIC) return line('browser', 'SKIP', '--static');
     const r = sh(process.execPath, ['scripts/browser-qa.mjs'], { env: { ...process.env, DIST } });
-    console.log(indent(r.out, 200));
-    if (r.code === 77) return line('browser', 'SKIP', lastLine(r.out));
-    line('browser', r.code === 0 ? 'PASS' : 'FAIL', lastLine(r.out));
+    show(indent(r.out, 200));
+    if (skipped(r, /^BROWSER SKIP /m)) return line('browser', 'SKIP', lastLine(r.out));
+    line('browser', passed(r, /^browser-qa: PASS \([1-9][0-9]* checks, 0 failed\)$/m) ? 'PASS' : 'FAIL', `exit ${r.code}; ${lastLine(r.out) || 'no output'}`);
   },
 
   lighthouse() {
     if (STATIC) return line('lighthouse', 'SKIP', '--static');
     const r = sh(process.execPath, ['scripts/lighthouse.mjs'], { env: { ...process.env, DIST } });
-    console.log(indent(r.out));
-    if (r.code === 77) return line('lighthouse', 'SKIP', lastLine(r.out));
-    line('lighthouse', r.code === 0 ? 'PASS' : 'FAIL', lastLine(r.out));
+    show(indent(r.out));
+    if (skipped(r, /^LIGHTHOUSE SKIP /m)) return line('lighthouse', 'SKIP', lastLine(r.out));
+    const ok = passed(r, /^lighthouse: PASS /m) && (r.out.match(/^LIGHTHOUSE \/\S* PASS /gm) || []).length === 2;
+    line('lighthouse', ok ? 'PASS' : 'FAIL', `exit ${r.code}; ${lastLine(r.out) || 'no output'}`);
   },
 
   async links() {
@@ -414,6 +431,9 @@ const checks = {
         timeout: 10000,
         linksToSkip: async (l) => !l.startsWith(origin),
       });
+      if (!res || !Array.isArray(res.links) || !res.links.some((l) => l.state === 'OK' && l.url.startsWith(origin))) {
+        return line('links', 'FAIL', 'linkinator returned no checked internal links');
+      }
       const broken = res.links.filter((l) => l.state === 'BROKEN');
       const ok = res.links.filter((l) => l.state === 'OK').length;
       const skipped = res.links.filter((l) => l.state === 'SKIPPED').length;

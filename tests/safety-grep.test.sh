@@ -132,16 +132,31 @@ n=$(grep -c '^HIT \[abs-home-path\]' "$W/out")
   || bad "(f) abs-home-path hits on an absolute target: $n, want 1 (leaky.html:3)" "$W/out"
 
 # --source-mode -----------------------------------------------------------------------------------
-mkdir -p "$W/src/tests/fixtures" "$W/src/docs"
-cp "$FX/debug.py" "$W/src/tests/fixtures/"
+# Token-shaped test strings are assembled at run time, so this file itself stays clean in source mode.
+TOK="ghp""_UNLISTEDunlisted1111111111111111111"
+mkdir -p "$W/src/tests" "$W/src/docs"
+cp -r "$FX" "$W/src/tests/fixtures"
 printf 'Local paths like /home/example-user are only checked in the built site.\n' >"$W/src/docs/a.md"
-run 0 "(source) path classes and fixture tokens are not source-mode hits" "$W/src" --source-mode --private "$PS"
-printf 'See exampleowner for details.\n' >"$W/src/docs/b.md"
-run 1 "(source) private literal in the source hits" "$W/src" --source-mode --private "$PS"
+# (the fixtures hit the synthetic private samples on purpose, so these runs load no private file)
+run 0 "(source) committed fixtures (listed synthetic tokens) and path classes are not hits" "$W/src" --source-mode
+run 0 "(source) the repository itself has no unlisted token" "$ROOT" --source-mode
+printf 'REPLAY_TOKEN=%s\n' "$TOK" >"$W/src/tests/fixtures/replay.env"
+run 1 "(source) an unlisted token inside tests/fixtures hits" "$W/src" --source-mode
+has "(source) fixture token reported" "HIT [secret-token] tests/fixtures/replay.env:1"
+rm "$W/src/tests/fixtures/replay.env"
+printf 'x = "ghp_EXAMPLEexample0000000000000000000" + "%s"\n' "$TOK" >"$W/src/docs/mixed.py"
+run 1 "(source) a listed token does not hide another token on the same line" "$W/src" --source-mode
+has "(source) mixed line reported" "HIT [secret-token] docs/mixed.py:1"
+rm "$W/src/docs/mixed.py"
+mkdir -p "$W/src2/docs"; printf 'See exampleowner for details.\n' >"$W/src2/docs/b.md"
+run 1 "(source) private literal in the source hits" "$W/src2" --source-mode --private "$PS"
 has "(source) private class reported" "HIT [private:owner-handle] docs/b.md:1"
-rm "$W/src/docs/b.md"; cp "$FX/debug.py" "$W/src/docs/"
-run 1 "(source) token outside tests/fixtures hits" "$W/src" --source-mode --private "$PS"
-has "(source) secret-token reported" "HIT [secret-token] docs/debug.py:2"
+printf 'Plain text.\n' >"$W/src2/docs/b.md"
+run 0 "(source) clean source with private patterns" "$W/src2" --source-mode --private "$PS"
+mkdir -p "$W/g2/tests"; cp "$G" "$W/g2/"; printf 'not-a-token\n' >"$W/g2/tests/synthetic-tokens.txt"
+env -u SAFETY_PRIVATE_PATTERNS HOME="$W/nohome" bash "$W/g2/safety-grep.sh" "$W/src" --source-mode >"$W/out" 2>&1; got=$?
+[ $got -eq 2 ] && ok "(source) a synthetic-tokens line that is not token-shaped is an error (exit 2)" \
+  || bad "(source) bad synthetic-tokens line: exit $got, want 2" "$W/out"
 
 echo "# safety-grep tests: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

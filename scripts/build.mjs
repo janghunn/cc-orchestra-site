@@ -7,6 +7,8 @@
    Usage: node scripts/build.mjs [--out DIR] [--content-dir DIR] [--facts FILE]
      --out          output directory (default: <repo>/dist). Built in a fresh sibling temp dir and swapped
                     in only after a complete build, so a failed or killed build never leaves a half-written DIR.
+                    Refused (exit 1, nothing deleted): the repo or an ancestor, .git, a source dir, $HOME, /, a
+                    symlink, or an existing non-empty dir without the .cc-site-build marker every build writes.
      --content-dir  directory holding en.json and ko.json (default: <repo>/content)
      --facts        facts file (default: <repo>/facts.json)
    Env: SITE_URL (absolute http(s) URL ending in "/"; default https://example.invalid/cc-orchestra-site/),
@@ -27,6 +29,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -36,6 +39,10 @@ const GATE_IDS = ['self-check', 'codex-verify', 'codex-review', 'claude-verifier
 const GATE_FAMILY = { 'self-check': 'a', 'codex-verify': 'b', 'codex-review': 'b', 'claude-verifier': 'a' };
 const DEFAULT_RISK = 'normal';
 const FONT_FILES = ['SCDream4.otf', 'SCDream6.otf', 'SHA256SUMS', 'LICENSE-S-Core-Dream.txt'];
+/* Every output carries this marker; an existing --out dir is replaced only if it has it (or is empty). */
+const MARKER = '.cc-site-build';
+const MARKER_TEXT = 'cc-orchestra-site build output (scripts/build.mjs); safe to delete with the rest of this directory\n';
+const SOURCE_DIRS = ['src', 'content', 'scripts', 'fonts', 'tests', '.github', 'design'];
 /* copy keys the template does not show on purpose (no "unused" warning): the page's own language name,
    and the font link, which only renders next to the KO-only font credit */
 const UNUSED_OK = ['meta.langName', 'footer.fontLink'];
@@ -419,6 +426,7 @@ function build(opts, outDir) {
   for (const f of FONT_FILES) w(`fonts/ko/${f}`, fs.readFileSync(path.join(REPO, 'fonts/ko', f)));
   for (const f of fs.readdirSync(path.join(REPO, 'src/static'))) w(f, fs.readFileSync(path.join(REPO, 'src/static', f)));
   w('.nojekyll', '');
+  w(MARKER, MARKER_TEXT);
 
   const report = [
     ['index.html', pages.en], ['ko/index.html', pages.ko], ['assets/site.css', siteCss],
@@ -427,9 +435,57 @@ function build(opts, outDir) {
   return { report, site: SITE };
 }
 
+/* realpath of the nearest existing ancestor, plus the segments that do not exist yet */
+function realish(p) {
+  const rest = [];
+  let cur = path.resolve(p);
+  for (;;) {
+    try { return path.join(fs.realpathSync(cur), ...rest.reverse()); } catch (e) {
+      if (e.code !== 'ENOENT') throw e;
+      const up = path.dirname(cur);
+      if (up === cur) throw e;
+      rest.push(path.basename(cur));
+      cur = up;
+    }
+  }
+}
+const within = (child, dir) => child === dir || child.startsWith(dir.endsWith(path.sep) ? dir : dir + path.sep);
+
+/* Refuse any --out that could delete something that is not a previous build output.
+   Runs before the build writes or deletes anything. */
+function checkOut(out) {
+  const real = realish(out);
+  const repo = fs.realpathSync(REPO);
+  const home = (() => { try { return fs.realpathSync(os.homedir()); } catch (e) { return path.resolve(os.homedir()); } })();
+  const why =
+    real === path.parse(real).root ? 'it is the filesystem root'
+    : real === home ? 'it is the home directory'
+    : within(repo, real) ? 'it is the repository or one of its ancestors'
+    : within(real, path.join(repo, '.git')) ? 'it is inside .git'
+    : SOURCE_DIRS.some((d) => within(real, path.join(repo, d))) ? `it is inside a source directory (${SOURCE_DIRS.join(', ')})`
+    : null;
+  if (why) fail(`refusing --out ${out}: ${why}`);
+  let st = null;
+  try { st = fs.lstatSync(out); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  if (!st) return;
+  if (st.isSymbolicLink()) fail(`refusing --out ${out}: it is a symbolic link`);
+  if (!st.isDirectory()) fail(`refusing --out ${out}: it exists and is not a directory`);
+  const entries = fs.readdirSync(out);
+  if (!entries.length) return;
+  let mark = null;
+  try {
+    const ms = fs.lstatSync(path.join(out, MARKER));
+    if (ms.isFile()) mark = fs.readFileSync(path.join(out, MARKER), 'utf8');
+  } catch (e) { /* no marker */ }
+  if (mark !== MARKER_TEXT) fail(`refusing --out ${out}: it exists, is not empty and has no ${MARKER} marker, so it is not a previous build output (nothing was deleted; remove it yourself or choose another directory)`);
+}
+
 function main() {
   let opts;
-  try { opts = parseArgs(process.argv.slice(2)); } catch (e) { console.error(`build: ${e.message}`); process.exit(1); }
+  try {
+    opts = parseArgs(process.argv.slice(2));
+    checkOut(opts.out);
+  } catch (e) { console.error(`build: ${e instanceof BuildError ? 'FAILED: ' : ''}${e.message}`); process.exit(1); }
   const out = opts.out;
   const parent = path.dirname(out);
   fs.mkdirSync(parent, { recursive: true });

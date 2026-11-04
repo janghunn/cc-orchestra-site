@@ -42,7 +42,8 @@ function run(url, file) {
     const p = spawn(process.execPath, args, { env: { ...process.env, CHROME_PATH: CHROME }, stdio: ['ignore', 'ignore', 'pipe'] });
     let err = '';
     p.stderr.on('data', (d) => (err += d));
-    p.on('close', (code) => resolve({ code, err }));
+    p.on('error', (e) => resolve({ code: `launch failed: ${e.code || e.message}`, err: String(e.message || e) }));
+    p.on('close', (code, signal) => resolve({ code: signal ? `killed by ${signal}` : code, err }));
   });
 }
 const median = (xs) => {
@@ -68,12 +69,17 @@ try {
     const notes = [];
     for (let i = 1; i <= RUNS; i++) {
       const file = path.join(OUT, `${name}-${i}.json`);
+      fs.rmSync(file, { force: true });
       const { code, err } = await run(url, file);
       if (code !== 0 || !fs.existsSync(file)) {
         notes.push(`run ${i} exit ${code}: ${err.trim().split('\n').slice(-1)[0] || ''}`);
         continue;
       }
       const lhr = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (lhr.requestedUrl !== url && lhr.finalDisplayedUrl !== url && lhr.mainDocumentUrl !== url) {
+        notes.push(`run ${i} report is for another URL`);
+        continue;
+      }
       if (lhr.runtimeError) notes.push(`run ${i} runtimeError ${lhr.runtimeError.code}`);
       for (const k of Object.keys(scores)) scores[k].push(Math.round((lhr.categories[k]?.score ?? 0) * 100));
       if (i === RUNS || RUNS === 1) {

@@ -201,14 +201,14 @@
       "Extra tooling has not shown a gate-quality gain; the evaluation was inconclusive, so the gates stay as they are.",
       "Benchmark results inform model choice. They are not measurements of this harness.",
       "The default mode needs Linux, bash, Python 3, Git, tmux, a logged-in Claude Code and Codex CLI, and a Claude subscription. Codex-only mode needs Linux, bash, Python 3.11 or later, Git, tmux and a logged-in Codex CLI, and no Claude setup.",
-      "The source repository is private, and this page shows no code."
+      "The source is not public, and this page shows no code."
     ]
   },
   "faq": {
     "kicker": "FAQ",
     "h2": "Questions",
     "items": [
-      {"q": "Is the code open?", "a": "No. This page describes the design; the repository is private, so there is no install command here."},
+      {"q": "Is the code open?", "a": "No. The source is not public. This page describes the design and ships no code, so there is no install command here."},
       {"q": "Which models does it use?", "a": "Claude Opus 5.5 and Sonnet 5.5 on the Claude side; GPT-6.1 Sol, GPT-6 Astra and GPT-6 Luna on the Codex side. Tables 1 and 2 list each role."},
       {"q": "Can I use only Codex?", "a": "Yes. A Codex-only mode runs all four tiers on Codex CLI, with GPT-6.1 Sol and GPT-6 Astra chosen per role and no automatic fallback to another model or to Claude. A session can switch between the default mode and Codex-only mode; branches, changes and task files carry over. In Codex-only mode the cross-family check does not apply."},
       {"q": "Can I use only Claude?", "a": "There is no separate Claude-only mode. If Codex is unavailable, a task can fall back to Claude devs and a Claude verifier, and the report records the degraded gate."},
