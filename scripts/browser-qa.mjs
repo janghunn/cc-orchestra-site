@@ -1,15 +1,19 @@
 // Browser QA over the local static server (scripts/serve.mjs) with Playwright and the system Chrome.
-// Usage: node scripts/browser-qa.mjs [--only layout,axe,motion,keyboard,font,requests]
+// Usage: node scripts/browser-qa.mjs [--only layout,axe,motion,keyboard,loop-motion,font,requests]
 // Env: DIST (default dist), CHROME_PATH (default /usr/bin/google-chrome).
-// Checks (light + dark, EN + KO, 390 + 1280 px unless noted):
+// Pages: /, /ko/, /workflow/, /ko/workflow/. Checks (light + dark, every page, 390 + 1280 px unless noted):
 //   layout    no horizontal scroll (before and after scrolling through the page); the theme applied
 //   axe       axe-core: 0 violations
 //   motion    prefers-reduced-motion: reduce -> document.getAnimations().length === 0 after load,
 //             after scrolling, and after a runtime switch to reduce
 //   keyboard  every control inside a figure is reached with Tab and changes the figure when operated
-//             with the keyboard alone; every interactive figure has a text twin
-//   font      /ko/: document.fonts.check('400 16px SCDream') and a loaded FontFace SCDream 400;
-//             KO font transfer bytes; EN requests no font
+//             with the keyboard alone; every interactive figure has a text twin; the workflow pages
+//             have fig-loop
+//   loop-motion  workflow pages, motion enabled: fig-loop Run (keyboard) autoplays (>= 2 stage changes
+//             within 2 x data-interval) and reads Pause; Pause, the global "Pause motion" button and a
+//             runtime switch to prefers-reduced-motion: reduce each stop it for 2 intervals
+//   font      KO pages: document.fonts.check('400 16px SCDream') and a loaded FontFace SCDream 400;
+//             KO font transfer bytes; EN pages request no font
 //   requests  every request the browser makes stays on the server origin
 // Prints "BROWSER <check> PASS|FAIL <detail>". Exit 0 all PASS, 1 any FAIL, 77 environment
 // unavailable (no Chrome, or no loopback socket).
@@ -49,10 +53,21 @@ try {
   throw e;
 }
 const ORIGIN = new URL(server.url).origin;
+// [tag, lang, url, workflow page?]
 const PAGES = [
-  ['en', server.url],
-  ['ko', server.url + 'ko/'],
+  ['/', 'en', server.url, false],
+  ['/ko/', 'ko', server.url + 'ko/', false],
+  ['/workflow/', 'en', server.url + 'workflow/', true],
+  ['/ko/workflow/', 'ko', server.url + 'ko/workflow/', true],
 ];
+// fig-loop button labels, from the workflow content (the template prints them verbatim)
+const LOOP_LABELS = Object.fromEntries(
+  ['en', 'ko'].map((l) => {
+    const f = path.join(ROOT, `content/workflow.${l}.json`);
+    const loop = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')).loop || {} : {};
+    return [l, { run: loop.run, pause: loop.pause }];
+  }),
+);
 const THEMES = ['light', 'dark'];
 const WIDTHS = [390, 1280];
 
@@ -101,10 +116,10 @@ try {
 
   // ---- layout + axe --------------------------------------------------------------------------
   if (want('layout') || want('axe')) {
-    for (const [lang, url] of PAGES) {
+    for (const [name, , url] of PAGES) {
       for (const theme of THEMES) {
         for (const width of WIDTHS) {
-          const tag = `${lang}/${theme}/${width}`;
+          const tag = `${name} ${theme}/${width}`;
           const { ctx, page, errors } = await newPage({ viewport: { width, height: 844 }, colorScheme: theme });
           try {
             await page.goto(url, { waitUntil: 'load' });
@@ -152,9 +167,9 @@ try {
 
   // ---- reduced motion -----------------------------------------------------------------------
   if (want('motion')) {
-    for (const [lang, url] of PAGES) {
+    for (const [name, , url] of PAGES) {
       for (const theme of THEMES) {
-        const tag = `${lang}/${theme}`;
+        const tag = `${name} ${theme}`;
         let { ctx, page } = await newPage({ colorScheme: theme, reducedMotion: 'reduce' });
         try {
           await page.goto(url, { waitUntil: 'load' });
@@ -185,7 +200,7 @@ try {
 
   // ---- keyboard ------------------------------------------------------------------------------
   if (want('keyboard')) {
-    for (const [lang, url] of PAGES) {
+    for (const [lang, , url, workflow] of PAGES) {
       const { ctx, page } = await newPage({ colorScheme: 'light', reducedMotion: 'reduce' });
       try {
         await page.goto(url, { waitUntil: 'load' });
@@ -218,6 +233,10 @@ try {
           return out;
         });
         if (!figs.length) report('keyboard', false, `${lang}: no figure with controls found`);
+        if (workflow) {
+          const loop = figs.find((f) => f.id === 'fig-loop');
+          report('keyboard', !!loop, `${lang}: fig-loop ${loop ? `present with ${loop.ctrls.length} control(s)` : 'MISSING (or has no controls)'}`);
+        }
         const snapshot = (fi) =>
           page.evaluate((fi) => {
             const f = document.querySelector(`[data-qa-fig="${fi}"]`);
@@ -278,9 +297,112 @@ try {
     }
   }
 
+  // ---- loop motion (workflow pages, motion enabled) ------------------------------------------
+  if (want('loop-motion')) {
+    for (const [name, lang, url, workflow] of PAGES) {
+      if (!workflow) continue;
+      const labels = LOOP_LABELS[lang];
+      const { ctx, page, errors } = await newPage({ colorScheme: 'light', reducedMotion: 'no-preference' });
+      try {
+        await page.goto(url, { waitUntil: 'load' });
+        const setup = await page.evaluate((labels) => {
+          const root = document.querySelector('#fig-loop[data-viz-loop], #fig-loop [data-viz-loop]');
+          if (!root) return { error: 'no [data-viz-loop] in #fig-loop' };
+          const fig = root.closest('#fig-loop');
+          const btn = [...fig.querySelectorAll('button')].find((b) => b.innerText.trim() === labels.run);
+          if (!btn) return { error: `no button reading "${labels.run}" in #fig-loop` };
+          btn.setAttribute('data-qa-run', '');
+          return { interval: Number(root.getAttribute('data-interval')), nodes: root.querySelectorAll('[data-loop-node]').length };
+        }, labels);
+        // a lap is one autoplay run over all stages; a stop check needs >= 2 intervals of lap left after one tick
+        const problem =
+          setup.error ||
+          (!(setup.interval > 0) && 'data-interval on [data-viz-loop] is not a positive number of ms') ||
+          (setup.nodes < 4 && `${setup.nodes} [data-loop-node] stage(s): a lap is too short to show that autoplay stops`);
+        if (problem) {
+          report('loop-motion', false, `${name}: ${problem}`);
+          continue;
+        }
+        const iv = setup.interval;
+        // the active stage: which element carries aria-current="step", plus the live caption text
+        const state = () =>
+          page.evaluate(() => {
+            const fig = document.getElementById('fig-loop');
+            const cur = fig.querySelector('[aria-current="step"]');
+            const live = [...fig.querySelectorAll('[aria-live]')].map((e) => e.textContent.trim()).join('|');
+            return `${cur ? [...fig.querySelectorAll('*')].indexOf(cur) : -1}|${live}`;
+          });
+        const label = () => page.evaluate(() => document.querySelector('[data-qa-run]').innerText.trim());
+        const press = async () => {
+          await page.focus('[data-qa-run]');
+          await page.keyboard.press('Enter');
+        };
+        // number of stage changes seen within `ms` (returns early once `need` are seen)
+        const changes = async (ms, need = Infinity) => {
+          let last = await state();
+          let n = 0;
+          const end = Date.now() + ms;
+          while (Date.now() < end && n < need) {
+            await page.waitForTimeout(50);
+            const s = await state();
+            if (s !== last) n++;
+            last = s;
+          }
+          return n;
+        };
+        const window2 = 2 * iv + 300; // two intervals, plus timer slack
+        const stops = async () => {
+          await page.waitForTimeout(150);
+          return (await changes(2 * iv)) === 0;
+        };
+
+        await press();
+        const ran = await changes(window2);
+        const runLabel = await label();
+        const current = await page.evaluate(() => !!document.querySelector('#fig-loop [aria-current="step"]'));
+        report(
+          'loop-motion',
+          ran >= 2 && runLabel === labels.pause && current && errors.length === 0,
+          `${name}: Run (Enter) -> ${ran} stage change(s) in ${window2} ms (${setup.nodes} stages, interval ${iv} ms), button reads "${runLabel}", aria-current="step" ${current ? 'set' : 'MISSING'}` +
+            (errors.length ? `; page errors: ${errors.slice(0, 3).join(' | ')}` : ''),
+        );
+
+        await press();
+        const pausedLabel = await label();
+        const pauseStops = await stops();
+        report('loop-motion', pauseStops && pausedLabel === labels.run, `${name}: Pause -> ${pauseStops ? 'no stage change' : 'stage still CHANGING'} for 2 intervals, button reads "${pausedLabel}"`);
+
+        await press();
+        const restarted = (await changes(window2, 1)) >= 1;
+        await page.click('[data-motion-toggle]', { timeout: 3000 });
+        const globalStops = await stops();
+        report('loop-motion', restarted && globalStops, `${name}: Run then global "Pause motion" -> ${restarted ? 'was running' : 'did NOT restart'}; ${globalStops ? 'no stage change' : 'stage still CHANGING'} for 2 intervals`);
+        await page.click('[data-motion-toggle]', { timeout: 3000 }); // resume global motion
+        await page.waitForTimeout(150);
+
+        // start a fresh lap (Run autoplays one lap, then stops), so the lap cannot end during the check
+        if ((await label()) === labels.pause) await press();
+        await press();
+        const running = (await label()) === labels.pause && (await changes(window2, 1)) >= 1;
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        const reduceStops = await stops();
+        const anims = await page.evaluate(() => document.getAnimations().length);
+        report(
+          'loop-motion',
+          running && reduceStops && anims === 0,
+          `${name}: Run then runtime switch to reduce -> ${running ? 'was running' : 'did NOT restart'}; ${reduceStops ? 'no stage change' : 'stage still CHANGING'} for 2 intervals; getAnimations() ${anims}`,
+        );
+      } catch (e) {
+        report('loop-motion', false, `${name}: ${String(e.message || e).split('\n')[0]}`);
+      } finally {
+        await ctx.close();
+      }
+    }
+  }
+
   // ---- font ---------------------------------------------------------------------------------
   if (want('font')) {
-    for (const [lang, url] of PAGES) {
+    for (const [name, lang, url] of PAGES) {
       const { ctx, page } = await newPage({});
       const fontReqs = [];
       page.on('requestfinished', async (r) => {
@@ -306,12 +428,12 @@ try {
           report(
             'font',
             info.check && loaded400,
-            `ko: fonts.check('400 16px SCDream')=${info.check}; FontFace SCDream 400 loaded=${loaded400}; ` +
+            `${name}: fonts.check('400 16px SCDream')=${info.check}; FontFace SCDream 400 loaded=${loaded400}; ` +
               `KO font transfer ${bytes} bytes (${per.join(', ') || 'no font requests'})`,
           );
         } else {
           const sc = info.faces.filter((f) => f.family === 'SCDream').length;
-          report('font', fontReqs.length === 0 && sc === 0, `en: ${fontReqs.length} font request(s), ${sc} SCDream face(s), ${bytes} bytes`);
+          report('font', fontReqs.length === 0 && sc === 0, `${name}: ${fontReqs.length} font request(s), ${sc} SCDream face(s), ${bytes} bytes`);
         }
       } finally {
         await ctx.close();

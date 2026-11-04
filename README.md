@@ -1,15 +1,18 @@
 # cc-orchestra-site
 
 The public project page for cc-orchestra, a multi-agent harness that connects Claude Code and Codex CLI.
-Two static pages, English (`/`) and Korean (`/ko/`), built from one template. The page describes the
-architecture only: no source code of the harness, no install command, no third-party requests.
+Four static pages, two pairs of English and Korean built from one template each: the overview (`/`,
+`/ko/`) and a research-workflow case study (`/workflow/`, `/ko/workflow/`). The pages describe the
+architecture and the workflow only: no source code of the harness, no install command, no third-party
+requests.
 
 Layout:
 
 | path | what |
 |---|---|
 | `src/` | page template, CSS, JS, static files |
-| `content/en.json`, `content/ko.json` | every page string; `_claims` / `_nonclaims` map each string to a claim or mark it as UI text |
+| `content/en.json`, `content/ko.json` | every overview-page string; `_claims` / `_nonclaims` map each string to a claim or mark it as UI text |
+| `content/workflow.en.json`, `content/workflow.ko.json` | the same for the workflow page |
 | `content/claims.md` | one row per factual claim, with the source line it rests on |
 | `facts.json` | model, effort and count values injected into the copy (`{{f:key}}`) |
 | `fonts/ko/` | S-Core Dream OTF files, unmodified, with `SHA256SUMS` and the licence notes |
@@ -28,7 +31,7 @@ npm run build
 ```
 
 `npm run build` runs `node scripts/build.mjs` and writes `dist/index.html`, `dist/ko/index.html`,
-`dist/assets/`, `dist/fonts/ko/`, `favicon.svg`, `robots.txt` and `.nojekyll`. The build itself has no
+`dist/workflow/index.html`, `dist/ko/workflow/index.html`, `dist/assets/`, `dist/fonts/ko/`, `favicon.svg`, `robots.txt` and `.nojekyll`. The build itself has no
 dependencies; `npm ci` only installs the QA tools. `node scripts/build.mjs --out DIR` writes elsewhere;
 the output directory is replaced only after a complete build.
 
@@ -43,29 +46,31 @@ it from the Pages configuration.
 SAFETY_PRIVATE_PATTERNS=<private patterns file> npm run qa          # everything
 SAFETY_PRIVATE_PATTERNS=<private patterns file> npm run qa:static   # no browser, no sockets
 npm run test:safety                                                 # safety-grep tests only
+bash tests/check-claims.test.sh                                     # claims-checker tests (synthetic)
 ```
 
 `npm run qa` prints one `QA <id> PASS|FAIL|SKIP <detail>` line per check and exits 1 on any FAIL.
 A check that runs a child process passes only if the child launched, exited 0 and printed its own
 success line; a child that cannot start or is killed is a FAIL.
-`DIST=<dir>` checks another output directory (the `build` step writes there).
+`DIST=<dir>` checks another output directory (the `build` step writes there). `CLAIMS_SOURCE_REPO` and
+`CLAIMS_WORKSPACE_ROOTS` are passed on to the `claims` check (see below).
 
 | id | what it checks | acceptance criteria | in `qa:static` |
 |---|---|---|---|
-| `build` | clean rebuild; both pages written | 1 | yes |
+| `build` | clean rebuild; all four pages written | 1 | yes |
 | `facts` | no `{{` left in the output; every `{{f:key}}` resolves in `facts.json` | 1, 2 | yes |
-| `structure` | `<html lang>`, two absolute hreflang links, language toggle link, same section ids, figure ids and `<main>` element structure on both pages, 10 sections | 1 | yes |
+| `structure` | per page: `<html lang>`, the pair's two absolute hreflang links, language toggle link; per pair: same section ids, figure ids and `<main>` element structure EN = KO; overview: 10 sections and a nav link `workflow/`; workflow: the section ids and figure ids in order (the `WORKFLOW` constant in `scripts/qa.mjs`), a home link `../`, a `[data-twin]` text twin for every figure and the Illustrative chip on every synthetic figure | 1 | yes |
 | `safety` | `safety-grep.sh dist` and `safety-grep.sh . --source-mode`, private patterns required | 3 | yes |
 | `safety-tests` | `tests/safety-grep.test.sh` | 3 | yes |
 | `no-network` | every resource URL in the built HTML/CSS resolves to the page's own origin; no `fetch(`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`, `import(` in JS | 4 | yes |
-| `fonts` | `dist/fonts/ko` hashes match `SHA256SUMS` and the official ones; no `SCDream` in the EN page, `site.css`, `site.js`; only `/ko/` links `ko-font.css` | 5 | yes |
+| `fonts` | `dist/fonts/ko` hashes match `SHA256SUMS` and the official ones; no `SCDream` in the EN pages, `site.css`, `site.js`; only the KO pages link `ko-font.css` | 5 | yes |
 | `budgets` | `gzip -9` sizes: HTML 40 KB per page, CSS 25 KB, JS 30 KB, EN fonts 120 KB; KO OTF sizes reported | 6 | yes |
 | `contrast` | `scripts/contrast.mjs`: theme token pairs, light and dark, 4.5:1 text, 3:1 UI | 7 | yes |
-| `claims` | `scripts/check-claims.mjs`: every content string is in `_claims` or `_nonclaims`; claim ids match `content/claims.md`; every source cell is `path:line[-line]@<sha>` citations, `framing`, a URL, or one `observation: <text>` | 2 | yes |
+| `claims` | `scripts/check-claims.mjs`: in both content sets every string is in `_claims` or `_nonclaims`; claim ids match `content/claims.md`; every source cell is citations (forms below), `framing`, a URL, or one `observation: <text>` | 2 | yes |
 | `deps` | lockfile present and in step with `package.json`; exact versions; install scripts listed below | 10 | yes |
-| `browser` | `scripts/browser-qa.mjs` (Playwright + system Chrome over the local server): light + dark, EN + KO, 390 + 1280 px: no horizontal scroll, axe-core 0 violations, reduced motion leaves `document.getAnimations()` empty, keyboard-only operation of every figure control, text twins, `/ko/` font loaded (`document.fonts.check('400 16px SCDream')` and a loaded 400 face) with KO font bytes, no request to another origin | 4, 5, 7 | no |
-| `lighthouse` | `scripts/lighthouse.mjs`: pinned Lighthouse, mobile, `/` and `/ko/`, median of 3 runs: Performance 95, Accessibility 100, Best Practices 95, SEO 95 | 8 | no |
-| `links` | pinned linkinator against the local server: 0 broken internal links or fragments | 8 | no |
+| `browser` | `scripts/browser-qa.mjs` (Playwright + system Chrome over the local server): all four pages, light + dark, 390 + 1280 px: no horizontal scroll, axe-core 0 violations, reduced motion leaves `document.getAnimations()` empty, keyboard-only operation of every figure control, text twins, the research-loop figure's Run / Pause, global pause and reduced-motion stop with motion enabled (`loop-motion`), KO pages' font loaded (`document.fonts.check('400 16px SCDream')` and a loaded 400 face) with KO font bytes, no request to another origin | 4, 5, 7 | no |
+| `lighthouse` | `scripts/lighthouse.mjs`: pinned Lighthouse, mobile, all four pages, median of 3 runs: Performance 95, Accessibility 100, Best Practices 95, SEO 95 | 8 | no |
+| `links` | pinned linkinator against the local server: 0 broken internal links or fragments; all four pages reached from `/` | 8 | no |
 
 `browser`, `lighthouse` and `links` print `SKIP` when Chrome is missing or no loopback socket can be
 opened. They use the system Chrome (set `CHROME_PATH` to override) in headless mode without GPU; no
@@ -74,6 +79,16 @@ an ephemeral port and is closed when each check ends.
 
 Not covered by `qa`: reading each claims row against its source lines (criterion 2), the workflow file
 (criterion 9, reviewed by hand) and the git hygiene items of criterion 10.
+
+Claims source forms. A source token is `path:line[-line]@<sourceSha>` (a file of the cc-orchestra
+repository at `facts.json` `sourceSha`) or `ws:<alias>/<path>:line[-line]@<YYYY-MM-DD>` (a file inside a
+research workspace, read on that date; the path is relative, without `..`). Tokens are separated by `; `.
+Alias `site` is this repository and is always checked. The other aliases are private: their directories
+come from `CLAIMS_WORKSPACE_ROOTS`, a file kept outside this repository with one `alias<TAB>dir` per line
+(`#` comments; a relative dir resolves from the file's directory). With it set, an unknown alias, a
+missing file or a range past the end of the file fails; without it those citations are checked for format
+only and the PASS line says so. `CLAIMS_SOURCE_REPO=<cc-orchestra checkout>` does the same for the
+`@<sourceSha>` citations.
 
 ## Safety grep
 
@@ -108,10 +123,10 @@ publish.
   hit every built-in class; `tests/private-patterns.sample` and `tests/denylist.sample` are synthetic
   samples for the private and denylist classes.
 
-**The one listed allowance.** CI passes `--allow <Pages base URL> --allow-count 4`. That single URL
+**The one listed allowance.** CI passes `--allow <Pages base URL> --allow-count 8`. That single URL
 (`https://<owner>.github.io/<repo>/`, the only accepted form) is exempt from the `private:owner-handle`
-and `unlisted-url` classes, and from nothing else. It must occur exactly 4 times in `dist/` (the two
-hreflang links on each page); any other count fails with `HIT [allow-count]`. The repository and a local
+and `unlisted-url` classes, and from nothing else. It must occur exactly 8 times in `dist/` (the two
+hreflang links on each of the four pages); any other count fails with `HIT [allow-count]`. The repository and a local
 build contain the owner handle zero times.
 
 ## Publishing (hand steps, not automated)

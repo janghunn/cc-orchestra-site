@@ -1,8 +1,9 @@
 // Lighthouse (pinned devDependency, default mobile config) against the local static server.
 // Usage: node scripts/lighthouse.mjs      Env: DIST (default dist), CHROME_PATH (default
 // /usr/bin/google-chrome), LH_RUNS (runs per page, default 3; the median score per category counts).
-// Thresholds per page (/ and /ko/): Performance >= 95, Accessibility = 100, Best Practices >= 95, SEO >= 95.
-// Reports go to .lighthouse/ (git-ignored). Prints "LIGHTHOUSE <page> PASS|FAIL ...".
+// Thresholds per page (/, /ko/, /workflow/, /ko/workflow/): Performance >= 95, Accessibility = 100,
+// Best Practices >= 95, SEO >= 95. Reports go to .lighthouse/<page>-<run>.json (git-ignored), one file per
+// page and run. Prints "LIGHTHOUSE <path> PASS|FAIL ...".
 // Exit 0 all PASS, 1 any FAIL, 77 environment unavailable (no Chrome, or no loopback socket).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,6 +18,13 @@ const RUNS = Math.max(1, Number(process.env.LH_RUNS || 3));
 const OUT = path.join(ROOT, '.lighthouse');
 const CLI = path.join(ROOT, 'node_modules/lighthouse/cli/index.js');
 const MIN = { performance: 95, accessibility: 100, 'best-practices': 95, seo: 95 };
+// [report-file slug, path below the server root]
+const PAGES = [
+  ['home-en', ''],
+  ['home-ko', 'ko/'],
+  ['workflow-en', 'workflow/'],
+  ['workflow-ko', 'ko/workflow/'],
+];
 
 if (!fs.existsSync(CHROME)) {
   console.log(`LIGHTHOUSE SKIP no Chrome at ${CHROME}`);
@@ -63,7 +71,7 @@ try {
 }
 let failed = 0;
 try {
-  for (const [name, rel] of [['en', ''], ['ko', 'ko/']]) {
+  for (const [name, rel] of PAGES) {
     const url = server.url + rel;
     const scores = { performance: [], accessibility: [], 'best-practices': [], seo: [] };
     const notes = [];

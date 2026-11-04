@@ -33,7 +33,7 @@ if [ ! -f "$DIST/index.html" ] && [ -f "$ROOT/scripts/build.mjs" ]; then
 fi
 ALLOWARGS=()
 if [ -n "${SITE_URL:-}" ] && [ "$SITE_URL" != "https://example.invalid/cc-orchestra-site/" ]; then
-  ALLOWARGS=(--allow "$SITE_URL" --allow-count 4)
+  ALLOWARGS=(--allow "$SITE_URL" --allow-count 8)
 fi
 if [ -f "$DIST/index.html" ]; then
   if [ -n "${SAFETY_PRIVATE_PATTERNS:-}" ]; then

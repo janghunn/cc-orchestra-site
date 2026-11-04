@@ -8,7 +8,7 @@
     "skip": "Skip to content",
     "brand": "cc-orchestra",
     "navLabel": "Primary",
-    "nav": ["How it works", "Routing", "Gates", "Helpers", "FAQ"],
+    "nav": ["How it works", "Routing", "Gates", "Helpers", "FAQ", "For researchers"],
     "themeToDark": "Switch to dark theme",
     "themeToLight": "Switch to light theme",
     "motionPause": "Pause motion",

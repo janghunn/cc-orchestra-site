@@ -1,0 +1,706 @@
+{
+  "meta": {
+    "title": "Research with cc-orchestra: an automated paper workflow",
+    "description": "How one researcher runs paper projects with cc-orchestra: a research loop, generated numbers and figures, shared GPU locks, repeated mock reviews and Claude-Codex cross-checks, shown as figures.",
+    "langName": "English",
+    "otherLangName": "한국어",
+    "otherLangLabel": "Read this page in Korean",
+    "skip": "Skip to content",
+    "brand": "cc-orchestra",
+    "homeLabel": "cc-orchestra overview",
+    "navLabel": "Primary",
+    "nav": [
+      "Overview",
+      "Methods",
+      "Automation",
+      "Roles",
+      "Tips"
+    ],
+    "themeToDark": "Switch to dark theme",
+    "themeToLight": "Switch to light theme",
+    "motionPause": "Pause motion",
+    "motionResume": "Resume motion",
+    "illustrative": "Illustrative",
+    "textTwin": "Show as text"
+  },
+  "hero": {
+    "eyebrow": "For researchers",
+    "h1": "My paper projects run as <em>an automated research loop.</em>",
+    "lede": "Experiments, manuscript sections and reviews are cc-orchestra tasks across three of my projects. Codex builds, Claude checks, and scripts carry results into the paper.",
+    "note": "Projects are called A, B and C; their content, people and machines are left out. Example artifacts are synthetic and labelled Illustrative.",
+    "ctaPrimary": "See the overview",
+    "ctaSecondary": "cc-orchestra overview"
+  },
+  "loop": {
+    "kicker": "Overview",
+    "h2": "Every mechanism in one loop",
+    "p": "Every stage runs as a task with its own directory, branch and gates.",
+    "stageLabel": "Stage",
+    "run": "Run",
+    "pause": "Pause",
+    "step": "Step",
+    "reset": "Reset",
+    "twinTitle": "The seven stages in order",
+    "caption": "Figure 1. The whole workflow in one picture: sessions, worktrees, GPU coordination, experiments, LaTeX, reviews and cross-checks. Chip labels are illustrative.",
+    "stages": [
+      {
+        "title": "Sessions",
+        "text": "Each project runs its own session; sessions agree on shared GPUs by message.",
+        "chips": [
+          "Project B session",
+          "Project C session",
+          "message"
+        ]
+      },
+      {
+        "title": "Worktrees",
+        "text": "Each lead works in its own git worktree, on one branch per task.",
+        "chips": [
+          "lead-alpha: orch/12-eval",
+          "lead-bravo: orch/13-figures"
+        ]
+      },
+      {
+        "title": "GPU coordination",
+        "text": "orch-gpu claims and locks a GPU and flags overdue or unmanaged GPU work.",
+        "chips": [
+          "GPU 0: held",
+          "GPU 1: free",
+          "unmanaged: flagged"
+        ]
+      },
+      {
+        "title": "Experiments",
+        "text": "Runs write result files; remote results come back when a run flags completion.",
+        "chips": [
+          "done flag",
+          "metrics"
+        ]
+      },
+      {
+        "title": "LaTeX",
+        "text": "Scripts turn results into macros and figures.",
+        "chips": [
+          "macros",
+          "figures",
+          "PDF"
+        ]
+      },
+      {
+        "title": "Mock review",
+        "text": "Codex and Claude reviewers score the work, blind to each other.",
+        "chips": [
+          "Codex review",
+          "Claude review"
+        ]
+      },
+      {
+        "title": "Cross-check",
+        "text": "Codex builds; the Claude lead reads the diff.",
+        "chips": [
+          "diff read",
+          "verify",
+          "review"
+        ]
+      }
+    ]
+  },
+  "methods": {
+    "kicker": "Methods",
+    "h2": "Ten methods at a glance",
+    "cards": [
+      {
+        "icon": "branch",
+        "title": "One committer per task",
+        "text": "The task lead alone commits, with explicit paths, on an <code>orch/*</code> branch, and I merge. An earlier Stop-hook auto-commit was dropped because it could sweep other tasks' files into a commit and hide a failed push."
+      },
+      {
+        "icon": "worktree",
+        "title": "A worktree per lead",
+        "text": "Each lead works in its own git worktree on one branch per task, so parallel tasks never share an index. On 2026-11-04, Projects B and C held 16 and 18 of them."
+      },
+      {
+        "icon": "repo",
+        "title": "Code and paper apart",
+        "text": "Code and the LaTeX manuscript live in separate repositories, joined in a workspace as submodules. In Project A, one workspace commit pinned both revisions."
+      },
+      {
+        "icon": "macro",
+        "title": "No hand-typed numbers",
+        "text": "In Project A, generators write every measured value as a LaTeX macro and every result figure from frozen data. Provisional, cited and planned values never share a table cell."
+      },
+      {
+        "icon": "gpu",
+        "title": "GPU coordination across sessions",
+        "text": "<code>orch-gpu</code> claims and locks a GPU for each job and flags overdue claims and unmanaged GPU work. Sessions agree on long reservations by message."
+      },
+      {
+        "icon": "review",
+        "title": "Mock reviewers in every task",
+        "text": "A Codex and a Claude Opus reviewer review each task against the target venue's review form, blind to each other. No open major issue passes."
+      },
+      {
+        "icon": "cross",
+        "title": "Two families check each other",
+        "text": "Codex edits and measures; the Claude lead audits the storyline and the analysis. In Project A, a Codex review caught a statistics error that a separate task then fixed."
+      },
+      {
+        "icon": "pen",
+        "title": "A writing-style skill",
+        "text": "<code>paper-writing-style</code> turns one author's published papers into numbered rules, a phrase bank and a checklist. It keeps numbers and citations, flags missing evidence and never copies sentences."
+      },
+      {
+        "icon": "palette",
+        "title": "Two page kits",
+        "text": "<code>web-style-gradient</code> styles this site; <code>web-style-classic</code> was extracted from Project A's project page. Without a style name, the agent asks which one to use."
+      },
+      {
+        "icon": "gauge",
+        "title": "Models by benchmark",
+        "text": "A weekly job keeps each role on the cheapest model and effort that meets its Artificial Analysis score floor and latency cap. It applies a change only when every guard holds."
+      }
+    ]
+  },
+  "flows": {
+    "kicker": "Automation",
+    "h2": "Three automated flows",
+    "pipeline": {
+      "title": "Experiment to paper",
+      "caption": "Figure 2. From a finished run to a committed manuscript update (Project A).",
+      "twinTitle": "The flow in order",
+      "steps": [
+        {
+          "label": "Run ends",
+          "text": "The run writes a done flag and its result files."
+        },
+        {
+          "label": "Collect",
+          "text": "A worker copies the metrics back and merges them."
+        },
+        {
+          "label": "Generate",
+          "text": "Scripts regenerate the LaTeX macros from the result data."
+        },
+        {
+          "label": "Build",
+          "text": "The PDF is rebuilt."
+        },
+        {
+          "label": "Commit",
+          "text": "Data files and macros are committed, then the workspace pointer moves."
+        }
+      ],
+      "manual": "Prose wording and the method overview figure stay manual."
+    },
+    "reviews": {
+      "title": "The reviewer loop",
+      "caption": "Figure 3. One mock-review round, repeated until no major issue is open (Projects B and C).",
+      "twinTitle": "The round in order",
+      "steps": [
+        {
+          "label": "Freeze",
+          "text": "The lead freezes the artifacts and picks reviewers who did not write them."
+        },
+        {
+          "label": "Review",
+          "text": "Codex and Claude Opus fill the template, blind to each other."
+        },
+        {
+          "label": "Score",
+          "text": "Each gives one label on the venue's six-level scale."
+        },
+        {
+          "label": "Fix or rebut",
+          "text": "Every major issue is fixed, or rebutted with file and line evidence."
+        },
+        {
+          "label": "Gate",
+          "text": "A checker passes the round only when no major issue is open."
+        }
+      ],
+      "scoreTitle": "Interim scores across attempts",
+      "cols": [
+        "Attempt",
+        "Codex reviewer",
+        "Claude reviewer",
+        "Open majors"
+      ],
+      "rows": [
+        [
+          "1",
+          "Borderline reject",
+          "Reject",
+          "3"
+        ],
+        [
+          "2",
+          "Borderline accept",
+          "Borderline reject",
+          "1"
+        ],
+        [
+          "3",
+          "Accept",
+          "Borderline accept",
+          "0"
+        ]
+      ],
+      "tableCaption": "Illustrative review attempts for one task (synthetic labels and counts)",
+      "milestone": "At milestones the procedure prescribes three or more reviewers and a meta-reviewer.",
+      "count": "On 2026-11-04, Project C held 166 review attempt files across 21 tasks.",
+      "caution": "These are private mock reviews of my own work, never used for an official review assignment."
+    },
+    "gpu": {
+      "title": "Shared GPUs and remote runs",
+      "caption": "Figure 4. GPU rules on a shared machine (top) and remote runs over ssh (bottom).",
+      "sharedTitle": "Shared machine",
+      "shared": [
+        {
+          "label": "Lock",
+          "text": "Jobs over about a minute or 10 GB take a per-GPU lock."
+        },
+        {
+          "label": "Owner",
+          "text": "The holder writes project, task, start and expected end."
+        },
+        {
+          "label": "Run",
+          "text": "Each project prefers one GPU; multi-GPU jobs lock in a fixed order."
+        },
+        {
+          "label": "Release",
+          "text": "The lock frees itself when the process exits."
+        }
+      ],
+      "remoteTitle": "Remote machines (Project A)",
+      "remote": [
+        {
+          "label": "Sync",
+          "text": "Code is synced before a launch; a finished run is evaluated with its own snapshot."
+        },
+        {
+          "label": "Launch",
+          "text": "The evaluation starts detached, one job at a time per evaluation machine."
+        },
+        {
+          "label": "Flag",
+          "text": "A watcher polls for a done or fail flag."
+        },
+        {
+          "label": "Collect",
+          "text": "Metrics are copied back and merged; workers for different runs run concurrently."
+        }
+      ],
+      "boardTitle": "Lock board",
+      "cols": [
+        "GPU",
+        "Holder",
+        "Start",
+        "Expected end",
+        "State"
+      ],
+      "rows": [
+        [
+          "GPU 0",
+          "Project C / task 12",
+          "09:30",
+          "11:00",
+          "held"
+        ],
+        [
+          "GPU 1",
+          "Project B / task 08",
+          "10:00",
+          "12:30",
+          "held"
+        ],
+        [
+          "GPU 1",
+          "Project C / task 13",
+          "after 12:30",
+          "14:00",
+          "waiting for the lock"
+        ]
+      ],
+      "tableCaption": "Illustrative lock board (synthetic owners and times)",
+      "notes": [
+        "<code>orch-gpu</code> wraps the same rules with claims, idle and overdue warnings, a list of unmanaged GPU processes and a ledger of completed holds.",
+        "Reservations longer than two hours are agreed between sessions by message first."
+      ]
+    }
+  },
+  "roles": {
+    "kicker": "Roles",
+    "h2": "Who does what in a paper project",
+    "p": "The standard {{f:counts.tiers}} tiers, plus mock reviewers next to the delivery gates.",
+    "caption": "Figure 5. Roles and their current models.",
+    "cols": [
+      "Role",
+      "Model",
+      "Job"
+    ],
+    "roles": [
+      [
+        "Orchestrator",
+        "{{f:claude.orchestrator}}",
+        "Splits the work into tasks; keeps the standing directives and the task registry."
+      ],
+      [
+        "Lead",
+        "{{f:claude.leadNormal}}",
+        "Plans one task, reads the diff, consolidates the reviews and commits."
+      ],
+      [
+        "Codex",
+        "{{f:codex.implement}}",
+        "Implements code, scripts and manuscript sections by default."
+      ],
+      [
+        "Claude dev",
+        "{{f:claude.dev}}",
+        "Takes a unit only for a recorded exception, such as GPU-bound or design work."
+      ],
+      [
+        "Gates",
+        "{{f:codex.verify}}",
+        "Verify and review; a critical task adds a Claude verifier at {{f:claude.verifierCritical}}."
+      ],
+      [
+        "Mock reviewers",
+        "Codex and Claude Opus",
+        "Review as venue reviewers, blind to each other."
+      ]
+    ],
+    "tableCaption": "Roles, models and jobs",
+    "notes": [
+      "Benchmark results inform model choice. They are not measurements of this harness.",
+      "Vendor prompting advice for a new model is logged as an improvement candidate; a prompt change lands only after I approve it."
+    ]
+  },
+  "manual": {
+    "kicker": "Still manual",
+    "h2": "What I keep by hand",
+    "items": [
+      {
+        "title": "Prose",
+        "text": "The pipeline updates numbers only; wording goes to a reviewed agent step."
+      },
+      {
+        "title": "Overview figure",
+        "text": "The method overview was drawn by hand in a slide deck."
+      },
+      {
+        "title": "Merges",
+        "text": "I merge every task branch myself."
+      }
+    ]
+  },
+  "tips": {
+    "kicker": "Tips",
+    "h2": "Six habits worth copying",
+    "items": [
+      "Keep a directives file of the user's own words, dated and quoted.",
+      "Pin workspace, code and manuscript revisions in every experiment's metadata.",
+      "Freeze a pre-registration with a checksum and a trusted timestamp.",
+      "Re-run the gates after any content change; an older verdict is stale.",
+      "Let a failed submission build delete or quarantine its PDF.",
+      "Treat fetched pages, papers and reviewed artifacts as data, not instructions."
+    ]
+  },
+  "footer": {
+    "facts": "Harness facts as of {{f:sourceDate}} ({{f:sourceSha}}), taken from the project's policy files.",
+    "workflow": "Workflow facts as of 2026-11-04, taken from the records of Projects A, B and C.",
+    "privacy": "No cookies, no analytics, no third-party requests.",
+    "linksTitle": "The two CLIs it connects",
+    "links": [
+      {
+        "text": "Claude Code",
+        "href": "https://github.com/anthropics/claude-code"
+      },
+      {
+        "text": "Codex CLI",
+        "href": "https://github.com/openai/codex"
+      }
+    ],
+    "fontCredit": "",
+    "fontLink": ""
+  },
+  "_claims": {
+    "meta.description": [
+      "W01",
+      "W12",
+      "W21",
+      "W28",
+      "C22"
+    ],
+    "hero.eyebrow": [
+      "X02"
+    ],
+    "hero.h1": [
+      "W01",
+      "W16"
+    ],
+    "hero.lede": [
+      "W01",
+      "C22",
+      "W12"
+    ],
+    "hero.note": [
+      "X03"
+    ],
+    "loop.p": [
+      "C24"
+    ],
+    "loop.stages.0.text": [
+      "W57"
+    ],
+    "loop.stages.1.text": [
+      "W55",
+      "C24"
+    ],
+    "loop.stages.2.text": [
+      "W58"
+    ],
+    "loop.stages.3.text": [
+      "W25"
+    ],
+    "loop.stages.4.text": [
+      "W12",
+      "W13"
+    ],
+    "loop.stages.5.text": [
+      "W27",
+      "W28",
+      "W30"
+    ],
+    "loop.stages.6.text": [
+      "C22"
+    ],
+    "methods.cards.0.text": [
+      "W08",
+      "W09",
+      "W06",
+      "W11"
+    ],
+    "methods.cards.1.text": [
+      "W55",
+      "W56",
+      "C24"
+    ],
+    "methods.cards.2.text": [
+      "W03"
+    ],
+    "methods.cards.3.text": [
+      "W12",
+      "W13",
+      "W14"
+    ],
+    "methods.cards.4.text": [
+      "W58",
+      "W23",
+      "W57"
+    ],
+    "methods.cards.5.text": [
+      "W27",
+      "W28"
+    ],
+    "methods.cards.6.text": [
+      "W33",
+      "W35"
+    ],
+    "methods.cards.7.text": [
+      "W37"
+    ],
+    "methods.cards.8.text": [
+      "W40",
+      "W41",
+      "W42"
+    ],
+    "methods.cards.9.text": [
+      "W46",
+      "W47"
+    ],
+    "flows.pipeline.caption": [
+      "W16"
+    ],
+    "flows.pipeline.steps": [
+      "W16",
+      "W25"
+    ],
+    "flows.pipeline.manual": [
+      "W18",
+      "W19"
+    ],
+    "flows.reviews.caption": [
+      "W27",
+      "W28"
+    ],
+    "flows.reviews.steps": [
+      "W28",
+      "W30"
+    ],
+    "flows.reviews.milestone": [
+      "W29"
+    ],
+    "flows.reviews.count": [
+      "W31"
+    ],
+    "flows.reviews.caution": [
+      "W32"
+    ],
+    "flows.gpu.caption": [
+      "W20"
+    ],
+    "flows.gpu.shared": [
+      "W21",
+      "W22"
+    ],
+    "flows.gpu.remote": [
+      "W24",
+      "W25",
+      "W26"
+    ],
+    "flows.gpu.notes.0": [
+      "C28",
+      "W58"
+    ],
+    "flows.gpu.notes.1": [
+      "W23"
+    ],
+    "roles.p": [
+      "C04",
+      "W27"
+    ],
+    "roles.roles.0": [
+      "C08",
+      "W44"
+    ],
+    "roles.roles.1": [
+      "C09",
+      "C16",
+      "W28"
+    ],
+    "roles.roles.2": [
+      "C11",
+      "W45"
+    ],
+    "roles.roles.3": [
+      "C12",
+      "W43"
+    ],
+    "roles.roles.4": [
+      "C13",
+      "C18"
+    ],
+    "roles.roles.5": [
+      "W28"
+    ],
+    "roles.notes.0": [
+      "C39"
+    ],
+    "roles.notes.1": [
+      "W48"
+    ],
+    "manual.items.0": [
+      "W18"
+    ],
+    "manual.items.1": [
+      "W19"
+    ],
+    "manual.items.2": [
+      "W09"
+    ],
+    "tips.items.0": [
+      "W49"
+    ],
+    "tips.items.1": [
+      "W50"
+    ],
+    "tips.items.2": [
+      "W51"
+    ],
+    "tips.items.3": [
+      "W36"
+    ],
+    "tips.items.4": [
+      "W53"
+    ],
+    "tips.items.5": [
+      "W54"
+    ],
+    "footer.facts": [
+      "C44"
+    ],
+    "footer.workflow": [
+      "X04"
+    ]
+  },
+  "_nonclaims": [
+    "meta.*",
+    "hero.ctaPrimary",
+    "hero.ctaSecondary",
+    "*.kicker",
+    "*.h2",
+    "loop.stageLabel",
+    "loop.run",
+    "loop.pause",
+    "loop.step",
+    "loop.reset",
+    "loop.twinTitle",
+    "loop.caption",
+    "*.chips",
+    "loop.stages.0.title",
+    "loop.stages.1.title",
+    "loop.stages.2.title",
+    "loop.stages.3.title",
+    "loop.stages.4.title",
+    "loop.stages.5.title",
+    "loop.stages.6.title",
+    "methods.cards.0.icon",
+    "methods.cards.0.title",
+    "methods.cards.1.icon",
+    "methods.cards.1.title",
+    "methods.cards.2.icon",
+    "methods.cards.2.title",
+    "methods.cards.3.icon",
+    "methods.cards.3.title",
+    "methods.cards.4.icon",
+    "methods.cards.4.title",
+    "methods.cards.5.icon",
+    "methods.cards.5.title",
+    "methods.cards.6.icon",
+    "methods.cards.6.title",
+    "methods.cards.7.icon",
+    "methods.cards.7.title",
+    "methods.cards.8.icon",
+    "methods.cards.8.title",
+    "methods.cards.9.icon",
+    "methods.cards.9.title",
+    "flows.pipeline.title",
+    "flows.pipeline.twinTitle",
+    "flows.reviews.title",
+    "flows.reviews.twinTitle",
+    "flows.reviews.scoreTitle",
+    "flows.reviews.cols",
+    "flows.reviews.rows",
+    "flows.reviews.tableCaption",
+    "flows.gpu.title",
+    "flows.gpu.sharedTitle",
+    "flows.gpu.remoteTitle",
+    "flows.gpu.boardTitle",
+    "flows.gpu.cols",
+    "flows.gpu.rows",
+    "flows.gpu.tableCaption",
+    "roles.caption",
+    "roles.cols",
+    "roles.tableCaption",
+    "manual.items.0.title",
+    "manual.items.1.title",
+    "manual.items.2.title",
+    "footer.privacy",
+    "footer.linksTitle",
+    "footer.links",
+    "footer.fontCredit",
+    "footer.fontLink"
+  ]
+}

@@ -64,7 +64,7 @@ jobs:
           fi
           printf '%s\n' "$PRIVATE_PATTERNS" > "$f"
           rc=0
-          ./safety-grep.sh dist --require-private --private "$f" --redact --allow "$SITE_URL" --allow-count 4 || rc=$?
+          ./safety-grep.sh dist --require-private --private "$f" --redact --allow "$SITE_URL" --allow-count 8 || rc=$?
           [ $rc -eq 0 ] || { echo "safety-grep dist failed (exit $rc)" >&2; exit 1; }
           rc=0
           ./safety-grep.sh . --source-mode --require-private --private "$f" --redact || rc=$?

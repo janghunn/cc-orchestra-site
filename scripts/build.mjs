@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /* cc-orchestra-site / scripts/build.mjs
-   Zero-dependency assembly script: one template (src/page.html) + two copy tables
-   (content/en.json, content/ko.json) + facts.json  ->  dist/index.html (EN) and dist/ko/index.html (KO),
+   Zero-dependency assembly script. A page table (PAGES below) lists each page: one template + two copy
+   tables (EN, KO) -> two outputs, all sharing facts.json and the assets:
+     home      src/page.html      content/en.json, ko.json                    -> index.html, ko/index.html
+     workflow  src/workflow.html  content/workflow.en.json, workflow.ko.json  -> workflow/index.html,
+                                                                                 ko/workflow/index.html
    plus shared assets/site.css, assets/site.js, the KO-only assets/ko-font.css and the vendored fonts.
 
    Usage: node scripts/build.mjs [--out DIR] [--content-dir DIR] [--facts FILE]
@@ -9,20 +12,22 @@
                     in only after a complete build, so a failed or killed build never leaves a half-written DIR.
                     Refused (exit 1, nothing deleted): the repo or an ancestor, .git, a source dir, $HOME, /, a
                     symlink, or an existing non-empty dir without the .cc-site-build marker every build writes.
-     --content-dir  directory holding en.json and ko.json (default: <repo>/content)
+     --content-dir  directory holding every page's copy tables (en.json, ko.json, workflow.en.json,
+                    workflow.ko.json; default: <repo>/content)
      --facts        facts file (default: <repo>/facts.json)
    Env: SITE_URL (absolute http(s) URL ending in "/"; default https://example.invalid/cc-orchestra-site/),
         used only for the two <link rel="alternate" hreflang> tags per page.
-   Exit 0 on success, 1 on any build error (unknown placeholder, missing content key, leftover "{{",
-   a content key present in one language only, an unknown facts path, disallowed markup in copy).
+   Exit 0 on success, 1 on any build error in any page (unknown placeholder, missing content key, leftover
+   "{{", a content key present in one language only, an unknown facts path, disallowed markup in copy).
 
-   Template language (src/page.html):
+   Template language (src/page.html, src/workflow.html):
      {{t:REF}}    copy as inline HTML (only <em> <strong> <code> <br> allowed; {{f:..}} inside resolved)
      {{a:REF}}    copy as attribute-safe plain text (tags stripped)
      {{cap:REF}}  like t:, with a leading "Figure 1." / "Table 2." label wrapped in <span class="fig-label">
      {{u:REF}}    an absolute https:// URL from the copy
      {{v:REF}}    a plain value (escaped)       {{f:PATH}}  a facts value (a route renders "Model @ effort")
-     {{name}}     a build variable (lang, root, otherLang, otherHref, hrefEn, hrefKo, headScript)
+     {{name}}     a build variable (lang, root, otherLang, otherHref, homeHref, workflowHref, hrefEn, hrefKo,
+                  headScript)
      {{#each REF}}..{{/each}}   loop; inside: "." item, ".x" item field, @i (0-based), @n (1-based)
      {{#if REF}}..{{else}}..{{/if}}   "!REF" negates; "REF?" treats a missing key as false
    REF: "a.b.0" = content path, ".x" = loop item, "$x.y" = computed view data, "@i"/"@n"/"@first"/"@last". */
@@ -43,11 +48,44 @@ const FONT_FILES = ['SCDream4.otf', 'SCDream6.otf', 'SHA256SUMS', 'LICENSE-S-Cor
 const MARKER = '.cc-site-build';
 const MARKER_TEXT = 'cc-orchestra-site build output (scripts/build.mjs); safe to delete with the rest of this directory\n';
 const SOURCE_DIRS = ['src', 'content', 'scripts', 'fonts', 'tests', '.github', 'design'];
-/* Copy keys the page does not render on purpose; any other key no template tag reads fails the build.
-   meta.langName: the page's own language name (the toggle shows the other one); footer.fontLink: renders
-   only next to the KO-only font credit (empty on EN); lifecycle.tree.0.1: the root row's empty note
-   (the root folder is shown in the panel head). */
-const UNUSED_OK = ['meta.langName', 'footer.fontLink', 'lifecycle.tree.0.1'];
+/* The pages. Per page and language: template, copy table (in --content-dir), output path, asset prefix
+   (root), the language toggle's target (other), the brand/overview link (home), the hreflang URLs (relative
+   to SITE_URL) and the EN-only redirect target (koTarget, see head.js).
+   unusedOk: copy keys the page does not render on purpose; any other key no template tag reads fails the
+   build. meta.langName: the page's own language name (the toggle shows the other one); footer.fontLink:
+   renders only next to the KO-only font credit (empty on EN); lifecycle.tree.0.1: the home root row's empty
+   note (the root folder is shown in the panel head).
+   view: the home page's computed view data (risk levels, gate cells, Viz B curves); other pages get $isKo. */
+const PAGES = [
+  {
+    id: 'home',
+    template: 'src/page.html',
+    content: { en: 'en.json', ko: 'ko.json' },
+    out: { en: 'index.html', ko: 'ko/index.html' },
+    root: { en: '', ko: '../' },
+    other: { en: 'ko/', ko: '../?lang=en' },
+    home: { en: '#top', ko: '#top' },
+    href: { en: '', ko: 'ko/' },
+    koTarget: 'ko/',
+    unusedOk: ['meta.langName', 'footer.fontLink', 'lifecycle.tree.0.1'],
+    view: true
+  },
+  {
+    id: 'workflow',
+    template: 'src/workflow.html',
+    content: { en: 'workflow.en.json', ko: 'workflow.ko.json' },
+    out: { en: 'workflow/index.html', ko: 'ko/workflow/index.html' },
+    root: { en: '../', ko: '../../' },
+    other: { en: '../ko/workflow/', ko: '../../workflow/?lang=en' },
+    home: { en: '../', ko: '../' },
+    href: { en: 'workflow/', ko: 'ko/workflow/' },
+    koTarget: '../ko/workflow/',
+    unusedOk: ['meta.langName', 'footer.fontLink'],
+    view: false
+  }
+];
+/* the home page's link to the workflow page (the same relative path from / and /ko/) */
+const WORKFLOW_HREF = 'workflow/';
 
 class BuildError extends Error {}
 function fail(msg) { throw new BuildError(msg); }
@@ -185,7 +223,7 @@ function makeCopy(fact) {
 }
 
 /* ---------- template ---------- */
-function parseTemplate(src) {
+function parseTemplate(src, name) {
   const re = /\{\{([^{}]+)\}\}/g;
   const rootNode = { type: 'root', body: [] };
   const stack = [rootNode];
@@ -208,29 +246,29 @@ function parseTemplate(src) {
       push(node); stack.push(node);
     } else if (tag === 'else') {
       const n = cur();
-      if (n.type !== 'if' || n.inAlt) fail(`page.html:${ln}: {{else}} outside {{#if}}`);
+      if (n.type !== 'if' || n.inAlt) fail(`${name}:${ln}: {{else}} outside {{#if}}`);
       n.alt = []; n.inAlt = true;
     } else if (tag === '/each' || tag === '/if') {
       const n = stack.pop();
-      if (!n || n.type !== tag.slice(1)) fail(`page.html:${ln}: unexpected {{${tag}}}`);
+      if (!n || n.type !== tag.slice(1)) fail(`${name}:${ln}: unexpected {{${tag}}}`);
     } else if ((mm = /^(t|a|cap|u|v|f):(\S+)$/.exec(tag))) {
       push({ type: 'out', kind: mm[1], ref: mm[2], line: ln });
     } else if (/^[A-Za-z][A-Za-z0-9]*$/.test(tag)) {
       push({ type: 'var', name: tag, line: ln });
     } else {
-      fail(`page.html:${ln}: unknown placeholder {{${tag}}}`);
+      fail(`${name}:${ln}: unknown placeholder {{${tag}}}`);
     }
   }
   if (last < src.length) push({ type: 'text', value: src.slice(last) });
-  if (stack.length !== 1) fail(`page.html: unclosed {{#${cur().type}}} from line ${cur().line}`);
+  if (stack.length !== 1) fail(`${name}: unclosed {{#${cur().type}}} from line ${cur().line}`);
   return rootNode;
 }
 
-function makeRenderer({ content, view, vars, copy, fact, used }) {
+function makeRenderer({ name, content, view, vars, copy, fact, used }) {
   /* mark = record the key as used by the page (outputs and conditions; a loop over an array does not
      count as using its items, so a key no template tag reads is reported) */
   function lookup(ref, scope, line, optional, mark = true) {
-    const where = `page.html:${line}`;
+    const where = `${name}:${line}`;
     if (ref === '@i' || ref === '@n' || ref === '@first' || ref === '@last') {
       if (!scope.loop) fail(`${where}: ${ref} outside {{#each}}`);
       return { found: true, value: { '@i': scope.loop.i, '@n': scope.loop.i + 1, '@first': scope.loop.i === 0, '@last': scope.loop.last }[ref] };
@@ -259,15 +297,15 @@ function makeRenderer({ content, view, vars, copy, fact, used }) {
     for (const n of nodes) {
       if (n.type === 'text') out += n.value;
       else if (n.type === 'var') {
-        if (!(n.name in vars)) fail(`page.html:${n.line}: unknown build variable {{${n.name}}}`);
+        if (!(n.name in vars)) fail(`${name}:${n.line}: unknown build variable {{${n.name}}}`);
         out += vars[n.name];
       } else if (n.type === 'out') {
         if (n.kind === 'f') { out += escHtml(fact(n.ref)); continue; }
         const r = lookup(n.ref, scope, n.line, false);
-        const where = r.path ? `content ${r.path}` : `page.html:${n.line} ${n.ref}`;
+        const where = r.path ? `content ${r.path}` : `${name}:${n.line} ${n.ref}`;
         const v = r.value;
         if (n.kind === 'v') {
-          if (v !== null && typeof v === 'object') fail(`page.html:${n.line}: ${n.ref} is not a value`);
+          if (v !== null && typeof v === 'object') fail(`${name}:${n.line}: ${n.ref} is not a value`);
           out += escHtml(v);
         } else if (n.kind === 'u') {
           if (typeof v !== 'string' || !/^https:\/\/[A-Za-z0-9.-]+(\/[^\s"<>]*)?$/.test(v)) fail(`${where}: not an absolute https:// URL`);
@@ -284,7 +322,7 @@ function makeRenderer({ content, view, vars, copy, fact, used }) {
         out += render((neg ? !ok : ok) ? n.body : (n.alt || []), scope);
       } else if (n.type === 'each') {
         const r = lookup(n.ref, scope, n.line, false, false);
-        if (!Array.isArray(r.value)) fail(`page.html:${n.line}: {{#each ${n.ref}}} needs an array`);
+        if (!Array.isArray(r.value)) fail(`${name}:${n.line}: {{#each ${n.ref}}} needs an array`);
         r.value.forEach((item, i) => {
           out += render(n.body, { loop: { item, i, last: i === r.value.length - 1, path: r.path ? `${r.path}.${i}` : null }, parent: scope });
         });
@@ -351,9 +389,13 @@ function buildView(content, facts, lang) {
 function stripCssComments(css) {
   return css.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map((l) => l.trim()).filter(Boolean).join('\n') + '\n';
 }
-/* head.js carries two marked blocks: the EN-only language redirect and the KO-only font switch. */
-function headScript(lang) {
+/* head.js carries two marked blocks: the EN-only language redirect and the KO-only font switch.
+   koTarget: the EN page's KO twin, written over the "ko/" string after the @ko-target marker. */
+const KO_TARGET = '/* @ko-target */"ko/"';
+function headScript(lang, koTarget) {
   let js = read(path.join(REPO, 'src/js/head.js'));
+  if (js.split(KO_TARGET).length !== 2) fail(`src/js/head.js: expected exactly one ${KO_TARGET} in the EN-only block`);
+  js = js.replace(KO_TARGET, () => JSON.stringify(koTarget));
   for (const l of LANGS) {
     const re = new RegExp(`/\\* @${l}-only \\*/[\\s\\S]*?/\\* @end-${l}-only \\*/`);
     if (!re.test(js)) fail(`src/js/head.js: missing the /* @${l}-only */ ... /* @end-${l}-only */ block`);
@@ -373,67 +415,75 @@ function siteUrl() {
 /* ---------- build ---------- */
 function build(opts, outDir) {
   const SITE = siteUrl();
-  const content = {};
-  for (const l of LANGS) content[l] = readJson(path.join(opts.contentDir, `${l}.json`));
   const facts = readJson(opts.facts);
-
-  const diffs = [];
-  compareShape(content.en, content.ko, '', diffs);
-  if (diffs.length) fail(`content/en.json and content/ko.json differ in shape:\n  ${diffs.slice(0, 40).join('\n  ')}`);
-
   const fact = makeFacts(facts);
   const copy = makeCopy(fact);
-  /* Every copy string in both files is validated (placeholders against facts.json, inline markup),
-     whether or not the template renders it. _claims/_nonclaims hold ids and key patterns, not copy,
-     but may still carry no placeholder. */
-  for (const l of LANGS) {
-    for (const [k, v] of leaves(content[l], '', [])) {
-      if (typeof v !== 'string') continue;
-      if (k.startsWith('_')) {
-        if (/\{\{|\}\}/.test(v)) fail(`placeholder in ${l}.json ${k}: ${JSON.stringify(v)}`);
-      } else copy.rich(v, `${l}.json ${k}`);
-    }
-  }
-  const tree = parseTemplate(read(path.join(REPO, 'src/page.html')));
 
-  const css = ['tokens.css', 'base.css', 'site.css'].map((f) => `/* ${f} */\n` + read(path.join(REPO, 'src/css', f))).join('\n');
+  const css = ['tokens.css', 'base.css', 'site.css', 'workflow.css'].map((f) => `/* ${f} */\n` + read(path.join(REPO, 'src/css', f))).join('\n');
   const siteCss = stripCssComments(css);
   const koCss = stripCssComments(read(path.join(REPO, 'src/css/ko-font.css')));
-  const siteJs = ['kit.js', 'viz.js'].map((f) => read(path.join(REPO, 'src/js', f))).join('\n');
+  const siteJs = ['kit.js', 'viz.js', 'loop.js'].map((f) => read(path.join(REPO, 'src/js', f))).join('\n');
   if (/SCDream/.test(siteCss)) fail('site.css must not contain "SCDream" (it belongs in ko-font.css only)');
   if (/SCDream/.test(siteJs)) fail('site.js must not contain "SCDream"');
   if (!/SCDream/.test(koCss)) fail('ko-font.css does not declare the SCDream family');
   if (/\{\{/.test(siteCss + siteJs + koCss)) fail('leftover "{{" in CSS or JS');
 
-  const pages = {};
-  for (const l of LANGS) {
-    const used = new Set();
-    const isEn = l === 'en';
-    const vars = {
-      lang: l,
-      root: isEn ? '' : '../',
-      otherLang: isEn ? 'ko' : 'en',
-      otherHref: isEn ? 'ko/' : '../?lang=en',
-      hrefEn: escHtml(SITE),
-      hrefKo: escHtml(SITE + 'ko/'),
-      headScript: headScript(l)
-    };
-    const view = buildView(content[l], facts, l);
-    ['arch.risks', 'arch.leadByRisk', 'arch.gateCaption', 'routing.gateText', 'gates.cols', 'providers.claude', 'providers.codex']
-      .forEach((p) => leafPaths(getPath(content[l], p.split('.')).value, p, []).forEach((k) => used.add(k)));
-    const render = makeRenderer({ content: content[l], view, vars, copy, fact, used });
-    const html = render(tree.body, {});
-    if (/\{\{|\}\}/.test(html)) {
-      const i = html.search(/\{\{|\}\}/);
-      fail(`leftover "{{" in ${l} output near ${JSON.stringify(html.slice(Math.max(0, i - 40), i + 40))}`);
+  const outputs = [];
+  for (const pg of PAGES) {
+    const content = {};
+    for (const l of LANGS) content[l] = readJson(path.join(opts.contentDir, pg.content[l]));
+    const diffs = [];
+    compareShape(content.en, content.ko, '', diffs);
+    if (diffs.length) fail(`content/${pg.content.en} and content/${pg.content.ko} differ in shape:\n  ${diffs.slice(0, 40).join('\n  ')}`);
+
+    /* Every copy string in both files is validated (placeholders against facts.json, inline markup),
+       whether or not the template renders it. _claims/_nonclaims hold ids and key patterns, not copy,
+       but may still carry no placeholder. */
+    for (const l of LANGS) {
+      for (const [k, v] of leaves(content[l], '', [])) {
+        if (typeof v !== 'string') continue;
+        if (k.startsWith('_')) {
+          if (/\{\{|\}\}/.test(v)) fail(`placeholder in ${pg.content[l]} ${k}: ${JSON.stringify(v)}`);
+        } else copy.rich(v, `${pg.content[l]} ${k}`);
+      }
     }
-    if (isEn && /SCDream/.test(html)) fail('the EN page must not contain "SCDream"');
-    const siteCount = html.split(SITE).length - 1;
-    if (siteCount !== 2) fail(`${l} page: expected SITE_URL exactly twice (hreflang pair), found ${siteCount}`);
-    /* unused copy is an error, so a key the template never reads cannot carry an unchecked claim */
-    const unused = leafPaths(content[l], '', []).filter((k) => !k.startsWith('_') && !UNUSED_OK.includes(k) && !used.has(k));
-    if (unused.length) fail(`${l}.json: copy keys the template never uses: ${unused.join(', ')}`);
-    pages[l] = html;
+    const name = path.basename(pg.template);
+    const tree = parseTemplate(read(path.join(REPO, pg.template)), name);
+
+    for (const l of LANGS) {
+      const used = new Set();
+      const isEn = l === 'en';
+      const vars = {
+        lang: l,
+        root: pg.root[l],
+        otherLang: isEn ? 'ko' : 'en',
+        otherHref: pg.other[l],
+        homeHref: pg.home[l],
+        workflowHref: WORKFLOW_HREF,
+        hrefEn: escHtml(SITE + pg.href.en),
+        hrefKo: escHtml(SITE + pg.href.ko),
+        headScript: headScript(l, pg.koTarget)
+      };
+      let view = { isKo: l === 'ko' };
+      if (pg.view) {
+        view = buildView(content[l], facts, l);
+        ['arch.risks', 'arch.leadByRisk', 'arch.gateCaption', 'routing.gateText', 'gates.cols', 'providers.claude', 'providers.codex']
+          .forEach((p) => leafPaths(getPath(content[l], p.split('.')).value, p, []).forEach((k) => used.add(k)));
+      }
+      const render = makeRenderer({ name, content: content[l], view, vars, copy, fact, used });
+      const html = render(tree.body, {});
+      if (/\{\{|\}\}/.test(html)) {
+        const i = html.search(/\{\{|\}\}/);
+        fail(`leftover "{{" in ${pg.out[l]} near ${JSON.stringify(html.slice(Math.max(0, i - 40), i + 40))}`);
+      }
+      if (isEn && /SCDream/.test(html)) fail(`the EN page ${pg.out[l]} must not contain "SCDream"`);
+      const siteCount = html.split(SITE).length - 1;
+      if (siteCount !== 2) fail(`${pg.out[l]}: expected SITE_URL exactly twice (hreflang pair), found ${siteCount}`);
+      /* unused copy is an error, so a key the template never reads cannot carry an unchecked claim */
+      const unused = leafPaths(content[l], '', []).filter((k) => !k.startsWith('_') && !pg.unusedOk.includes(k) && !used.has(k));
+      if (unused.length) fail(`${pg.content[l]}: copy keys the template never uses: ${unused.join(', ')}`);
+      outputs.push([pg.out[l], html]);
+    }
   }
 
   const w = (rel, data) => {
@@ -441,8 +491,7 @@ function build(opts, outDir) {
     fs.mkdirSync(path.dirname(p), { recursive: true });
     fs.writeFileSync(p, data);
   };
-  w('index.html', pages.en);
-  w('ko/index.html', pages.ko);
+  for (const [rel, html] of outputs) w(rel, html);
   w('assets/site.css', siteCss);
   w('assets/ko-font.css', koCss);
   w('assets/site.js', siteJs);
@@ -452,9 +501,8 @@ function build(opts, outDir) {
   w(MARKER, MARKER_TEXT);
 
   const report = [
-    ['index.html', pages.en], ['ko/index.html', pages.ko], ['assets/site.css', siteCss],
-    ['assets/ko-font.css', koCss], ['assets/site.js', siteJs]
-  ].map(([n, d]) => `  ${n.padEnd(20)} ${String(Buffer.byteLength(d)).padStart(7)} B  gz ${String(gz(Buffer.from(d))).padStart(6)} B`);
+    ...outputs, ['assets/site.css', siteCss], ['assets/ko-font.css', koCss], ['assets/site.js', siteJs]
+  ].map(([n, d]) => `  ${n.padEnd(24)} ${String(Buffer.byteLength(d)).padStart(7)} B  gz ${String(gz(Buffer.from(d))).padStart(6)} B`);
   return { report, site: SITE };
 }
 

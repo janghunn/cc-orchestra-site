@@ -1,9 +1,11 @@
-/* cc-orchestra-site / head.js: inlined by the build as the first element of <head> on both pages.
+/* cc-orchestra-site / head.js: inlined by the build as the first element of <head> on every page.
    1. Pre-paint theme (kit theme-init.html, variant "system"): the saved choice, else the OS setting.
    2. Saved "Pause motion" choice, applied before first paint so nothing starts moving.
-   3. EN page only (the build drops the marked block on /ko/): "?lang=en" records English and never
-      redirects; otherwise a saved Korean choice sends the visitor to ko/ (keeping the #hash).
-   4. KO page only (the build drops the marked block on /): first visit renders in the metric-matched
+   3. EN pages only (the build drops the marked block on KO pages): "?lang=en" records English and never
+      redirects; otherwise a saved Korean choice sends the visitor to the page's KO twin (keeping the
+      #hash). The build replaces the string after the @ko-target marker with that page's twin URL
+      (ko/ on the home page, ../ko/workflow/ on the workflow page).
+   4. KO pages only (the build drops the marked block on EN pages): first visit renders in the metric-matched
       fallback and fetches both S-Core Dream faces after the load event, then switches in one step
       (html.ko-font, see ko-font.css); later visits switch before first paint. */
 (function (d, w) {
@@ -21,7 +23,7 @@
 (function (w) {
   try {
     if (/(?:^|[?&])lang=en(?:&|$)/.test(w.location.search)) w.localStorage.setItem("ppk-lang", "en");
-    else if (w.localStorage.getItem("ppk-lang") === "ko") w.location.replace("ko/" + w.location.hash);
+    else if (w.localStorage.getItem("ppk-lang") === "ko") w.location.replace(/* @ko-target */"ko/" + w.location.hash);
   } catch (e) {}
 }(window));
 /* @end-en-only */
