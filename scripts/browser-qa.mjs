@@ -2,7 +2,8 @@
 // Usage: node scripts/browser-qa.mjs [--only layout,axe,motion,keyboard,loop-motion,font,requests]
 // Env: DIST (default dist), CHROME_PATH (default /usr/bin/google-chrome).
 // Pages: /, /ko/, /workflow/, /ko/workflow/. Checks (light + dark, every page, 390 + 1280 px unless noted):
-//   layout    no horizontal scroll (before and after scrolling through the page); the theme applied
+//   layout    no horizontal scroll (before and after scrolling through the page); the theme applied;
+//             home pages: at least one a[href="workflow/"] visible (non-zero box) and focusable
 //   axe       axe-core: 0 violations
 //   motion    prefers-reduced-motion: reduce -> document.getAnimations().length === 0 after load,
 //             after scrolling, and after a runtime switch to reduce
@@ -116,7 +117,7 @@ try {
 
   // ---- layout + axe --------------------------------------------------------------------------
   if (want('layout') || want('axe')) {
-    for (const [name, , url] of PAGES) {
+    for (const [name, , url, workflow] of PAGES) {
       for (const theme of THEMES) {
         for (const width of WIDTHS) {
           const tag = `${name} ${theme}/${width}`;
@@ -145,6 +146,22 @@ try {
                 `${tag}: scrollWidth ${o2.sw} <= clientWidth ${o2.cw}; theme ${dark ? 'dark' : 'light'}` +
                   (errors.length ? `; page errors: ${errors.slice(0, 3).join(' | ')}` : ''),
               );
+              if (!workflow) {
+                // the home pages must offer a visible, focusable link to the workflow page at every width
+                const link = await page.evaluate(() => {
+                  const all = [...document.querySelectorAll('a[href="workflow/"]')];
+                  const ok = all.filter((a) => {
+                    const r = a.getBoundingClientRect();
+                    if (!a.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || !(r.width > 0 && r.height > 0)) return false;
+                    a.focus();
+                    const focused = document.activeElement === a && a.tabIndex >= 0;
+                    a.blur();
+                    return focused;
+                  });
+                  return { total: all.length, ok: ok.length };
+                });
+                report('layout', link.ok > 0, `${tag}: ${link.ok} of ${link.total} a[href="workflow/"] visible and focusable`);
+              }
             }
             if (want('axe')) {
               const res = await new AxeBuilder({ page }).analyze();
