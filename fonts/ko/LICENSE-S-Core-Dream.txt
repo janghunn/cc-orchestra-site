@@ -1,0 +1,55 @@
+S-Core Dream (에스코어 드림) - licence notes for the files in this folder
+=========================================================================
+
+Files
+-----
+SCDream4.otf               S-Core Dream 4 Regular (used as font-weight 400)
+SCDream6.otf               S-Core Dream 6 Bold    (used as font-weight 700)
+LICENSE-S-Core-Dream.png   the licence image shipped inside the official ZIP
+                           (original name "에스코어 드림_라이선스.png"; renamed only, bytes unchanged)
+
+The two font files and the licence image are distributed unmodified, exactly as downloaded
+from the official ZIP (S-Core_Dream_OTF.zip). No conversion, no subsetting, no renaming of the
+font files. SHA256SUMS in this folder lists the font hashes; the licence image hash is
+6b706afa8929b2b63b46276ac862da5ab7a3f79da1256b73057cd6f50baf2257.
+
+Copyright in S-Core Dream belongs to S-Core.
+Source: https://s-core.co.kr/company/font2/
+
+
+Official statements (quoted verbatim from https://s-core.co.kr/company/font2/)
+-----------------------------------------------------------------------------
+"에스코어 폰트는 개인 및 기업 사용자를 포함한 모든 사용자에게 상업적 사용이 가능하도록 무료로 제공되며 자유롭게 재배포 하실 수 있습니다."
+
+"어떠한 이유로도 폰트 파일을 수정, 판매할 수 없으며 배포되는 파일 형태 그대로 사용해야 합니다. (단, 기울기 적용, 형태 변형 등의 디자인 수정은 자유롭게 가능합니다.)"
+
+"에스코어 폰트는 본 저작권 안내를 포함해서 다른 소프트웨어와 번들하거나 재배포 또는 판매가 가능합니다."
+
+"...출처 표기를 권장합니다. 예) 이 페이지에는 에스코어가 제공한 에스코어 드림 폰트가 적용되어 있습니다. *출처 표기는 반드시 하지 않으셔도 됩니다."
+
+
+Licence image from the official ZIP (text transcribed; the image itself is LICENSE-S-Core-Dream.png)
+---------------------------------------------------------------------------------------------------
+에스코어 드림 라이선스
+
+1. S-Core 홈페이지를 통해 배포되는 에스코어 드림의 지적 재산권은 S-Core에 있습니다.
+2. 에스코어 드림은 개인 및 기업 사용자를 포함한 모든 사용자에게 무료로 제공되며
+   자유롭게 재배포 하실 수 있습니다.
+3. 에스코어 드림은 어떠한 이유로도 지적 재산권 이외의 사용자가 폰트 파일을 수정,
+   판매할 수 없으며 배포되는 파일 형태 그대로 사용해야 합니다.
+4. 에스코어 드림은 본 저작권 안내를 포함해서 다른 소프트웨어와 번들하거나 재배포
+   또는 판매가 가능합니다. 에스코어 드림 저작권 안내를 포함하기 어려울 경우, 에스코어
+   드림의 출처 표기를 권장합니다.
+   예) 이 페이지에는 S-Core에서 제공한 에스코어 드림이 적용되어 있습니다.
+5. 에스코어 드림을 사용한 인쇄물, 광고물(온라인 포함)의 이미지는 S-Core의 프로모션을
+   위해 활용될 수 있습니다. 이를 원치 않을 경우, 언제든지 당사에 요청하실 수 있습니다.
+
+
+Summary in plain words (not a substitute for the text above)
+------------------------------------------------------------
+- Free for everyone, including commercial use; you may redistribute and bundle the files.
+- Use the files as distributed: do not modify them (no format conversion, no subsetting) and do not sell them.
+- Keep this notice with the files when you bundle them; otherwise a credit line is recommended, not required.
+- The official page does not mention web embedding; the font files carry an OS/2 embedding flag of 4
+  (preview and print). This kit ships the unmodified OTF files as a deliberate choice; check the official
+  page for current terms before publishing.

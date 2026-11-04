@@ -1,0 +1,1 @@
+Synthetic fixture: this file is caught by its NAME (an RFC 5737 address).

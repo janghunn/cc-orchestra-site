@@ -1,0 +1,5 @@
+# Exact synthetic token strings used on purpose by tests/fixtures (fixed strings, one per line).
+# safety-grep.sh --source-mode exempts exactly these; each must match the secret-token class.
+# Any other token-shaped string in the repository is a hit.
+ghp_EXAMPLEexample0000000000000000000
+api_key = "example-not-a-real-key-000"

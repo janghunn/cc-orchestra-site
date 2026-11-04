@@ -1,0 +1,14 @@
+# URL prefixes that may appear in the built site (safety-grep.sh class "unlisted-url").
+# One absolute prefix per line. A prefix ending in "/" allows everything below it; any other
+# prefix allows the exact URL or the URL followed by "/", "?" or "#".
+# The Pages base URL is NOT listed here: CI passes it once with --allow and --allow-count.
+
+# Local-build placeholder for SITE_URL (reserved TLD, never resolves; CI refuses it)
+https://example.invalid/
+# Outbound links in the footer (the two CLIs the harness connects)
+https://github.com/anthropics/claude-code
+https://github.com/openai/codex
+# S-Core Dream font source (KO footer credit and the licence notes next to the font files)
+https://s-core.co.kr/company/font2/
+# SVG namespace identifier (not fetched)
+http://www.w3.org/2000/svg

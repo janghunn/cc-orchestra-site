@@ -1,0 +1,155 @@
+/* web-style-gradient / tokens.css  (copied from the kit; changed only at html[lang="ko"])
+   Custom properties only. Two separately designed palettes:
+   - light "paper": warm off-white surface, ink text, soft warm shadows, darker accents
+   - dark "night":  deep navy surface, luminous accents, hairline borders instead of shadows
+   :root holds the light palette; [data-theme="dark"] (set by the pre-paint script or the toggle)
+   holds the dark one; the media-query copy covers pages with JavaScript disabled.
+   Contrast ratios for every pair are listed in references/design-rules.md. */
+:root {
+  color-scheme: light;
+
+  /* light "paper" palette */
+  --bg: #fcfbf8;
+  --bg2: #f4f1ea;
+  --card: #ffffff;
+  --line: #e6e0d4;
+  --line-strong: #8f877a;
+  --fg: #1d1b18;
+  --muted: #5c564c;
+  --accent-a: #b04a17;
+  --accent-b: #0d7352;
+  --accent-c: #2453b3;
+  --warn: #8a5b00;
+  --on-accent: #ffffff;
+  --btn-bg: #1d1b18;
+  --btn-fg: #fcfbf8;
+  --code-bg: #f4f1ea;
+  --code-fg: #1d1b18;
+  --focus: #2453b3;
+  --selection: rgba(176, 74, 23, .18);
+  --glow-a: rgba(244, 152, 98, .40);
+  --glow-b: rgba(72, 196, 152, .30);
+  --glow-opacity: .9;
+  --grid-dot: rgba(29, 27, 24, .10);
+  --tint: .08;
+  --shadow-1: 0 1px 2px rgba(70, 48, 20, .05), 0 6px 18px -8px rgba(70, 48, 20, .12);
+  --shadow-2: 0 2px 4px rgba(70, 48, 20, .06), 0 18px 36px -14px rgba(70, 48, 20, .22);
+
+  /* type */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-body: var(--font-sans);
+  --font-label: var(--font-mono);
+  --fs-xs: .8125rem;
+  --fs-sm: .9375rem;
+  --fs-base: 1.0625rem;
+  --fs-md: clamp(1.125rem, 1.02rem + .5vw, 1.3125rem);
+  --fs-h3: 1.125rem;
+  --fs-h2: clamp(1.625rem, 1.2rem + 1.7vw, 2.25rem);
+  --fs-h1: clamp(2.375rem, 1.3rem + 4.6vw, 4.25rem);
+  --fs-title: clamp(1.875rem, 1.25rem + 2.9vw, 3.125rem);
+  --lh-body: 1.65;
+  --lh-tight: 1.12;
+  --measure: 68ch;
+
+  /* space (4px base) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 96px;
+  --gutter: 16px;
+  --wrap: 1120px;
+  --section-y: clamp(56px, 7vw, 92px);
+  --nav-h: 60px;
+
+  /* shape */
+  --radius-s: 8px;
+  --radius-m: 14px;
+  --radius-l: 22px;
+  --radius-pill: 999px;
+
+  /* motion */
+  --dur-fast: 160ms;
+  --dur-med: 320ms;
+  --dur-slow: 600ms;
+  --dur-drift: 22s;
+  --dur-step: 1900ms;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --ease-inout: cubic-bezier(.65, 0, .35, 1);
+}
+
+/* cc-orchestra-site change: the KO webfont family is named only in ko-font.css (linked from /ko/ only),
+   so this shared file carries the fallback stack alone and never names it. */
+html[lang="ko"] {
+  --font-ko: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-body: var(--font-ko);
+  --font-label: var(--font-ko);
+  --lh-body: 1.75;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* dark "night" palette */
+  --bg: #0b0d12;
+  --bg2: #10131a;
+  --card: #151922;
+  --line: #252b38;
+  --line-strong: #646d82;
+  --fg: #e9ecf3;
+  --muted: #a0a9ba;
+  --accent-a: #f0a070;
+  --accent-b: #4fd1a5;
+  --accent-c: #8ab4ff;
+  --warn: #f2c14e;
+  --on-accent: #0b0d12;
+  --btn-bg: #e9ecf3;
+  --btn-fg: #0b0d12;
+  --code-bg: #07090d;
+  --code-fg: #e3e7f0;
+  --focus: #8ab4ff;
+  --selection: rgba(138, 180, 255, .28);
+  --glow-a: rgba(224, 145, 95, .34);
+  --glow-b: rgba(79, 209, 165, .26);
+  --glow-opacity: .75;
+  --grid-dot: rgba(160, 176, 210, .09);
+  --tint: .12;
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
+  --shadow-2: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 22px 44px -18px rgba(0, 0, 0, .85);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #0b0d12;
+    --bg2: #10131a;
+    --card: #151922;
+    --line: #252b38;
+    --line-strong: #646d82;
+    --fg: #e9ecf3;
+    --muted: #a0a9ba;
+    --accent-a: #f0a070;
+    --accent-b: #4fd1a5;
+    --accent-c: #8ab4ff;
+    --warn: #f2c14e;
+    --on-accent: #0b0d12;
+    --btn-bg: #e9ecf3;
+    --btn-fg: #0b0d12;
+    --code-bg: #07090d;
+    --code-fg: #e3e7f0;
+    --focus: #8ab4ff;
+    --selection: rgba(138, 180, 255, .28);
+    --glow-a: rgba(224, 145, 95, .34);
+    --glow-b: rgba(79, 209, 165, .26);
+    --glow-opacity: .75;
+    --grid-dot: rgba(160, 176, 210, .09);
+    --tint: .12;
+    --shadow-1: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
+    --shadow-2: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 22px 44px -18px rgba(0, 0, 0, .85);
+  }
+}
