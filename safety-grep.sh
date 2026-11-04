@@ -71,6 +71,8 @@ fi
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/safety-grep.XXXXXX")" || err "cannot create a temp directory (check TMPDIR)"
 trap 'rm -rf "$TMP"' EXIT
+# absolute, so temp paths stay valid after the cd "$BASE" in tgrep (TMPDIR may be relative)
+TMP="$(cd -- "$TMP" && pwd -P)" || err "cannot resolve the temp directory (check TMPDIR)"
 # one temp file per scan stage: content hits, file-name hits, unlisted-url matches, allow-count
 ERR="$TMP/err" HITF="$TMP/hits" NAMEHITF="$TMP/namehits" URLF="$TMP/urls" COUNTF="$TMP/count"
 NAMES="$TMP/names" DENYF="$TMP/deny"

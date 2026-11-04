@@ -55,7 +55,7 @@ check_remote() {
 
 if [ "$have_block" -ne 0 ] || [ ! -s "$B" ]; then
   bad "README ## Publishing has no sh block" "$W/awk.err"
-  for c in p1 p2 p3 p4; do bad "$c: skipped, no Publishing sh block"; done
+  for c in p1 p2 p3 p4 p6 p7; do bad "$c: skipped, no Publishing sh block"; done
 else
   ok "README ## Publishing sh block found ($(wc -l <"$B") lines)"
 
@@ -98,6 +98,28 @@ else
   # p4 no forced or bulk pushes
   if grep -nE -e '--(force|all|mirror|tags)' "$B" >"$W/p4.out"; then bad "p4: block has a forbidden push option" "$W/p4.out"
   else ok "p4: block has none of --force, --all, --mirror, --tags"; fi
+
+  # p6 origin whose fetch URL equals REMOTE_URL but whose push URL is another repository stops the block
+  S="$W/p6/sb"; RB="$W/p6/b.git"; RC="$W/p6/c.git"
+  { sandbox "$S" && bare "$RB" && bare "$RC" && git -C "$S" remote add origin "$RC" &&
+    git -C "$S" config remote.origin.pushurl "$RB"; } >"$W/p6.setup" 2>&1 || bad "p6: setup failed" "$W/p6.setup"
+  if run_block "$S" "$RC" "$W/p6.log"; then bad "p6: block exit 0 with a different push URL" "$W/p6.log"
+  else
+    brefs="$(git --git-dir="$RB" for-each-ref --format='%(refname)')"
+    crefs="$(git --git-dir="$RC" for-each-ref --format='%(refname)')"
+    if [ -n "$brefs$crefs" ]; then bad "p6: a remote received refs: b=[$brefs] c=[$crefs]" "$W/p6.log"
+    else ok "p6: different push URL stops the block, neither remote receives refs"; fi
+  fi
+
+  # p7 a remote.origin.push mapping does not redirect the destination ref
+  S="$W/p7/sb"; R="$W/p7/remote.git"
+  { sandbox "$S" && bare "$R" && git -C "$S" remote add origin "$R" &&
+    git -C "$S" config remote.origin.push refs/heads/main:refs/heads/other; } >"$W/p7.setup" 2>&1 ||
+    bad "p7: setup failed" "$W/p7.setup"
+  if run_block "$S" "$R" "$W/p7.log"; then
+    if why="$(check_remote "$R")"; then ok "p7: remote.origin.push mapping ignored, only refs/heads/main with the site"
+    else bad "p7: $why" "$W/p7.log"; fi
+  else bad "p7: block exit $?, want 0" "$W/p7.log"; fi
 fi
 
 # p5 negative control: the old instruction pushes the empty main, and the p1 checks must say so.

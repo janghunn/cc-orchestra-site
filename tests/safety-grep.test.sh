@@ -176,13 +176,17 @@ env -u SAFETY_PRIVATE_PATTERNS HOME="$W/nohome" bash "$W/g2/safety-grep.sh" "$W/
 # PATH shims only. Real binaries are resolved with type -P (a shell function named grep would
 # make a shim that calls "grep" recurse).
 RMKTEMP="$(type -P mktemp)" RGREP="$(type -P grep)" RBASH="$(type -P bash)"
-mkdir -p "$W/shim-mktemp" "$W/shim-grep" "$W/shim-wc"
+RWC="$(type -P wc)"
+mkdir -p "$W/shim-mktemp" "$W/shim-grep" "$W/shim-wc" "$W/shim-wc-count"
 printf '#!%s\nd=$(%q "$@") || exit $?\n[ -n "${SHIM_BLOCK:-}" ] && mkdir "$d/$SHIM_BLOCK"\nprintf "%%s\\n" "$d"\n' \
   "$RBASH" "$RMKTEMP" >"$W/shim-mktemp/mktemp"
 printf '#!%s\ncase "${1:-}" in\n  --*) ;;\n  -*q*) [ "$(readlink /proc/self/fd/0)" != /dev/null ] && { echo "grep: simulated read error" >&2; exit 2; } ;;\nesac\nexec %q "$@"\n' \
   "$RBASH" "$RGREP" >"$W/shim-grep/grep"
 printf '#!%s\necho "wc: simulated failure" >&2\nexit 1\n' "$RBASH" >"$W/shim-wc/wc"
-chmod 755 "$W/shim-mktemp/mktemp" "$W/shim-grep/grep" "$W/shim-wc/wc"
+# fails only when its stdin is the allow-count temp file, real wc otherwise
+printf '#!%s\ncase "$(readlink /proc/self/fd/0)" in\n  */count) echo "wc: simulated read error" >&2; exit 1 ;;\nesac\nexec %q "$@"\n' \
+  "$RBASH" "$RWC" >"$W/shim-wc-count/wc"
+chmod 755 "$W/shim-mktemp/mktemp" "$W/shim-grep/grep" "$W/shim-wc/wc" "$W/shim-wc-count/wc"
 # srun: shim dir, target, args... (stdout+stderr in $W/out, exit status in $got)
 srun() {
   local sd="$1"; shift
@@ -198,27 +202,39 @@ printf '<p>Written by exampleowner.</p>\n' >"$GM/private/index.html"
 printf '<p>Alex Example</p>\n' >"$GM/deny/index.html"
 printf '<p>%s by exampleowner</p>\n' "$A" >"$GM/recheck/index.html"
 GNAMES="out one err hits namehits urls count names list private deny.raw deny.lf deny urlallow synth"
-# gtarget: name, expected HIT text, args...
+# temp files every run of these targets uses; per target, the option files add more
+GUSED="err hits names list urlallow namehits urls"
+# gtarget: name, expected HIT text, extra used temp names, args...
+# A used temp file blocked must give exit 2 and no CLEAN; an unused one must give exit 1 and
+# exactly the control run's HIT lines.
 gtarget() {
-  local t="$1" want="$2" b nf=0; shift 2
+  local t="$1" want="$2" used="$GUSED $3" b nf=0; shift 3
   run 1 "(g) control $t: exit 1 without a shim" "$@"
   has "(g) control $t: $want" "$want"
+  "$RGREP" '^HIT' "$W/out" >"$W/ctl-hits"
   for b in $GNAMES; do
     SHIM_BLOCK="$b" srun "$W/shim-mktemp" "$@"
-    if [ $got -eq 0 ] || grep -qF "SAFETY-GREP: CLEAN" "$W/out"; then
-      nf=$((nf + 1)); bad "(g) $t: temp file '$b' blocked gives exit $got (CLEAN or 0)" "$W/out"
-    fi
+    case " $used " in
+      *" $b "*)
+        if [ $got -ne 2 ] || "$RGREP" -qF "SAFETY-GREP: CLEAN" "$W/out"; then
+          nf=$((nf + 1)); bad "(g) $t: used temp file '$b' blocked gives exit $got, want 2 and no CLEAN" "$W/out"
+        fi ;;
+      *)
+        if [ $got -ne 1 ] || ! "$RGREP" '^HIT' "$W/out" | cmp -s - "$W/ctl-hits"; then
+          nf=$((nf + 1)); bad "(g) $t: unused temp file '$b' blocked gives exit $got, want 1 and the control HIT lines" "$W/out"
+        fi ;;
+    esac
   done
-  [ $nf -eq 0 ] && ok "(g) $t: non-zero, no CLEAN with each temp file blocked ($GNAMES)"
+  [ $nf -eq 0 ] && ok "(g) $t: exit 2 with each used temp file blocked ($used), exit 1 and the control HITs with each unused one"
 }
 export SHIM_BLOCK=""
-gtarget content "HIT [ipv4]" "$GM/content"
-gtarget name "HIT [file-name] 192.0.2.9 (ipv4)" "$GM/name"
-gtarget url "HIT [unlisted-url]" "$GM/url"
-gtarget count "HIT [allow-count]" "$GM/count" --allow "$A" --allow-count 2
-gtarget private "HIT [private:owner-handle]" "$GM/private" --private "$PS"
-gtarget deny "HIT [denylist]" "$GM/deny" --denylist "$DS"
-gtarget recheck "HIT [private:owner-handle] index.html:1" "$GM/recheck" --private "$PS" --allow "$A" --allow-count 1
+gtarget content "HIT [ipv4]" "" "$GM/content"
+gtarget name "HIT [file-name] 192.0.2.9 (ipv4)" "" "$GM/name"
+gtarget url "HIT [unlisted-url]" "" "$GM/url"
+gtarget count "HIT [allow-count]" "count" "$GM/count" --allow "$A" --allow-count 2
+gtarget private "HIT [private:owner-handle]" "private" "$GM/private" --private "$PS"
+gtarget deny "HIT [denylist]" "deny.raw deny.lf deny" "$GM/deny" --denylist "$DS"
+gtarget recheck "HIT [private:owner-handle] index.html:1" "private count" "$GM/recheck" --private "$PS" --allow "$A" --allow-count 1
 unset SHIM_BLOCK
 if [ -e /proc/self/fd/0 ]; then
   srun "$W/shim-grep" "$GM/recheck" --private "$PS" --allow "$A" --allow-count 1 </dev/null
@@ -231,6 +247,26 @@ fi
 srun "$W/shim-wc" "$GM/count" --allow "$A" --allow-count 0
 if [ $got -eq 2 ] && ! grep -qF "SAFETY-GREP: CLEAN" "$W/out"; then ok "(g) failing wc (count read) is exit 2, no CLEAN"
 else bad "(g) failing wc (count read): exit $got, want 2 and no CLEAN" "$W/out"; fi
+if [ -e /proc/self/fd/0 ]; then
+  srun "$W/shim-wc-count" "$GM/count" --allow "$A" --allow-count 0
+  if [ $got -eq 2 ] && ! "$RGREP" -qF "SAFETY-GREP: CLEAN" "$W/out" && ! "$RGREP" -qF "HIT [allow-count]" "$W/out"; then
+    ok "(g) wc failing only on the count file is exit 2, no HIT [allow-count], no CLEAN"
+  else bad "(g) wc failing only on the count file: exit $got, want 2, no HIT [allow-count], no CLEAN" "$W/out"; fi
+else
+  ok "(g) wc failing only on the count file (skipped: no /proc/self/fd)"
+fi
+# a relative TMPDIR still works: temp paths must not depend on the cd into the target
+mkdir -p "$W/rel/tmpdir"
+cd "$W/rel" || exit 2
+TMPDIR=tmpdir run 0 "(g) relative TMPDIR: clean target" "$W/clean"
+has "(g) relative TMPDIR: CLEAN" "SAFETY-GREP: CLEAN"
+TMPDIR=tmpdir run 1 "(g) relative TMPDIR: content target" "$GM/content"
+has "(g) relative TMPDIR: ipv4 hit" "HIT [ipv4]"
+TMPDIR=tmpdir run 1 "(g) relative TMPDIR: deny target" "$GM/deny" --denylist "$DS"
+has "(g) relative TMPDIR: denylist hit" "HIT [denylist]"
+TMPDIR=tmpdir run 1 "(g) relative TMPDIR: name target" "$GM/name"
+has "(g) relative TMPDIR: file-name hit" "HIT [file-name] 192.0.2.9 (ipv4)"
+cd "$ROOT" || exit 2
 
 # (h) --allow exempts the allowed URL from every private class ------------------------------------
 printf 'owner-handle\texampleowner\nperson\texampleowner\nhandle\t\\bexampleowner\\b\n' >"$W/priv3"
