@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="{{lang}}" data-theme-default="system">
+<head>
+<meta charset="utf-8">
+<script>{{headScript}}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{a:meta.title}}</title>
+<meta name="description" content="{{a:meta.description}}">
+<link rel="alternate" hreflang="en" href="{{hrefEn}}">
+<link rel="alternate" hreflang="ko" href="{{hrefKo}}">
+<link rel="icon" href="{{root}}favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="{{root}}assets/site.css">
+{{#if $isKo}}<link rel="stylesheet" href="{{root}}assets/ko-font.css">
+{{/if}}<script src="{{root}}assets/site.js" defer></script>
+</head>
+<body id="top">
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></symbol>
+  <symbol id="i-step" viewBox="0 0 24 24"><path d="M6 6l7 6-7 6zM17 6v12"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24"><path d="M7 12h10"/></symbol>
+  <symbol id="i-loop" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3-6.2M20 4v4.5h-4.5"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-4-4M20 16H6l4 4"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5.5" r="2.2"/><circle cx="6" cy="18.5" r="2.2"/><circle cx="18" cy="8" r="2.2"/><path d="M6 7.7v8.6M18 10.2c0 4-5 3.5-10.5 6.6"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.2"/></symbol>
+  <symbol id="i-not" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.7 18.3L18.3 5.7"/></symbol>
+  <symbol id="i-orch-gpu" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5"/></symbol>
+  <symbol id="i-orch-move" viewBox="0 0 24 24"><rect x="2.5" y="5" width="7" height="14" rx="1.5"/><rect x="14.5" y="5" width="7" height="14" rx="1.5"/><path d="M9.5 12h5M12.5 9.5l2 2.5-2 2.5"/></symbol>
+  <symbol id="i-orch-sudo" viewBox="0 0 24 24"><path d="M12 2.5l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10v-6z"/><circle cx="12" cy="10.5" r="2"/><path d="M12 12.5v4"/></symbol>
+  <symbol id="i-orch-api" viewBox="0 0 24 24"><path d="M8 4.5c-2.5 0-2.5 1.5-2.5 3.5S5 11 3 12c2 1 2.5 2 2.5 4s0 3.5 2.5 3.5M16 4.5c2.5 0 2.5 1.5 2.5 3.5S19 11 21 12c-2 1-2.5 2-2.5 4s0 3.5-2.5 3.5M9.5 12h5"/></symbol>
+  <symbol id="i-orch-account" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.3-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 6.5h5.5M19 3.5l2.5 3-2.5 3M21.5 15H16M18.5 12L16 15l2.5 3"/></symbol>
+</svg>
+<a class="skip-link" href="#main">{{t:meta.skip}}</a>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
+    <nav aria-label="{{a:meta.navLabel}}">
+      <ul class="navlinks">
+        <li><a href="#how">{{t:meta.nav.0}}</a></li>
+        <li><a href="#routing">{{t:meta.nav.1}}</a></li>
+        <li><a href="#gates">{{t:meta.nav.2}}</a></li>
+        <li><a href="#helpers">{{t:meta.nav.3}}</a></li>
+        <li><a href="#faq">{{t:meta.nav.4}}</a></li>
+      </ul>
+    </nav>
+    <div class="tools">
+      <a class="btn btn-secondary btn-lang" href="{{otherHref}}" hreflang="{{otherLang}}" lang="{{otherLang}}" data-lang-link="{{otherLang}}"><span>{{t:meta.otherLangName}}</span><span class="vh" lang="en"> ({{t:meta.otherLangLabel}})</span></a>
+      <button type="button" class="btn btn-icon btn-theme" data-theme-toggle aria-label="{{a:meta.themeToDark}}" data-label-to-dark="{{a:meta.themeToDark}}" data-label-to-light="{{a:meta.themeToLight}}">
+        <svg class="ico icon-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+        <svg class="ico icon-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <!-- 1. hero -->
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">{{t:hero.eyebrow}}</p>
+        <h1 id="hero-title">{{t:hero.h1}}</h1>
+        <p class="lede">{{t:hero.lede}}</p>
+        <div class="btn-row hero-cta">
+          <a class="btn btn-primary" href="#how">{{t:hero.ctaPrimary}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-secondary" href="#providers">{{t:hero.ctaSecondary}}</a>
+        </div>
+        <dl class="stats">
+          {{#each hero.stats}}<div class="stat"><dt>{{t:.label}}</dt><dd>{{t:.value}}</dd></div>
+          {{/each}}
+        </dl>
+      </div>
+      <div class="hero-side">
+        <div class="board" aria-hidden="true">
+          <div class="board-ring"></div>
+          <div class="board-in">
+            <div class="board-head">
+              <span class="board-tag">{{t:meta.illustrative}}</span>
+              <span class="board-risk">{{t:arch.riskLabel}} · {{t:arch.risks.normal}}</span>
+            </div>
+            <div class="board-body">
+              <span class="board-rail"><span class="board-fill"></span><span class="board-packet"></span></span>
+              <ol class="board-rows">
+                <li class="br fam-a"><span class="br-tier">{{t:arch.tier}} 1</span><span class="br-main"><b>{{t:arch.nodes.t1.title}}</b><span class="br-chips"><span class="br-chip">{{t:arch.nodes.t1.chip}}</span></span></span><span class="br-ok"><svg class="ico"><use href="#i-check"/></svg></span></li>
+                <li class="br fam-a"><span class="br-tier">{{t:arch.tier}} 2</span><span class="br-main"><b>{{t:arch.nodes.t2.title}}</b><span class="br-chips"><span class="br-chip">{{t:providers.claudeTitle}} {{t:arch.leadByRisk.normal}}</span></span></span><span class="br-ok"><svg class="ico"><use href="#i-check"/></svg></span></li>
+                <li class="br fam-b"><span class="br-tier">{{t:arch.tier}} 3</span><span class="br-main"><b>{{t:arch.nodes.t3.title}}</b><span class="br-chips"><span class="br-chip">{{t:arch.nodes.t3.laneMain}}</span></span></span><span class="br-ok"><svg class="ico"><use href="#i-check"/></svg></span></li>
+                <li class="br fam-b"><span class="br-tier">{{t:arch.tier}} 4</span><span class="br-main"><b>{{t:arch.nodes.t4.title}}</b><span class="br-chips"><span class="br-chip">{{t:arch.nodes.t4.verify}}</span><span class="br-chip">{{t:arch.nodes.t4.review}}</span></span></span><span class="br-ok"><svg class="ico"><use href="#i-check"/></svg></span></li>
+              </ol>
+            </div>
+            <div class="board-foot">
+              <span class="fam-key fam-a">{{t:providers.claudeTitle}}</span>
+              <span class="fam-key fam-b">{{t:providers.codexTitle}}</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost motion-btn" data-motion-toggle data-label-pause="{{a:meta.motionPause}}" data-label-resume="{{a:meta.motionResume}}">
+          <svg class="ico ico-pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="ico ico-play" aria-hidden="true"><use href="#i-play"/></svg><span data-motion-label>{{t:meta.motionPause}}</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. the problem -->
+  <section class="section alt" id="problem" aria-labelledby="problem-title">
+    <div class="wrap split">
+      <div class="section-head rv">
+        <p class="kicker">01 · {{t:problem.kicker}}</p>
+        <h2 id="problem-title">{{t:problem.h2}}</h2>
+        <div class="prose">
+          {{#each problem.p}}<p>{{t:.}}</p>
+          {{/each}}
+        </div>
+      </div>
+      <figure class="figure rv" id="fig-problem">
+        <div class="cmp">
+          <div class="cmp-card is-solo">
+            <svg class="cmp-art" viewBox="0 0 200 72" aria-hidden="true">
+              <path class="cmp-loop" d="M118 36c0-16 34-22 34 0s-34 16-34 0"/>
+              <path class="cmp-loop-tip" d="M146 25l6 3-4 5"/>
+              <rect class="cmp-node" x="54" y="20" width="64" height="32" rx="10"/>
+              <circle class="cmp-dot" cx="86" cy="36" r="5"/>
+            </svg>
+            <h3>{{t:problem.fig.leftTitle}}</h3>
+            <ul class="cmp-list">
+              {{#each problem.fig.left}}<li>{{t:.}}</li>
+              {{/each}}
+            </ul>
+          </div>
+          <span class="cmp-vs" aria-hidden="true"><svg class="ico"><use href="#i-swap"/></svg></span>
+          <div class="cmp-card is-duo">
+            <svg class="cmp-art" viewBox="0 0 200 72" aria-hidden="true">
+              <path class="cmp-wire" d="M40 36H160"/>
+              <rect class="cmp-node fam-b" x="14" y="20" width="52" height="32" rx="10"/>
+              <rect class="cmp-node fam-a" x="74" y="20" width="52" height="32" rx="10"/>
+              <rect class="cmp-node fam-b" x="134" y="20" width="52" height="32" rx="10"/>
+              <circle class="cmp-dot fam-b" cx="40" cy="36" r="5"/>
+              <circle class="cmp-dot fam-a" cx="100" cy="36" r="5"/>
+              <circle class="cmp-dot fam-b" cx="160" cy="36" r="5"/>
+            </svg>
+            <h3>{{t:problem.fig.rightTitle}}</h3>
+            <ol class="cmp-list cmp-steps">
+              {{#each problem.fig.right}}<li>{{t:.}}</li>
+              {{/each}}
+            </ol>
+          </div>
+        </div>
+        <figcaption>{{cap:problem.fig.caption}}</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 3. architecture: Viz A -->
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head rv">
+        <p class="kicker">02 · {{t:arch.kicker}}</p>
+        <h2 id="how-title">{{t:arch.h2}}</h2>
+        <p class="sub">{{t:arch.p}}</p>
+      </div>
+      <figure class="figure viz-a" id="fig-arch">
+        <div class="stage rv" data-viz-a data-step="0" data-interval="1900"
+             data-cap-idle="{{a:arch.captions.0}}" data-cap-done="{{a:arch.captions.5}}"
+             data-label-run="{{a:arch.run}}" data-label-pause="{{a:arch.pause}}"
+             data-label-on="{{a:arch.nodes.t4.on}}" data-label-off="{{a:arch.nodes.t4.off}}">
+          <div class="seg-group" role="group" aria-label="{{a:arch.riskLabel}}">
+            <span class="seg-label" aria-hidden="true">{{t:arch.riskLabel}}</span>
+            {{#each $risks}}<button type="button" class="seg" data-risk="{{v:.id}}" data-gates="{{v:.gates}}" data-lead="{{a:.leadText}}" data-cap="{{a:.gateCaption}}" aria-pressed="{{#if .isDefault}}true{{else}}false{{/if}}"><span class="rm" data-level="{{v:.level}}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>{{t:.label}}</button>
+            {{/each}}
+          </div>
+          <ol class="flow">
+            <li class="flow-node" data-node data-cap="{{a:arch.captions.1}}">
+              <span class="flow-tier">{{t:arch.tier}} 1</span>
+              <h3>{{t:arch.nodes.t1.title}}</h3>
+              <p class="flow-chips"><span class="mdl fam-a">{{t:arch.nodes.t1.chip}}</span></p>
+              <p class="flow-text">{{t:arch.nodes.t1.body}}</p>
+              <span class="flow-conn" aria-hidden="true"></span>
+            </li>
+            <li class="flow-node" data-node data-cap="{{a:arch.captions.2}}">
+              <span class="flow-tier">{{t:arch.tier}} 2</span>
+              <h3>{{t:arch.nodes.t2.title}} <span class="flow-slots">{{t:arch.nodes.t2.slots}}</span></h3>
+              <p class="flow-chips"><span class="mdl fam-a"><span>{{t:providers.claudeTitle}} <span data-lead-text>{{t:arch.leadByRisk.normal}}</span></span></span></p>
+              <p class="flow-text">{{t:arch.nodes.t2.body}}</p>
+              <span class="flow-conn" aria-hidden="true"></span>
+            </li>
+            <li class="flow-node" data-node data-cap="{{a:arch.captions.3}}">
+              <span class="flow-tier">{{t:arch.tier}} 3</span>
+              <h3>{{t:arch.nodes.t3.title}}</h3>
+              <ul class="lanes">
+                <li class="lane is-main"><b>{{t:arch.nodes.t3.laneMain}}</b><span>{{t:arch.nodes.t3.laneMainNote}}</span></li>
+                <li class="lane is-exc"><b>{{t:arch.nodes.t3.laneDev}}</b><span>{{t:arch.nodes.t3.laneDevNote}}</span></li>
+              </ul>
+              <span class="flow-conn" aria-hidden="true"></span>
+            </li>
+            <li class="flow-node" data-node data-gates-node data-cap="{{a:arch.captions.4}}">
+              <span class="flow-tier">{{t:arch.tier}} 4</span>
+              <h3>{{t:arch.nodes.t4.title}}</h3>
+              <ul class="gitems">
+                <li class="gi fam-b{{#if !$def.codex-verify}} is-off{{/if}}" data-gate="codex-verify" style="--i:0"><span class="gi-name">{{t:arch.nodes.t4.verify}}</span><span class="gi-state" data-gate-state>{{#if $def.codex-verify}}{{t:arch.nodes.t4.on}}{{else}}{{t:arch.nodes.t4.off}}{{/if}}</span><span class="gi-note">{{t:arch.nodes.t4.verifyNote}}</span></li>
+                <li class="gi fam-b{{#if !$def.codex-review}} is-off{{/if}}" data-gate="codex-review" style="--i:1"><span class="gi-name">{{t:arch.nodes.t4.review}}</span><span class="gi-state" data-gate-state>{{#if $def.codex-review}}{{t:arch.nodes.t4.on}}{{else}}{{t:arch.nodes.t4.off}}{{/if}}</span><span class="gi-note">{{t:arch.nodes.t4.reviewNote}}</span></li>
+                <li class="gi fam-a{{#if !$def.claude-verifier}} is-off{{/if}}" data-gate="claude-verifier" style="--i:2"><span class="gi-name">{{t:arch.nodes.t4.verifier}}</span><span class="gi-state" data-gate-state>{{#if $def.claude-verifier}}{{t:arch.nodes.t4.on}}{{else}}{{t:arch.nodes.t4.off}}{{/if}}</span><span class="gi-note">{{t:arch.nodes.t4.verifierNote}}</span></li>
+                <li class="gi fam-a{{#if !$def.self-check}} is-off{{/if}}" data-gate="self-check" style="--i:3"><span class="gi-name">{{t:arch.nodes.t4.self}}</span><span class="gi-state" data-gate-state>{{#if $def.self-check}}{{t:arch.nodes.t4.on}}{{else}}{{t:arch.nodes.t4.off}}{{/if}}</span><span class="gi-note">{{t:arch.nodes.t4.selfNote}}</span></li>
+              </ul>
+            </li>
+          </ol>
+          <div class="flow-foot">
+            <p class="flow-cap" data-caption role="status" aria-live="polite">{{t:arch.captions.0}}</p>
+            <div class="flow-ctl">
+              <button type="button" class="btn btn-primary" data-run><svg class="ico ico-play" aria-hidden="true"><use href="#i-play"/></svg><svg class="ico ico-pause" aria-hidden="true"><use href="#i-pause"/></svg><span data-run-label>{{t:arch.run}}</span></button>
+              <button type="button" class="btn btn-secondary" data-step><svg class="ico" aria-hidden="true"><use href="#i-step"/></svg>{{t:arch.step}}</button>
+              <button type="button" class="btn btn-ghost" data-reset><svg class="ico" aria-hidden="true"><use href="#i-reset"/></svg>{{t:arch.reset}}</button>
+            </div>
+          </div>
+        </div>
+        <figcaption>{{cap:arch.caption}}</figcaption>
+        <details class="twin" data-twin-for="fig-arch">
+          <summary>{{t:meta.textTwin}}</summary>
+          <h3>{{t:arch.twinTitle}}</h3>
+          <ol>
+            {{#each arch.twin}}<li>{{t:.}}</li>
+            {{/each}}
+          </ol>
+        </details>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 4. routing -->
+  <section class="section alt" id="routing" aria-labelledby="routing-title">
+    <div class="wrap">
+      <div class="section-head rv">
+        <p class="kicker">03 · {{t:routing.kicker}}</p>
+        <h2 id="routing-title">{{t:routing.h2}}</h2>
+        <p class="sub">{{t:routing.p}}</p>
+      </div>
+      <div class="route-grid">
+        <div class="tcard rv">
+          <div class="tscroll" role="region" tabindex="0" aria-label="{{a:routing.tableCaption}}">
+            <table class="tbl" id="tbl-routing">
+              <caption>{{cap:routing.tableCaption}}</caption>
+              <thead><tr>{{#each routing.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+              <tbody>
+                {{#each $risks}}<tr data-risk-row="{{v:.id}}"><th scope="row"><span class="rm" data-level="{{v:.level}}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>{{t:.label}}</th><td><code>{{v:.profile}}</code></td><td><span class="mdl fam-a">{{v:.lead}}</span></td><td>{{t:.gateText}}</td></tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+          <p class="tnote"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:routing.deepNote}}</span></p>
+        </div>
+        <div class="tcard rv">
+          <div class="tscroll" role="region" tabindex="0" aria-label="{{a:routing.codexCaption}}">
+            <table class="tbl" id="tbl-codex">
+              <caption>{{cap:routing.codexCaption}}</caption>
+              <thead><tr>{{#each routing.codexCols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+              <tbody>
+                {{#each routing.codexRows}}<tr><th scope="row">{{t:.0}}</th><td><span class="mdl fam-b">{{t:.1}}</span></td></tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. gates: Viz C -->
+  <section class="section" id="gates" aria-labelledby="gates-title">
+    <div class="wrap">
+      <div class="split split-gates">
+        <div class="section-head rv">
+          <p class="kicker">04 · {{t:gates.kicker}}</p>
+          <h2 id="gates-title">{{t:gates.h2}}</h2>
+          <div class="prose">
+            {{#each gates.p}}<p>{{t:.}}</p>
+            {{/each}}
+          </div>
+        </div>
+        <figure class="figure viz-c rv" id="fig-gates">
+          <div class="vc" data-viz-c>
+            <div class="vc-head" aria-hidden="true">
+              <span class="vc-corner">{{t:routing.cols.0}}</span>
+              {{#each $gateCols}}<span class="vc-col fam-{{v:.fam}}">{{t:.label}}</span>
+              {{/each}}
+            </div>
+            <div class="vc-body" role="group" aria-label="{{a:arch.riskLabel}}">
+              {{#each $risks}}<div class="vc-row{{#if .isDefault}} is-sel{{/if}}" data-row="{{v:.id}}">
+                <button type="button" class="vc-risk" data-risk="{{v:.id}}" aria-pressed="{{#if .isDefault}}true{{else}}false{{/if}}"><span class="rm" data-level="{{v:.level}}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>{{t:.label}}</button>
+                <span class="vc-cells" aria-hidden="true"><span class="vc-pipe"></span>{{#each .cells}}<span class="vc-cell fam-{{v:.fam}}{{#if .on}} is-req{{else}} is-not{{/if}}" style="--i:{{v:@i}}"><span class="vc-cname">{{t:.label}}</span><span class="vc-state">{{#if .on}}<svg class="ico"><use href="#i-check"/></svg>{{t:gates.required}}{{else}}<svg class="ico"><use href="#i-dash"/></svg>{{t:gates.notRun}}{{/if}}</span></span>{{/each}}</span>
+              </div>
+              {{/each}}
+            </div>
+          </div>
+          <figcaption>{{cap:gates.caption}}</figcaption>
+          <details class="twin" data-twin-for="fig-gates">
+            <summary>{{t:meta.textTwin}}</summary>
+            <div class="tscroll" role="region" tabindex="0" aria-label="{{a:gates.tableCaption}}">
+              <table class="tbl tbl-twin" id="tbl-gates">
+                <caption>{{cap:gates.tableCaption}}</caption>
+                <thead><tr><th scope="col">{{t:routing.cols.0}}</th>{{#each gates.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+                <tbody>
+                  {{#each $risks}}<tr><th scope="row">{{t:.label}}</th>{{#each .cells}}<td>{{#if .on}}{{t:gates.required}}{{else}}{{t:gates.notRun}}{{/if}}</td>{{/each}}</tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. two providers: Viz B -->
+  <section class="section alt" id="providers" aria-labelledby="providers-title">
+    <div class="wrap">
+      <div class="section-head rv">
+        <p class="kicker">05 · {{t:providers.kicker}}</p>
+        <h2 id="providers-title">{{t:providers.h2}}</h2>
+        <p class="sub">{{t:providers.p}}</p>
+      </div>
+      <figure class="figure viz-b" id="fig-providers">
+        <div class="vb rv" data-viz-b>
+          <div class="vb-col fam-a">
+            <h3 class="vb-title"><span class="fam-key fam-a">{{t:providers.claudeTitle}}</span></h3>
+            <ul class="vb-list">
+              {{#each providers.claude}}<li><button type="button" class="vb-item" data-role="{{v:.role}}" aria-pressed="false" style="--i:{{v:@i}}">{{t:.text}}</button></li>
+              {{/each}}
+            </ul>
+          </div>
+          <svg class="vb-band" viewBox="0 0 100 {{v:$vb.h}}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <defs><linearGradient id="vb-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="0"><stop offset="0" class="stop-a"/><stop offset="1" class="stop-b"/></linearGradient></defs>
+            {{#each $vb.links}}<path class="vb-link" data-role="{{v:.role}}" d="{{v:.d}}" style="--i:{{v:@i}}"/>
+            {{/each}}
+          </svg>
+          <div class="vb-col fam-b">
+            <h3 class="vb-title"><span class="fam-key fam-b">{{t:providers.codexTitle}}</span></h3>
+            <ul class="vb-list">
+              {{#each providers.codex}}<li><button type="button" class="vb-item" data-role="{{v:.role}}" aria-pressed="false" style="--i:{{v:@i}}">{{t:.text}}</button></li>
+              {{/each}}
+            </ul>
+          </div>
+        </div>
+        <div class="vb-cross rv">
+          <p class="cross"><span class="cross-art" aria-hidden="true"><span class="fam-dot fam-b"></span><svg class="ico"><use href="#i-arrow"/></svg><span class="fam-dot fam-a"></span></span><span>{{t:providers.crossA}}</span></p>
+          <p class="cross"><span class="cross-art" aria-hidden="true"><span class="fam-dot fam-a"></span><svg class="ico"><use href="#i-arrow"/></svg><span class="fam-dot fam-b"></span></span><span>{{t:providers.crossB}}</span></p>
+        </div>
+        <figcaption>{{cap:providers.caption}}</figcaption>
+      </figure>
+      <p class="note rv"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:providers.note}}</span></p>
+    </div>
+  </section>
+
+  <!-- 7. lifecycle -->
+  <section class="section" id="lifecycle" aria-labelledby="lifecycle-title">
+    <div class="wrap split">
+      <div class="section-head rv">
+        <p class="kicker">06 · {{t:lifecycle.kicker}}</p>
+        <h2 id="lifecycle-title">{{t:lifecycle.h2}}</h2>
+        <div class="prose">
+          {{#each lifecycle.p}}<p>{{t:.}}</p>
+          {{/each}}
+        </div>
+      </div>
+      <figure class="figure rv" id="fig-lifecycle">
+        <div class="tree-panel">
+          <div class="tree-head">
+            <span class="tree-root"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg><code>{{t:lifecycle.tree.0.0}}</code></span>
+            <span class="tree-branch"><svg class="ico" aria-hidden="true"><use href="#i-branch"/></svg><code>{{t:lifecycle.branch}}</code></span>
+          </div>
+          <ul class="tree">
+            {{#each lifecycle.tree}}{{#if !@first}}<li style="--i:{{v:@i}}"><code class="tree-name">{{t:.0}}</code><span class="tree-note">{{t:.1}}</span></li>
+            {{/if}}{{/each}}
+          </ul>
+        </div>
+        <figcaption>{{cap:lifecycle.caption}}</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 8. helpers -->
+  <section class="section alt" id="helpers" aria-labelledby="helpers-title">
+    <div class="wrap">
+      <div class="section-head rv">
+        <p class="kicker">07 · {{t:helpers.kicker}}</p>
+        <h2 id="helpers-title">{{t:helpers.h2}}</h2>
+        <p class="sub">{{t:helpers.p}}</p>
+      </div>
+      <ul class="hcards">
+        {{#each helpers.cards}}<li class="hcard rv" style="--i:{{v:@i}}">
+          <span class="hcard-ico" aria-hidden="true"><svg class="ico"><use href="#i-{{v:.name}}"/></svg></span>
+          <h3><code>{{t:.name}}</code></h3>
+          <p>{{t:.text}}</p>
+        </li>
+        {{/each}}
+      </ul>
+      <h3 class="more-title rv">{{t:helpers.moreTitle}}</h3>
+      <ul class="cmds rv">
+        {{#each helpers.more}}<li><code>{{t:.name}}</code><span>{{t:.text}}</span></li>
+        {{/each}}
+      </ul>
+    </div>
+  </section>
+
+  <!-- 9. limits -->
+  <section class="section" id="limits" aria-labelledby="limits-title">
+    <div class="wrap">
+      <div class="section-head rv">
+        <p class="kicker">08 · {{t:limits.kicker}}</p>
+        <h2 id="limits-title">{{t:limits.h2}}</h2>
+      </div>
+      <ul class="limits">
+        {{#each limits.items}}<li class="rv" style="--i:{{v:@i}}"><svg class="ico" aria-hidden="true"><use href="#i-not"/></svg><span>{{t:.}}</span></li>
+        {{/each}}
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10. FAQ -->
+  <section class="section alt" id="faq" aria-labelledby="faq-title">
+    <div class="wrap narrow-faq">
+      <div class="section-head rv">
+        <p class="kicker">09 · {{t:faq.kicker}}</p>
+        <h2 id="faq-title">{{t:faq.h2}}</h2>
+      </div>
+      <div class="faq rv">
+        {{#each faq.items}}<details class="faq-item"{{#if @first}} open{{/if}}>
+          <summary><span>{{t:.q}}</span><span class="faq-ico" aria-hidden="true"></span></summary>
+          <p>{{t:.a}}</p>
+        </details>
+        {{/each}}
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-main">
+      <a class="brand" href="#top"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
+      <p>{{t:footer.facts}}</p>
+      <p>{{t:footer.privacy}}</p>
+      {{#if footer.fontCredit}}<p class="foot-credit">{{#if footer.fontLink?}}<a href="{{u:footer.fontLink}}">{{t:footer.fontCredit}}</a>{{else}}{{t:footer.fontCredit}}{{/if}}</p>
+      {{/if}}
+    </div>
+    <div class="foot-side">
+      <h2 class="foot-title">{{t:footer.linksTitle}}</h2>
+      <ul class="foot-links">
+        {{#each footer.links}}<li><a href="{{u:.href}}">{{t:.text}}</a></li>
+        {{/each}}
+      </ul>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

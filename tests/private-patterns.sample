@@ -1,0 +1,6 @@
+# Synthetic private patterns for tests/safety-grep.test.sh (class<TAB>ERE). No real values.
+# The real file lives outside the repo; see README "Safety grep".
+owner-handle	exampleowner
+machine-name	(//|@|ssh )buildbox-zeta\b
+mount	/SAMPLEMOUNT
+third-party-endpoint	api\.sample-endpoint\.invalid

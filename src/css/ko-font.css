@@ -1,0 +1,55 @@
+/* cc-orchestra-site / ko-font.css: linked from /ko/ only, so English visitors never fetch the KO fonts
+   and no English page or shared file names the family.
+   S-Core Dream, shipped as the unmodified official OTF files (no conversion, no subsetting, no local()).
+   Paths are relative to this file (dist/assets/). 400 = SCDream4 (Regular), 700 = SCDream6 (Bold).
+
+   Loading (with the /ko/ head script): the page first renders in "SCDream Fallback", a local Korean
+   font scaled to S-Core Dream's metrics (measured in Chrome: Hangul advance .96em vs .92em for
+   Noto Sans CJK KR -> size-adjust 104.35%; Latin width then within 1%; bold text on this page is mostly
+   Latin model names, measured ratio 1.024 -> 102.4% for 700), so first paint never waits for
+   1.47 MB of OTF. After the load event both SCDream faces are fetched and html.ko-font switches to them
+   in one step, with little reflow. Returning visitors (localStorage "ppk-kofont") get html.ko-font
+   before first paint, from the HTTP cache. */
+@font-face {
+  font-family: "SCDream";
+  src: url("../fonts/ko/SCDream4.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "SCDream";
+  src: url("../fonts/ko/SCDream6.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+/* metric-matched local fallback (local fonts only, nothing is downloaded) */
+@font-face {
+  font-family: "SCDream Fallback";
+  src: local("Noto Sans CJK KR Regular"), local("Noto Sans CJK KR"), local("NotoSansCJKkr-Regular"), local("Noto Sans KR Regular"), local("Noto Sans KR"), local("NotoSansKR-Regular");
+  font-weight: 400;
+  font-style: normal;
+  size-adjust: 104.35%;
+  ascent-override: 86.25%;
+  descent-override: 23.96%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "SCDream Fallback";
+  src: local("Noto Sans CJK KR Bold"), local("NotoSansCJKkr-Bold"), local("Noto Sans KR Bold"), local("NotoSansKR-Bold");
+  font-weight: 700;
+  font-style: normal;
+  size-adjust: 102.4%;
+  ascent-override: 87.89%;
+  descent-override: 24.41%;
+  line-gap-override: 0%;
+}
+html[lang="ko"] {
+  --font-ko: "SCDream Fallback", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-body: var(--font-ko);
+  --font-label: var(--font-ko);
+}
+html[lang="ko"].ko-font {
+  --font-ko: "SCDream", "SCDream Fallback", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}

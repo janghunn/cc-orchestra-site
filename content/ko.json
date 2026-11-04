@@ -1,0 +1,675 @@
+{
+  "meta": {
+    "title": "cc-orchestra: 한 모델 계열이 만들고 다른 계열이 확인합니다",
+    "description": "cc-orchestra는 코드 작업 요청을 작업 단위로 나누고, 계획·구현·검증에 Claude Code와 Codex CLI를 연결합니다. 이 페이지는 그 아키텍처를 개관합니다.",
+    "langName": "한국어",
+    "otherLangName": "English",
+    "otherLangLabel": "Read this page in English",
+    "skip": "본문으로 건너뛰기",
+    "brand": "cc-orchestra",
+    "navLabel": "주 메뉴",
+    "nav": [
+      "작동 방식",
+      "라우팅",
+      "Gate",
+      "보조 도구",
+      "FAQ"
+    ],
+    "themeToDark": "어두운 테마로 전환",
+    "themeToLight": "밝은 테마로 전환",
+    "motionPause": "움직임 멈춤",
+    "motionResume": "움직임 다시 재생",
+    "illustrative": "예시 그림",
+    "textTwin": "텍스트로 보기"
+  },
+  "hero": {
+    "eyebrow": "코드 작업을 위한 멀티 에이전트 harness",
+    "h1": "두 모델 계열. <em>하나가 만들고, 다른 하나가 읽습니다.</em>",
+    "lede": "cc-orchestra는 코드 작업 요청을 작업 단위로 나누고, 계획·구현·검증에 Claude Code와 Codex CLI를 연결합니다. 기본 모드에서는 Codex가 코드를 작성하고, Claude lead가 실제 diff를 읽으며, 별도의 Codex gate가 결과를 verify하고 review합니다.",
+    "ctaPrimary": "작동 방식 보기",
+    "ctaSecondary": "두 provider를 쓰는 이유",
+    "stats": [
+      {
+        "value": "{{f:counts.tiers}}",
+        "label": "tier"
+      },
+      {
+        "value": "{{f:counts.modelFamilies}}",
+        "label": "모델 계열"
+      },
+      {
+        "value": "{{f:counts.riskLevels}}",
+        "label": "위험도 단계"
+      }
+    ]
+  },
+  "problem": {
+    "kicker": "문제",
+    "h2": "에이전트는 늘었지만 사각지대는 그대로입니다",
+    "p": [
+      "코딩 에이전트는 많아졌습니다. 하지만 여러 에이전트를 한 코드베이스에서 조율하고 그 결과를 믿는 일은 쉬워지지 않았습니다.",
+      "자기 작업을 스스로 review하는 모델은 자기 사각지대를 그대로 안고 갑니다. cc-orchestra는 의도적으로 두 번째 모델 계열을 루프에 넣습니다."
+    ],
+    "fig": {
+      "caption": "그림 1. 자기 review와 다른 계열의 확인 비교.",
+      "leftTitle": "에이전트 하나",
+      "left": [
+        "코드를 작성합니다",
+        "자기 코드를 review합니다"
+      ],
+      "rightTitle": "cc-orchestra (기본 모드)",
+      "right": [
+        "Codex가 코드를 작성합니다",
+        "Claude lead가 diff를 읽습니다",
+        "Codex gate가 verify와 review를 합니다"
+      ]
+    }
+  },
+  "arch": {
+    "kicker": "아키텍처",
+    "h2": "하나의 작업, 네 개의 tier",
+    "p": "Tier 1은 조율하고, Tier 2는 작업 하나를 이끌고, Tier 3은 구현하고, Tier 4는 검증합니다. 위험도를 고르고 작업 하나를 실행해 보십시오.",
+    "riskLabel": "위험도",
+    "risks": {
+      "trivial": "trivial",
+      "low": "low",
+      "normal": "normal",
+      "critical": "critical"
+    },
+    "tier": "Tier",
+    "nodes": {
+      "t1": {
+        "title": "Orchestrator",
+        "chip": "Claude {{f:claude.orchestrator}}",
+        "body": "사용자와 대화하고, 요청을 작업으로 나누고, 범위·acceptance criteria·위험도를 정하고, 각 작업을 이름이 붙은 lead slot에 배정합니다. 제품 코드는 작성하지 않습니다."
+      },
+      "t2": {
+        "title": "Lead",
+        "slots": "alpha부터 delta까지",
+        "body": "작업 하나를 처음부터 끝까지 맡습니다. brief를 코드와 대조하고, plan을 쓰고, 실제 diff를 review하고, gate를 실행합니다."
+      },
+      "t3": {
+        "title": "구현",
+        "laneMain": "Codex {{f:codex.implement}}",
+        "laneMainNote": "모든 단위의 기본값",
+        "laneDev": "Claude dev ({{f:claude.dev}})",
+        "laneDevNote": "기록된 예외에만 사용: fallback, context, steering, GPU, fresh eyes (fresh eyes는 {{f:claude.devFresh}})"
+      },
+      "t4": {
+        "title": "독립 gate",
+        "verify": "Codex verify",
+        "verifyNote": "{{f:codex.verify}}; critical: {{f:codex.criticalGate}}",
+        "review": "Codex review",
+        "reviewNote": "{{f:codex.review}}; critical: {{f:codex.criticalGate}}",
+        "verifier": "Claude verifier",
+        "verifierNote": "{{f:claude.verifierCritical}}; critical 전용",
+        "self": "Lead self-check",
+        "selfNote": "trivial 전용; Tier 4 실행 없음",
+        "on": "실행",
+        "off": "실행 안 함"
+      }
+    },
+    "leadByRisk": {
+      "trivial": "{{f:claude.leadLight}}",
+      "low": "{{f:claude.leadLight}}",
+      "normal": "{{f:claude.leadNormal}}",
+      "critical": "{{f:claude.leadCritical}}"
+    },
+    "captions": [
+      "‘실행’을 눌러 작업 하나가 tier를 거치는 과정을 따라가거나, ‘한 단계’로 원하는 속도에 맞춰 진행하십시오.",
+      "Tier 1: orchestrator가 요청을 범위, acceptance criteria, 위험도가 담긴 brief로 만듭니다.",
+      "Tier 2: lead가 brief를 코드와 대조하고 plan을 씁니다.",
+      "Tier 3: 기본적으로 Codex가 구현합니다. Claude dev는 기록된 예외에만 사용합니다. 둘 다 commit하지 않으며, commit은 lead만 합니다.",
+      "",
+      "완료: lead는 이 위험도에 필요한 모든 gate를 통과한 뒤에만 PASS를 보고합니다."
+    ],
+    "gateCaption": {
+      "trivial": "Tier 4: trivial 작업은 Tier 4를 건너뜁니다. lead가 확인을 직접 실행하고 self-check로 보고합니다.",
+      "low": "Tier 4: Codex가 acceptance 확인을 실행하고(verify) 의미상 결함을 찾습니다(review). 두 gate는 서로 독립적이며, lead 자신의 review와도 독립적입니다.",
+      "normal": "Tier 4: Codex가 acceptance 확인을 실행하고(verify) 의미상 결함을 찾습니다(review). 두 gate는 서로 독립적이며, lead 자신의 review와도 독립적입니다.",
+      "critical": "Tier 4: 두 Codex gate가 {{f:codex.criticalGate}}(fallback {{f:codex.criticalGateFallback}})로 올라가고, {{f:claude.verifierCritical}}의 Claude verifier가 세 번째 gate로 추가됩니다."
+    },
+    "run": "실행",
+    "pause": "일시정지",
+    "step": "한 단계",
+    "reset": "처음으로",
+    "caption": "그림 2. 작업 하나가 네 tier를 거치는 과정. 선택한 위험도에 따라 lead 모델과 gate 구성이 달라집니다.",
+    "twinTitle": "같은 흐름을 텍스트로",
+    "twin": [
+      "Tier 1, orchestrator ({{f:claude.orchestrator}}): brief를 쓰고 lead slot을 배정합니다.",
+      "Tier 2, lead (위험도에 따라 {{f:claude.leadLight}}, {{f:claude.leadNormal}} 또는 {{f:claude.leadCritical}}): brief를 확인하고, plan을 쓰고, diff를 review합니다.",
+      "Tier 3, 구현: 기본은 Codex {{f:codex.implement}}이며, Claude dev {{f:claude.dev}}(fresh eyes {{f:claude.devFresh}})는 기록된 예외에만 사용합니다.",
+      "Tier 4, gate: trivial은 lead self-check, low와 normal은 Codex verify와 review, critical은 이 둘에 Claude verifier를 더합니다."
+    ]
+  },
+  "routing": {
+    "kicker": "라우팅",
+    "h2": "모델은 사용량 계기가 아니라 위험도가 정합니다",
+    "p": "작업의 위험도가 lead의 모델과 effort, 그리고 실행할 gate 수를 정합니다. 사용량과 리셋 시각은 표시만 하며 라우팅에는 쓰지 않습니다.",
+    "tableCaption": "표 1. 위험도별 lead 모델과 gate.",
+    "cols": [
+      "위험도",
+      "Lead profile",
+      "Lead 모델",
+      "Tier 4 gate"
+    ],
+    "gateText": {
+      "trivial": "lead self-check만",
+      "low": "Codex verify + Codex review",
+      "normal": "Codex verify + Codex review",
+      "critical": "Codex verify + Codex review + Claude verifier"
+    },
+    "deepNote": "critical 작업에 deep 플래그가 붙으면 critical-xhigh profile을 선택하며, 현재 값은 {{f:claude.leadDeep}}입니다.",
+    "codexCaption": "표 2. Codex route. 자동 route는 Fast mode를 켠 상태로 실행합니다.",
+    "codexCols": [
+      "모드",
+      "Model @ effort"
+    ],
+    "codexRows": [
+      [
+        "implement",
+        "{{f:codex.implement}}"
+      ],
+      [
+        "investigate",
+        "{{f:codex.investigate}}"
+      ],
+      [
+        "verify",
+        "{{f:codex.verify}}"
+      ],
+      [
+        "review",
+        "{{f:codex.review}}"
+      ],
+      [
+        "plan review",
+        "{{f:codex.planReview}}"
+      ],
+      [
+        "기계적 수정",
+        "{{f:codex.mech}}"
+      ],
+      [
+        "실패한 round 뒤 escalation",
+        "{{f:codex.escalate}}, fallback {{f:codex.escalateFallback}}"
+      ],
+      [
+        "critical gate",
+        "{{f:codex.criticalGate}}, fallback {{f:codex.criticalGateFallback}}"
+      ]
+    ]
+  },
+  "gates": {
+    "kicker": "Gate",
+    "h2": "Gate는 위험도에 따라 늘어납니다",
+    "p": [
+      "trivial 작업은 lead의 self-check를 받습니다. low와 normal 작업에는 Codex verify 통과와 깨끗한 Codex review가 필요하며, 위험도 low인 문서 전용·순수 설정 변경은 review를 면제할 수 있지만 verify는 면제할 수 없습니다. critical 작업에는 Claude verifier도 필요합니다.",
+      "review finding은 도달 가능한 경로를 인용하거나 안전 class를 지목할 때만 차단합니다. 실패한 round는 코드를 작성한 lane으로 돌아가고, 전체 gate가 다시 실행됩니다. round 상한은 trivial·low·normal 작업이 {{f:roundCaps.normal}}회, critical 작업이 {{f:roundCaps.critical}}회이며, 한 round를 더 하려면 brief에 서면 승인 줄이 있어야 합니다."
+    ],
+    "cols": [
+      "Lead self-check",
+      "Codex verify",
+      "Codex review",
+      "Claude verifier"
+    ],
+    "required": "필수",
+    "notRun": "실행 안 함",
+    "caption": "그림 3. 위험도별 필수 gate. 위의 위험도 선택이 이 그림도 함께 바꾸며, 표에 같은 데이터가 있습니다.",
+    "tableCaption": "표 3. 위험도별 필수 gate."
+  },
+  "providers": {
+    "kicker": "두 provider",
+    "h2": "두 계열, 두 역할",
+    "p": "Claude는 계획하고 실제 diff를 읽습니다. Codex는 기본적으로 구현하고 verify와 review gate를 실행합니다. 어떤 확인이 계열을 넘나드는지는 누가 코드를 작성했는지에 따라 달라집니다.",
+    "claudeTitle": "Claude",
+    "claude": [
+      {
+        "role": "orchestrator",
+        "text": "Tier 1 orchestrator: {{f:claude.orchestrator}}"
+      },
+      {
+        "role": "lead",
+        "text": "Tier 2 lead: 위험도에 따라 {{f:claude.leadLight}}, {{f:claude.leadNormal}} 또는 {{f:claude.leadCritical}}"
+      },
+      {
+        "role": "build",
+        "text": "Tier 3 예외: dev lane은 {{f:claude.dev}}, fresh-eyes rescue는 {{f:claude.devFresh}}"
+      },
+      {
+        "role": "check",
+        "text": "Tier 4, critical 전용: verifier {{f:claude.verifierCritical}}"
+      }
+    ],
+    "codexTitle": "Codex",
+    "codex": [
+      {
+        "role": "build",
+        "text": "Tier 3 기본: {{f:codex.implement}}; 기계적 수정은 {{f:codex.mech}}"
+      },
+      {
+        "role": "lead",
+        "text": "lead를 위한 조사: {{f:codex.investigate}}"
+      },
+      {
+        "role": "check",
+        "text": "Tier 4: 실행 verify와 의미 review, {{f:codex.verify}}"
+      },
+      {
+        "role": "orchestrator",
+        "text": "critical gate와 escalation: {{f:codex.criticalGate}}와 {{f:codex.escalate}}, 각각 Sol fallback이 있습니다"
+      }
+    ],
+    "crossA": "Codex가 코드를 작성하고, Claude lead가 diff를 읽습니다.",
+    "crossB": "Claude dev가 코드를 작성하면(예외), Codex gate가 그 코드를 확인합니다.",
+    "note": "provider를 나누고 새 문맥에서 확인하면 공유 사각지대가 줄어듭니다. 그렇다고 오류가 서로 독립이라는 보장은 없습니다.",
+    "caption": "그림 4. tier마다 각 모델 계열이 하는 일. 역할에 마우스를 올리거나 포커스하면 대응하는 역할이 보입니다."
+  },
+  "lifecycle": {
+    "kicker": "수명 주기",
+    "h2": "작업 하나의 처음과 끝",
+    "p": [
+      "모든 작업에는 전용 디렉터리와 전용 git 브랜치가 있습니다. commit은 하나의 agent, 곧 lead만 합니다. lead는 명시한 경로만 stage하며, 사용자의 브랜치에 commit하거나 그 위로 rebase하거나 그 안으로 merge하지 않습니다.",
+      "활성 파일에는 크기 예산이 있습니다. brief는 {{f:budgetsKiB.brief}} KiB, plan은 {{f:budgetsKiB.plan}} KiB, summary는 {{f:budgetsKiB.summary}} KiB입니다. 검사 도구 <code>orch-summary-check</code>는 summary의 gate 주장을 디스크의 verdict 파일과 대조합니다."
+    ],
+    "tree": [
+      [
+        ".orchestra/&lt;NN&gt;-&lt;slug&gt;/",
+        ""
+      ],
+      [
+        "brief.md",
+        "목표, 범위, acceptance, 위험도 (orchestrator)"
+      ],
+      [
+        "plan.md",
+        "조사 결과와 최종 설계 (lead)"
+      ],
+      [
+        "codex-investigation.md",
+        "근거 (Codex)"
+      ],
+      [
+        "impl-report-*.md",
+        "구현 보고 (Codex 또는 Claude dev)"
+      ],
+      [
+        "review.md",
+        "실제 diff에 대한 lead의 review"
+      ],
+      [
+        "codex-verdict.md",
+        "실행 검증 (Codex)"
+      ],
+      [
+        "codex-review.md",
+        "의미 review (Codex)"
+      ],
+      [
+        "verdict.md",
+        "Claude verifier (critical 또는 fallback)"
+      ],
+      [
+        "summary.md",
+        "최종 상태와 gate 근거"
+      ],
+      [
+        "rounds/, evidence/",
+        "이전 round와 긴 로그"
+      ]
+    ],
+    "branch": "브랜치: orch/&lt;NN&gt;-&lt;slug&gt;",
+    "caption": "그림 5. 작업 하나의 산출물 묶음. 파일 이름만 표시합니다."
+  },
+  "helpers": {
+    "kicker": "보조 도구",
+    "h2": "공유 머신을 위한 보조 도구",
+    "p": "여러 세션이 서버 하나를 함께 쓰는 경우가 많습니다. 이 명령들은 공유 자원과 권한이 필요한 단계를 명시적으로 다룹니다.",
+    "cards": [
+      {
+        "name": "orch-gpu",
+        "text": "GPU와 이름 붙은 잠금을 점유하고, 메모리 상한을 적용하고, 유휴 점유를 경고하고, 오래된 것으로 보이는 GPU 클라이언트를 나열하고, 끝난 점유를 장부에 기록합니다. 다른 작업의 실행을 끝내지 않습니다."
+      },
+      {
+        "name": "orch-move",
+        "text": "데이터를 검증하며 다른 디스크로 옮깁니다. 계획, 복사, 검증, 링크로 교체 순서로 진행하고, 별도의 finalize 전까지 원본을 보관합니다. undo로 원래대로 복구합니다."
+      },
+      {
+        "name": "orch-sudo",
+        "text": "고정된 설정 목록에 있는 root 작업만 실행합니다. orchestrator가 작업을 요청하면, 사용자가 내용을 확인하고 일회용 비밀번호로 승인합니다."
+      },
+      {
+        "name": "orch-api",
+        "text": "요약, 번역, 분류 같은 텍스트 전용 작업을 자체 지출 한도 안에서 Claude API로 보냅니다. 저장소를 읽거나 고칠 수 없습니다."
+      },
+      {
+        "name": "orch-account",
+        "text": "Claude 로그인을 수동으로 전환합니다. 자동 순환은 없으며, 열린 lead가 있으면 기본적으로 전환을 막습니다."
+      }
+    ],
+    "moreTitle": "그 밖의 명령",
+    "more": [
+      {
+        "name": "orch-doctor",
+        "text": "설치된 agent profile을 점검합니다"
+      },
+      {
+        "name": "orch-cli-update",
+        "text": "세션 시작 전에 Claude와 Codex CLI를 갱신합니다"
+      },
+      {
+        "name": "orch-security-scan",
+        "text": "파일에서 자격 증명 형태의 내용을 찾습니다"
+      },
+      {
+        "name": "orch-usage-report",
+        "text": "사용량과 실행 결과를 보고합니다"
+      },
+      {
+        "name": "orch-model-guard",
+        "text": "라우팅과 사용량을 보여 주고, 수동 모델 고정을 설정합니다"
+      },
+      {
+        "name": "orch-model-watch",
+        "text": "공개된 benchmark 데이터로 모델 갱신을 제안하고, 모든 가드를 통과할 때만 적용합니다"
+      },
+      {
+        "name": "orch-archive",
+        "text": "작업 기록을 보관합니다"
+      },
+      {
+        "name": "orch-gc",
+        "text": "정리 후보를 나열합니다. 읽기 전용입니다"
+      },
+      {
+        "name": "orch-summary-check",
+        "text": "작업 summary를 산출물과 대조합니다"
+      },
+      {
+        "name": "orch-test-tamper-scan",
+        "text": "삭제된 테스트와 새 skip을 표시합니다"
+      },
+      {
+        "name": "orch-codex-route",
+        "text": "Codex 전용 라우팅을 출력합니다"
+      }
+    ]
+  },
+  "limits": {
+    "kicker": "한계",
+    "h2": "이 도구가 아닌 것",
+    "items": [
+      "Gemini lane은 없습니다.",
+      "Jev는 평가했지만 라우팅이나 gate에 도입하지 않았습니다. 선택적인 수동 자문으로만 남아 있습니다.",
+      "추가 도구가 gate 품질을 높인다는 결과는 나오지 않았습니다. 평가는 결론을 내지 못했으므로 gate는 그대로 유지합니다.",
+      "benchmark 결과는 모델 선택에 참고합니다. 이 harness를 측정한 결과는 아닙니다.",
+      "기본 모드에는 Linux, bash, Python 3, Git, tmux, 로그인한 Claude Code와 Codex CLI, Claude 구독이 필요합니다. Codex 전용 모드에는 Linux, bash, Python 3.11 이상, Git, tmux, 로그인한 Codex CLI가 필요하며 Claude 설정은 필요하지 않습니다.",
+      "소스 저장소는 비공개이며, 이 페이지는 코드를 보여 주지 않습니다."
+    ]
+  },
+  "faq": {
+    "kicker": "FAQ",
+    "h2": "자주 묻는 질문",
+    "items": [
+      {
+        "q": "코드가 공개되어 있습니까?",
+        "a": "아니요. 이 페이지는 설계를 설명합니다. 저장소가 비공개이므로 여기에는 설치 명령이 없습니다."
+      },
+      {
+        "q": "어떤 모델을 사용합니까?",
+        "a": "Claude 쪽은 Claude Opus 5.5와 Sonnet 5.5, Codex 쪽은 GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna입니다. 표 1과 표 2에 역할별로 정리했습니다."
+      },
+      {
+        "q": "Codex만 쓸 수 있습니까?",
+        "a": "예. Codex 전용 모드는 네 tier를 모두 Codex CLI로 실행합니다. 역할마다 GPT-6.1 Sol과 GPT-6 Astra 중 하나를 고르며, 다른 모델이나 Claude로 자동 fallback하지 않습니다. 세션은 기본 모드와 Codex 전용 모드 사이를 전환할 수 있으며, 브랜치·변경 내용·작업 파일이 그대로 이어집니다. Codex 전용 모드에서는 계열 간 확인이 적용되지 않습니다."
+      },
+      {
+        "q": "Claude만 쓸 수 있습니까?",
+        "a": "별도의 Claude 전용 모드는 없습니다. Codex를 쓸 수 없으면 작업은 Claude dev와 Claude verifier로 fallback할 수 있으며, 보고에 degraded gate가 기록됩니다."
+      },
+      {
+        "q": "남은 사용량에 따라 모델을 고릅니까?",
+        "a": "아니요. 사용량과 리셋 시각은 정보로만 표시합니다."
+      }
+    ]
+  },
+  "footer": {
+    "facts": "이 페이지의 사실 정보는 {{f:sourceDate}} ({{f:sourceSha}}) 기준이며, 프로젝트의 정책 파일에서 가져왔습니다.",
+    "privacy": "쿠키, 분석 도구, 제삼자 요청이 없습니다.",
+    "linksTitle": "cc-orchestra가 연결하는 두 CLI",
+    "links": [
+      {
+        "text": "Claude Code",
+        "href": "https://github.com/anthropics/claude-code"
+      },
+      {
+        "text": "Codex CLI",
+        "href": "https://github.com/openai/codex"
+      }
+    ],
+    "fontCredit": "이 페이지에는 에스코어가 제공한 에스코어 드림 폰트가 적용되어 있습니다.",
+    "fontLink": "https://s-core.co.kr/company/font2/"
+  },
+  "_claims": {
+    "meta.title": [
+      "C01"
+    ],
+    "meta.description": [
+      "C02",
+      "C03"
+    ],
+    "hero.eyebrow": [
+      "C02"
+    ],
+    "hero.h1": [
+      "C01"
+    ],
+    "hero.lede": [
+      "C02",
+      "C03"
+    ],
+    "hero.stats": [
+      "C04",
+      "C05",
+      "C06"
+    ],
+    "problem.p": [
+      "X01",
+      "C07"
+    ],
+    "problem.fig.*": [
+      "C03"
+    ],
+    "arch.h2": [
+      "C04"
+    ],
+    "arch.p": [
+      "C04"
+    ],
+    "arch.caption": [
+      "C13",
+      "C16"
+    ],
+    "arch.nodes.t1.*": [
+      "C08"
+    ],
+    "arch.nodes.t2.*": [
+      "C09",
+      "C10"
+    ],
+    "arch.nodes.t3.*": [
+      "C11",
+      "C12"
+    ],
+    "arch.nodes.t4.*": [
+      "C13",
+      "C18"
+    ],
+    "arch.leadByRisk": [
+      "C16"
+    ],
+    "arch.captions": [
+      "C08",
+      "C09",
+      "C11",
+      "C14",
+      "C13"
+    ],
+    "arch.gateCaption.*": [
+      "C13",
+      "C15",
+      "C18"
+    ],
+    "arch.twin": [
+      "C08",
+      "C09",
+      "C11",
+      "C12",
+      "C13",
+      "C16"
+    ],
+    "routing.h2": [
+      "C16",
+      "C17"
+    ],
+    "routing.p": [
+      "C13",
+      "C16",
+      "C17"
+    ],
+    "routing.gateText.*": [
+      "C13"
+    ],
+    "routing.deepNote": [
+      "C16"
+    ],
+    "routing.codexCaption": [
+      "C18"
+    ],
+    "routing.codexRows": [
+      "C18"
+    ],
+    "gates.h2": [
+      "C13"
+    ],
+    "gates.p": [
+      "C13",
+      "C19",
+      "C20",
+      "C21"
+    ],
+    "providers.h2": [
+      "C05",
+      "C22"
+    ],
+    "providers.p": [
+      "C22"
+    ],
+    "providers.claude": [
+      "C16",
+      "C12"
+    ],
+    "providers.codex": [
+      "C18"
+    ],
+    "providers.crossA": [
+      "C22"
+    ],
+    "providers.crossB": [
+      "C22"
+    ],
+    "providers.note": [
+      "C23"
+    ],
+    "lifecycle.p": [
+      "C14",
+      "C24",
+      "C25",
+      "C26",
+      "C27"
+    ],
+    "lifecycle.tree": [
+      "C26"
+    ],
+    "lifecycle.branch": [
+      "C24"
+    ],
+    "helpers.h2": [
+      "C28"
+    ],
+    "helpers.p": [
+      "C28",
+      "C30"
+    ],
+    "helpers.cards": [
+      "C28",
+      "C29",
+      "C30",
+      "C31",
+      "C32"
+    ],
+    "helpers.more": [
+      "C33"
+    ],
+    "limits.h2": [
+      "C34",
+      "C35",
+      "C36"
+    ],
+    "limits.items": [
+      "C34",
+      "C35",
+      "C36",
+      "C39",
+      "C37",
+      "C38"
+    ],
+    "faq.items": [
+      "C38",
+      "C40",
+      "C41",
+      "C42",
+      "C43",
+      "C17"
+    ],
+    "footer.facts": [
+      "C44"
+    ]
+  },
+  "_nonclaims": [
+    "meta.*",
+    "hero.ctaPrimary",
+    "hero.ctaSecondary",
+    "*.kicker",
+    "*.h2",
+    "arch.riskLabel",
+    "arch.risks.*",
+    "arch.tier",
+    "arch.run",
+    "arch.pause",
+    "arch.step",
+    "arch.reset",
+    "arch.nodes.t4.on",
+    "arch.nodes.t4.off",
+    "arch.twinTitle",
+    "arch.caption",
+    "routing.tableCaption",
+    "routing.cols",
+    "routing.codexCols",
+    "gates.cols",
+    "gates.required",
+    "gates.notRun",
+    "gates.caption",
+    "gates.tableCaption",
+    "providers.claudeTitle",
+    "providers.codexTitle",
+    "providers.caption",
+    "lifecycle.caption",
+    "helpers.moreTitle",
+    "footer.privacy",
+    "footer.linksTitle",
+    "footer.links",
+    "footer.fontCredit",
+    "footer.fontLink"
+  ]
+}

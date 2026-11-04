@@ -1,0 +1,248 @@
+{
+  "meta": {
+    "title": "cc-orchestra: build with one model family, check with another",
+    "description": "cc-orchestra splits a coding request into tasks and connects Claude Code and Codex CLI across planning, implementation and verification. An overview of its architecture.",
+    "langName": "English",
+    "otherLangName": "한국어",
+    "otherLangLabel": "Read this page in Korean",
+    "skip": "Skip to content",
+    "brand": "cc-orchestra",
+    "navLabel": "Primary",
+    "nav": ["How it works", "Routing", "Gates", "Helpers", "FAQ"],
+    "themeToDark": "Switch to dark theme",
+    "themeToLight": "Switch to light theme",
+    "motionPause": "Pause motion",
+    "motionResume": "Resume motion",
+    "illustrative": "Illustrative",
+    "textTwin": "Show as text"
+  },
+  "hero": {
+    "eyebrow": "A multi-agent harness for coding work",
+    "h1": "Two model families. <em>Built by one, read by the other.</em>",
+    "lede": "cc-orchestra splits a coding request into tasks and connects Claude Code and Codex CLI across planning, implementation and verification. In the default mode, Codex writes the code, the Claude lead reads the real diff, and separate Codex gates verify and review the result.",
+    "ctaPrimary": "See how it works",
+    "ctaSecondary": "Why two providers",
+    "stats": [
+      {"value": "{{f:counts.tiers}}", "label": "tiers"},
+      {"value": "{{f:counts.modelFamilies}}", "label": "model families"},
+      {"value": "{{f:counts.riskLevels}}", "label": "risk levels"}
+    ]
+  },
+  "problem": {
+    "kicker": "The problem",
+    "h2": "More agents, the same blind spots",
+    "p": [
+      "Coding agents have multiplied. Coordinating several of them on one codebase, and trusting what they ship, has not become easier.",
+      "A model that reviews its own work shares its own blind spots. cc-orchestra puts a second model family into the loop on purpose."
+    ],
+    "fig": {
+      "caption": "Figure 1. Self-review compared with a cross-family check.",
+      "leftTitle": "One agent",
+      "left": ["writes the code", "reviews its own code"],
+      "rightTitle": "cc-orchestra (default mode)",
+      "right": ["Codex writes the code", "the Claude lead reads the diff", "Codex gates verify and review"]
+    }
+  },
+  "arch": {
+    "kicker": "Architecture",
+    "h2": "One task, four tiers",
+    "p": "Tier 1 orchestrates, Tier 2 leads one task, Tier 3 builds and Tier 4 verifies. Pick a risk level and run a task through it.",
+    "riskLabel": "Risk level",
+    "risks": {"trivial": "trivial", "low": "low", "normal": "normal", "critical": "critical"},
+    "tier": "Tier",
+    "nodes": {
+      "t1": {"title": "Orchestrator", "chip": "Claude {{f:claude.orchestrator}}", "body": "Talks to the user, splits the request into tasks, sets scope, acceptance criteria and risk, and assigns each task to a named lead slot. It never writes product code."},
+      "t2": {"title": "Lead", "slots": "alpha to delta", "body": "Owns one task end to end: checks the brief against the code, writes the plan, reviews the real diff and runs the gates."},
+      "t3": {"title": "Implementation", "laneMain": "Codex {{f:codex.implement}}", "laneMainNote": "default for every unit", "laneDev": "Claude dev ({{f:claude.dev}})", "laneDevNote": "only for a recorded exception: fallback, context, steering, GPU or fresh eyes (fresh eyes at {{f:claude.devFresh}})"},
+      "t4": {"title": "Independent gates", "verify": "Codex verify", "verifyNote": "{{f:codex.verify}}; critical: {{f:codex.criticalGate}}", "review": "Codex review", "reviewNote": "{{f:codex.review}}; critical: {{f:codex.criticalGate}}", "verifier": "Claude verifier", "verifierNote": "{{f:claude.verifierCritical}}; critical only", "self": "Lead self-check", "selfNote": "trivial only; no Tier 4 run", "on": "runs", "off": "not run"}
+    },
+    "leadByRisk": {"trivial": "{{f:claude.leadLight}}", "low": "{{f:claude.leadLight}}", "normal": "{{f:claude.leadNormal}}", "critical": "{{f:claude.leadCritical}}"},
+    "captions": [
+      "Press Run to follow one task through the tiers, or use Step to go at your own pace.",
+      "Tier 1: the orchestrator turns the request into a brief with scope, acceptance criteria and a risk level.",
+      "Tier 2: a lead checks the brief against the code and writes the plan.",
+      "Tier 3: Codex implements by default. A Claude dev is used only for a recorded exception. Neither commits; the lead is the only committer.",
+      "",
+      "Done: the lead reports PASS only after every gate for this risk level has passed."
+    ],
+    "gateCaption": {
+      "trivial": "Tier 4: trivial tasks skip Tier 4. The lead runs the checks itself and reports them as a self-check.",
+      "low": "Tier 4: Codex runs the acceptance checks (verify) and looks for semantic defects (review), independently of each other and of the lead's own review.",
+      "normal": "Tier 4: Codex runs the acceptance checks (verify) and looks for semantic defects (review), independently of each other and of the lead's own review.",
+      "critical": "Tier 4: both Codex gates move to {{f:codex.criticalGate}} (fallback {{f:codex.criticalGateFallback}}), and a Claude verifier at {{f:claude.verifierCritical}} adds a third gate."
+    },
+    "run": "Run", "pause": "Pause", "step": "Step", "reset": "Reset",
+    "caption": "Figure 2. One task through the four tiers. The selected risk level changes the lead model and the gate set.",
+    "twinTitle": "The same flow as text",
+    "twin": [
+      "Tier 1, orchestrator ({{f:claude.orchestrator}}): writes the brief and assigns a lead slot.",
+      "Tier 2, lead ({{f:claude.leadLight}}, {{f:claude.leadNormal}} or {{f:claude.leadCritical}} by risk): checks the brief, writes the plan, reviews the diff.",
+      "Tier 3, implementation: Codex {{f:codex.implement}} by default; Claude dev {{f:claude.dev}} (fresh eyes {{f:claude.devFresh}}) only for a recorded exception.",
+      "Tier 4, gates: lead self-check for trivial; Codex verify and review for low and normal; both plus a Claude verifier for critical."
+    ]
+  },
+  "routing": {
+    "kicker": "Routing",
+    "h2": "Risk picks the model, not the usage meter",
+    "p": "The task's risk level decides the lead's model and effort and how many gates run. Usage and reset times are displayed but never used to route.",
+    "tableCaption": "Table 1. Lead model and gates by risk.",
+    "cols": ["Risk", "Lead profile", "Lead model", "Tier 4 gates"],
+    "gateText": {
+      "trivial": "lead self-check only",
+      "low": "Codex verify + Codex review",
+      "normal": "Codex verify + Codex review",
+      "critical": "Codex verify + Codex review + Claude verifier"
+    },
+    "deepNote": "A deep flag on a critical task selects the critical-xhigh profile, currently {{f:claude.leadDeep}}.",
+    "codexCaption": "Table 2. Codex routes. Automatic routes run with Fast mode on.",
+    "codexCols": ["Mode", "Model @ effort"],
+    "codexRows": [
+      ["implement", "{{f:codex.implement}}"],
+      ["investigate", "{{f:codex.investigate}}"],
+      ["verify", "{{f:codex.verify}}"],
+      ["review", "{{f:codex.review}}"],
+      ["plan review", "{{f:codex.planReview}}"],
+      ["mechanical edits", "{{f:codex.mech}}"],
+      ["escalation after a failed round", "{{f:codex.escalate}}, fallback {{f:codex.escalateFallback}}"],
+      ["critical gates", "{{f:codex.criticalGate}}, fallback {{f:codex.criticalGateFallback}}"]
+    ]
+  },
+  "gates": {
+    "kicker": "Gates",
+    "h2": "Gates scale with risk",
+    "p": [
+      "Trivial tasks get the lead's self-check. Low and normal tasks need a Codex verify pass and a clean Codex review; a low-risk docs-only or pure-config change may waive the review, never the verify. Critical tasks also need a Claude verifier.",
+      "A review finding blocks only if it quotes a reachable path or names a safety class. A failed round goes back to the lane that wrote the code, and the full gate set runs again. Rounds are capped at {{f:roundCaps.normal}} for trivial, low and normal tasks and {{f:roundCaps.critical}} for critical ones; one more round needs a written approval line in the brief."
+    ],
+    "cols": ["Lead self-check", "Codex verify", "Codex review", "Claude verifier"],
+    "required": "required",
+    "notRun": "not run",
+    "caption": "Figure 3. Required gates per risk level. The risk selector above also drives this figure; the table carries the same data.",
+    "tableCaption": "Table 3. Required gates per risk level."
+  },
+  "providers": {
+    "kicker": "Two providers",
+    "h2": "Two families, two roles",
+    "p": "Claude plans and reads the real diff. Codex builds by default and runs the verify and review gates. Which check crosses families depends on who wrote the code.",
+    "claudeTitle": "Claude",
+    "claude": [
+      {"role": "orchestrator", "text": "Tier 1 orchestrator: {{f:claude.orchestrator}}"},
+      {"role": "lead", "text": "Tier 2 lead: {{f:claude.leadLight}}, {{f:claude.leadNormal}} or {{f:claude.leadCritical}} by risk"},
+      {"role": "build", "text": "Tier 3 exceptions: dev lanes at {{f:claude.dev}}; fresh-eyes rescue at {{f:claude.devFresh}}"},
+      {"role": "check", "text": "Tier 4, critical only: verifier at {{f:claude.verifierCritical}}"}
+    ],
+    "codexTitle": "Codex",
+    "codex": [
+      {"role": "build", "text": "Tier 3 default: {{f:codex.implement}}; mechanical edits at {{f:codex.mech}}"},
+      {"role": "lead", "text": "Investigation for the lead: {{f:codex.investigate}}"},
+      {"role": "check", "text": "Tier 4: executable verify and semantic review at {{f:codex.verify}}"},
+      {"role": "orchestrator", "text": "Critical gates and escalation: {{f:codex.criticalGate}} and {{f:codex.escalate}}, each with a Sol fallback"}
+    ],
+    "crossA": "Codex writes the code; the Claude lead reads the diff.",
+    "crossB": "A Claude dev writes the code (an exception); the Codex gates check it.",
+    "note": "Separate providers and fresh contexts reduce shared blind spots. They do not guarantee that errors are independent.",
+    "caption": "Figure 4. What each model family does at each tier. Hover or focus a role to see its counterpart."
+  },
+  "lifecycle": {
+    "kicker": "Lifecycle",
+    "h2": "A task, start to finish",
+    "p": [
+      "Every task has its own directory and its own git branch. One agent, the lead, makes all commits; it stages explicit paths and never commits to, rebases onto or merges into the user's branches.",
+      "Active files have size budgets: {{f:budgetsKiB.brief}} KiB for the brief, {{f:budgetsKiB.plan}} KiB for the plan and {{f:budgetsKiB.summary}} KiB for the summary. A checker, <code>orch-summary-check</code>, compares the summary's gate claims with the verdict files on disk."
+    ],
+    "tree": [
+      [".orchestra/&lt;NN&gt;-&lt;slug&gt;/", ""],
+      ["brief.md", "goal, scope, acceptance, risk (orchestrator)"],
+      ["plan.md", "findings and the final design (lead)"],
+      ["codex-investigation.md", "evidence (Codex)"],
+      ["impl-report-*.md", "implementation report (Codex or Claude dev)"],
+      ["review.md", "the lead's review of the real diff"],
+      ["codex-verdict.md", "executable verification (Codex)"],
+      ["codex-review.md", "semantic review (Codex)"],
+      ["verdict.md", "Claude verifier (critical or fallback)"],
+      ["summary.md", "final status and gate evidence"],
+      ["rounds/, evidence/", "earlier rounds and long logs"]
+    ],
+    "branch": "branch: orch/&lt;NN&gt;-&lt;slug&gt;",
+    "caption": "Figure 5. The artifact set of one task. File names only."
+  },
+  "helpers": {
+    "kicker": "Helpers",
+    "h2": "Helpers for a shared machine",
+    "p": "Several sessions often share one server. These commands make shared resources and privileged steps explicit.",
+    "cards": [
+      {"name": "orch-gpu", "text": "Claims GPUs and named locks, applies memory limits, warns about idle claims, lists likely-stale GPU clients and keeps a ledger of completed holds. It never ends another task's work."},
+      {"name": "orch-move", "text": "Moves data to another disk with verification: plan, copy, verify, replace with a link, and keep the original until a separate finalize. Undo restores it."},
+      {"name": "orch-sudo", "text": "Runs root actions from a fixed, configured list. The orchestrator requests an action; the user reviews it and approves it with a one-time password."},
+      {"name": "orch-api", "text": "Sends text-only work such as summaries, translation and classification to the Claude API under its own spending cap. It cannot read or edit the repository."},
+      {"name": "orch-account", "text": "Switches the Claude login by hand. There is no automatic rotation, and open leads block a switch by default."}
+    ],
+    "moreTitle": "Other commands",
+    "more": [
+      {"name": "orch-doctor", "text": "checks the installed agent profiles"},
+      {"name": "orch-cli-update", "text": "updates the Claude and Codex CLIs before a session starts"},
+      {"name": "orch-security-scan", "text": "scans files for credential-shaped content"},
+      {"name": "orch-usage-report", "text": "reports usage and run outcomes"},
+      {"name": "orch-model-guard", "text": "shows routing and usage; sets manual model pins"},
+      {"name": "orch-model-watch", "text": "proposes model updates from published benchmark data and applies them only when every guard passes"},
+      {"name": "orch-archive", "text": "archives task records"},
+      {"name": "orch-gc", "text": "lists cleanup candidates; read-only"},
+      {"name": "orch-summary-check", "text": "checks a task summary against its artifacts"},
+      {"name": "orch-test-tamper-scan", "text": "flags removed tests and new skips"},
+      {"name": "orch-codex-route", "text": "prints the Codex-only routing"}
+    ]
+  },
+  "limits": {
+    "kicker": "Limits",
+    "h2": "What it is not",
+    "items": [
+      "There is no Gemini lane.",
+      "Jev was evaluated and not adopted for routing or gates. It remains an optional manual advisor.",
+      "Extra tooling has not shown a gate-quality gain; the evaluation was inconclusive, so the gates stay as they are.",
+      "Benchmark results inform model choice. They are not measurements of this harness.",
+      "The default mode needs Linux, bash, Python 3, Git, tmux, a logged-in Claude Code and Codex CLI, and a Claude subscription. Codex-only mode needs Linux, bash, Python 3.11 or later, Git, tmux and a logged-in Codex CLI, and no Claude setup.",
+      "The source repository is private, and this page shows no code."
+    ]
+  },
+  "faq": {
+    "kicker": "FAQ",
+    "h2": "Questions",
+    "items": [
+      {"q": "Is the code open?", "a": "No. This page describes the design; the repository is private, so there is no install command here."},
+      {"q": "Which models does it use?", "a": "Claude Opus 5.5 and Sonnet 5.5 on the Claude side; GPT-6.1 Sol, GPT-6 Astra and GPT-6 Luna on the Codex side. Tables 1 and 2 list each role."},
+      {"q": "Can I use only Codex?", "a": "Yes. A Codex-only mode runs all four tiers on Codex CLI, with GPT-6.1 Sol and GPT-6 Astra chosen per role and no automatic fallback to another model or to Claude. A session can switch between the default mode and Codex-only mode; branches, changes and task files carry over. In Codex-only mode the cross-family check does not apply."},
+      {"q": "Can I use only Claude?", "a": "There is no separate Claude-only mode. If Codex is unavailable, a task can fall back to Claude devs and a Claude verifier, and the report records the degraded gate."},
+      {"q": "Does it pick models by remaining quota?", "a": "No. Usage and reset times are displayed for information only."}
+    ]
+  },
+  "footer": {
+    "facts": "Facts as of {{f:sourceDate}} ({{f:sourceSha}}), taken from the project's policy files.",
+    "privacy": "No cookies, no analytics, no third-party requests.",
+    "linksTitle": "The two CLIs it connects",
+    "links": [
+      {"text": "Claude Code", "href": "https://github.com/anthropics/claude-code"},
+      {"text": "Codex CLI", "href": "https://github.com/openai/codex"}
+    ],
+    "fontCredit": "",
+    "fontLink": ""
+  },
+  "_claims": {
+    "meta.title": ["C01"], "meta.description": ["C02", "C03"], "hero.eyebrow": ["C02"], "hero.h1": ["C01"], "hero.lede": ["C02", "C03"], "hero.stats": ["C04", "C05", "C06"],
+    "problem.p": ["X01", "C07"], "problem.fig.*": ["C03"],
+    "arch.h2": ["C04"], "arch.p": ["C04"], "arch.caption": ["C13", "C16"], "arch.nodes.t1.*": ["C08"], "arch.nodes.t2.*": ["C09", "C10"], "arch.nodes.t3.*": ["C11", "C12"], "arch.nodes.t4.*": ["C13", "C18"],
+    "arch.leadByRisk": ["C16"], "arch.captions": ["C08", "C09", "C11", "C14", "C13"], "arch.gateCaption.*": ["C13", "C15", "C18"], "arch.twin": ["C08", "C09", "C11", "C12", "C13", "C16"],
+    "routing.h2": ["C16", "C17"], "routing.p": ["C13", "C16", "C17"], "routing.gateText.*": ["C13"], "routing.deepNote": ["C16"], "routing.codexCaption": ["C18"], "routing.codexRows": ["C18"],
+    "gates.h2": ["C13"], "gates.p": ["C13", "C19", "C20", "C21"],
+    "providers.h2": ["C05", "C22"], "providers.p": ["C22"], "providers.claude": ["C16", "C12"], "providers.codex": ["C18"], "providers.crossA": ["C22"], "providers.crossB": ["C22"], "providers.note": ["C23"],
+    "lifecycle.p": ["C14", "C24", "C25", "C26", "C27"], "lifecycle.tree": ["C26"], "lifecycle.branch": ["C24"],
+    "helpers.h2": ["C28"], "helpers.p": ["C28", "C30"], "helpers.cards": ["C28", "C29", "C30", "C31", "C32"], "helpers.more": ["C33"],
+    "limits.h2": ["C34", "C35", "C36"], "limits.items": ["C34", "C35", "C36", "C39", "C37", "C38"],
+    "faq.items": ["C38", "C40", "C41", "C42", "C43", "C17"],
+    "footer.facts": ["C44"]
+  },
+  "_nonclaims": ["meta.*", "hero.ctaPrimary", "hero.ctaSecondary", "*.kicker", "*.h2", "arch.riskLabel", "arch.risks.*", "arch.tier",
+    "arch.run", "arch.pause", "arch.step", "arch.reset", "arch.nodes.t4.on", "arch.nodes.t4.off", "arch.twinTitle", "arch.caption",
+    "routing.tableCaption", "routing.cols", "routing.codexCols", "gates.cols", "gates.required", "gates.notRun", "gates.caption", "gates.tableCaption",
+    "providers.claudeTitle", "providers.codexTitle", "providers.caption", "lifecycle.caption", "helpers.moreTitle",
+    "footer.privacy", "footer.linksTitle", "footer.links", "footer.fontCredit", "footer.fontLink"]
+}

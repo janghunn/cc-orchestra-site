@@ -1,0 +1,3 @@
+/* Synthetic fixture: a stylesheet that pulls a resource from an unlisted origin. */
+@font-face { font-family: X; src: url(https://cdn.unlisted-example.com/x.woff2); }
+.a::before { content: ""; }
