@@ -1,51 +1,223 @@
 {
   "schemaVersion": 1,
-  "sourceSha": "d009631",
-  "sourceDate": "2026-11-04",
+  "sourceSha": "7ba8a77",
+  "sourceDate": "2026-11-11",
   "claude": {
-    "orchestrator":     {"model": "Opus 5.5",   "slug": "opus[1m]",   "effort": "high"},
-    "leadLight":        {"model": "Sonnet 5.5", "slug": "sonnet[1m]", "effort": "high"},
-    "leadNormal":       {"model": "Opus 5.5",   "slug": "opus[1m]",   "effort": "high"},
-    "leadCritical":     {"model": "Opus 5.5",   "slug": "opus[1m]",   "effort": "xhigh"},
-    "leadDeep":         {"model": "Opus 5.5",   "slug": "opus[1m]",   "effort": "xhigh"},
-    "dev":              {"model": "Opus 5.5",   "slug": "opus[1m]",   "effort": "medium"},
-    "devFresh":         {"model": "Opus 5.5",   "slug": "opus[1m]",   "effort": "high"},
-    "verifierCritical": {"model": "Opus 5.5",   "slug": "opus[1m]",   "effort": "xhigh"},
-    "verifierFallback": {"model": "Sonnet 5.5", "slug": "sonnet[1m]", "effort": "high"}
+    "orchestrator": {
+      "model": "Opus 5.5",
+      "slug": "opus[1m]",
+      "effort": "high"
+    },
+    "leadLight": {
+      "model": "Sonnet 5.5",
+      "slug": "sonnet[1m]",
+      "effort": "high"
+    },
+    "leadNormal": {
+      "model": "Opus 5.5",
+      "slug": "opus[1m]",
+      "effort": "high"
+    },
+    "leadCritical": {
+      "model": "Opus 5.5",
+      "slug": "opus[1m]",
+      "effort": "xhigh"
+    },
+    "leadDeep": {
+      "model": "Opus 5.5",
+      "slug": "opus[1m]",
+      "effort": "xhigh"
+    },
+    "leadCriticalFable": {
+      "model": "Fable 5.2",
+      "slug": "claude-fable-5-2[1m]",
+      "effort": "xhigh"
+    },
+    "leadDeepFable": {
+      "model": "Fable 5.2",
+      "slug": "claude-fable-5-2[1m]",
+      "effort": "xhigh"
+    },
+    "dev": {
+      "model": "Opus 5.5",
+      "slug": "opus[1m]",
+      "effort": "medium"
+    },
+    "devFresh": {
+      "model": "Opus 5.5",
+      "slug": "opus[1m]",
+      "effort": "high"
+    },
+    "verifierCritical": {
+      "model": "Opus 5.5",
+      "slug": "opus[1m]",
+      "effort": "xhigh"
+    },
+    "verifierFallback": {
+      "model": "Sonnet 5.5",
+      "slug": "sonnet[1m]",
+      "effort": "high"
+    }
   },
   "codex": {
     "fastModeDefault": true,
-    "implement":            {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "xhigh"},
-    "investigate":          {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "high"},
-    "intake":               {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "high"},
-    "verify":               {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "xhigh"},
-    "review":               {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "xhigh"},
-    "planReview":           {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "xhigh"},
-    "mech":                 {"model": "GPT-6 Luna",  "slug": "gpt-6-luna",  "effort": "medium"},
-    "escalate":             {"model": "GPT-6 Astra", "slug": "gpt-6-astra", "effort": "max"},
-    "escalateFallback":     {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "max"},
-    "criticalGate":         {"model": "GPT-6 Astra", "slug": "gpt-6-astra", "effort": "high"},
-    "criticalGateFallback": {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "xhigh"}
+    "implement": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "xhigh"
+    },
+    "investigate": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "intake": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "verify": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "xhigh"
+    },
+    "review": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "xhigh"
+    },
+    "planReview": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "xhigh"
+    },
+    "mech": {
+      "model": "GPT-6 Luna",
+      "slug": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "escalate": {
+      "model": "GPT-6 Astra",
+      "slug": "gpt-6-astra",
+      "effort": "max"
+    },
+    "escalateFallback": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "max"
+    },
+    "criticalGate": {
+      "model": "GPT-6 Astra",
+      "slug": "gpt-6-astra",
+      "effort": "high"
+    },
+    "criticalGateFallback": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "xhigh"
+    }
   },
   "codexOnly": {
-    "orchestrator": {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "high"},
-    "leadNormal":   {"model": "GPT-6 Astra", "slug": "gpt-6-astra", "effort": "high"},
-    "worker":       {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "xhigh"},
-    "verify":       {"model": "GPT-6.1 Sol", "slug": "gpt-6.1-sol", "effort": "high"},
-    "review":       {"model": "GPT-6 Astra", "slug": "gpt-6-astra", "effort": "xhigh"},
-    "auditor":      {"model": "GPT-6 Astra", "slug": "gpt-6-astra", "effort": "max"},
+    "orchestrator": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "leadNormal": {
+      "model": "GPT-6 Astra",
+      "slug": "gpt-6-astra",
+      "effort": "high"
+    },
+    "worker": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "xhigh"
+    },
+    "verify": {
+      "model": "GPT-6.1 Sol",
+      "slug": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "review": {
+      "model": "GPT-6 Astra",
+      "slug": "gpt-6-astra",
+      "effort": "xhigh"
+    },
+    "auditor": {
+      "model": "GPT-6 Astra",
+      "slug": "gpt-6-astra",
+      "effort": "max"
+    },
     "implicitFallback": false
   },
   "riskGates": {
-    "trivial":  {"leadProfile": "light",    "lead": "leadLight",    "gates": ["self-check"]},
-    "low":      {"leadProfile": "light",    "lead": "leadLight",    "gates": ["codex-verify", "codex-review"]},
-    "normal":   {"leadProfile": "normal",   "lead": "leadNormal",   "gates": ["codex-verify", "codex-review"]},
-    "critical": {"leadProfile": "critical", "lead": "leadCritical", "gates": ["codex-verify", "codex-review", "claude-verifier"]}
+    "trivial": {
+      "leadProfile": "light",
+      "lead": "leadLight",
+      "gates": [
+        "self-check"
+      ]
+    },
+    "low": {
+      "leadProfile": "light",
+      "lead": "leadLight",
+      "gates": [
+        "codex-verify",
+        "codex-review"
+      ]
+    },
+    "normal": {
+      "leadProfile": "normal",
+      "lead": "leadNormal",
+      "gates": [
+        "codex-verify",
+        "codex-review"
+      ]
+    },
+    "critical": {
+      "leadProfile": "critical",
+      "lead": "leadCritical",
+      "gates": [
+        "codex-verify",
+        "codex-review",
+        "claude-verifier"
+      ]
+    }
   },
-  "roundCaps": {"normal": 2, "critical": 3, "extraRoundToken": "EXTRA GATE ROUND: approved"},
-  "budgetsKiB": {"brief": 12, "plan": 40, "summary": 20},
-  "counts": {"tiers": 4, "modelFamilies": 2, "riskLevels": 4, "leadSlots": 4, "prebuiltLeadAgents": 16, "maxCodexImplementThreads": 2},
-  "helpers": ["orch-gpu", "orch-move", "orch-sudo", "orch-api", "orch-account",
-              "orch-doctor", "orch-cli-update", "orch-security-scan", "orch-usage-report", "orch-model-guard",
-              "orch-model-watch", "orch-archive", "orch-gc", "orch-summary-check", "orch-test-tamper-scan", "orch-codex-route"]
+  "roundCaps": {
+    "normal": 2,
+    "critical": 3,
+    "extraRoundToken": "EXTRA GATE ROUND: approved"
+  },
+  "budgetsKiB": {
+    "brief": 12,
+    "plan": 40,
+    "summary": 20
+  },
+  "counts": {
+    "tiers": 4,
+    "modelFamilies": 2,
+    "riskLevels": 4,
+    "leadSlots": 4,
+    "prebuiltLeadAgents": 24,
+    "maxCodexImplementThreads": 2
+  },
+  "helpers": [
+    "orch-gpu",
+    "orch-move",
+    "orch-sudo",
+    "orch-api",
+    "orch-account",
+    "orch-doctor",
+    "orch-cli-update",
+    "orch-security-scan",
+    "orch-usage-report",
+    "orch-model-guard",
+    "orch-model-watch",
+    "orch-archive",
+    "orch-gc",
+    "orch-summary-check",
+    "orch-test-tamper-scan",
+    "orch-codex-route"
+  ]
 }
