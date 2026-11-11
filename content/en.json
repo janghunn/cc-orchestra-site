@@ -76,7 +76,7 @@
     "twinTitle": "The same flow as text",
     "twin": [
       "Tier 1, orchestrator ({{f:claude.orchestrator}}): writes the brief and assigns a lead slot.",
-      "Tier 2, lead ({{f:claude.leadLight}}, {{f:claude.leadNormal}} or {{f:claude.leadCritical}} by risk): checks the brief, writes the plan, reviews the diff.",
+      "Tier 2, lead ({{f:claude.leadLight}}, {{f:claude.leadNormal}} or {{f:claude.leadCritical}} by risk; {{f:claude.leadCriticalFable}} for critical and deep leads in sessions that opt in): checks the brief, writes the plan, reviews the diff.",
       "Tier 3, implementation: Codex {{f:codex.implement}} by default; Claude dev {{f:claude.dev}} (fresh eyes {{f:claude.devFresh}}) only for a recorded exception.",
       "Tier 4, gates: lead self-check for trivial; Codex verify and review for low and normal; both plus a Claude verifier for critical."
     ]
@@ -93,7 +93,7 @@
       "normal": "Codex verify + Codex review",
       "critical": "Codex verify + Codex review + Claude verifier"
     },
-    "deepNote": "A deep flag on a critical task selects the critical-xhigh profile, currently {{f:claude.leadDeep}}.",
+    "deepNote": "A deep flag on a critical task selects the critical-xhigh profile, currently {{f:claude.leadDeep}}. Each session can opt in to {{f:claude.leadCriticalFable}} for critical leads and {{f:claude.leadDeepFable}} for deep leads; without it the defaults above apply, and the critical verifier stays {{f:claude.verifierCritical}} either way.",
     "codexCaption": "Table 2. Codex routes. Automatic routes run with Fast mode on.",
     "codexCols": ["Mode", "Model @ effort"],
     "codexRows": [
@@ -127,7 +127,7 @@
     "claudeTitle": "Claude",
     "claude": [
       {"role": "orchestrator", "text": "Tier 1 orchestrator: {{f:claude.orchestrator}}"},
-      {"role": "lead", "text": "Tier 2 lead: {{f:claude.leadLight}}, {{f:claude.leadNormal}} or {{f:claude.leadCritical}} by risk"},
+      {"role": "lead", "text": "Tier 2 lead: {{f:claude.leadLight}}, {{f:claude.leadNormal}} or {{f:claude.leadCritical}} by risk; a session can opt in to {{f:claude.leadCriticalFable}} for critical and deep leads"},
       {"role": "build", "text": "Tier 3 exceptions: dev lanes at {{f:claude.dev}}; fresh-eyes rescue at {{f:claude.devFresh}}"},
       {"role": "check", "text": "Tier 4, critical only: verifier at {{f:claude.verifierCritical}}"}
     ],
@@ -147,7 +147,7 @@
     "kicker": "Lifecycle",
     "h2": "A task, start to finish",
     "p": [
-      "Every task has its own directory and its own git branch. One agent, the lead, makes all commits; it stages explicit paths and never commits to, rebases onto or merges into the user's branches.",
+      "Every task has its own directory and its own git branch. One agent, the lead, makes all commits; it stages explicit paths and never commits to, rebases onto or merges into the user's branches. Implementers stay inside the task's scope: a numbered TODO or FIXME they happen to meet is at most mentioned in the report, never investigated or fixed, unless the brief or plan names it.",
       "Active files have size budgets: {{f:budgetsKiB.brief}} KiB for the brief, {{f:budgetsKiB.plan}} KiB for the plan and {{f:budgetsKiB.summary}} KiB for the summary. A checker, <code>orch-summary-check</code>, compares the summary's gate claims with the verdict files on disk."
     ],
     "tree": [
@@ -175,7 +175,7 @@
       {"name": "orch-move", "text": "Moves data to another disk with verification: plan, copy, verify, replace with a link, and keep the original until a separate finalize. Undo restores it."},
       {"name": "orch-sudo", "text": "Runs root actions from a fixed, configured list. The orchestrator requests an action; the user reviews it and approves it with a one-time password."},
       {"name": "orch-api", "text": "Sends text-only work such as summaries, translation and classification to the Claude API under its own spending cap. It cannot read or edit the repository."},
-      {"name": "orch-account", "text": "Switches the Claude login by hand. There is no automatic rotation, and open leads block a switch by default."}
+      {"name": "orch-account", "text": "Switches the Claude login by hand; there is no automatic rotation. Idle sessions reload on the new login at once; sessions with open leads queue and reload when their leads close and the current turn ends."}
     ],
     "moreTitle": "Other commands",
     "more": [
@@ -184,7 +184,7 @@
       {"name": "orch-security-scan", "text": "scans files for credential-shaped content"},
       {"name": "orch-usage-report", "text": "reports usage and run outcomes"},
       {"name": "orch-model-guard", "text": "shows routing and usage; sets manual model pins"},
-      {"name": "orch-model-watch", "text": "proposes model updates from published benchmark data and applies them only when every guard passes"},
+      {"name": "orch-model-watch", "text": "reads Artificial Analysis's current (V2) data API on a timer, proposes model and effort updates for the managed roles and applies them only when every guard passes"},
       {"name": "orch-archive", "text": "archives task records"},
       {"name": "orch-gc", "text": "lists cleanup candidates; read-only"},
       {"name": "orch-summary-check", "text": "checks a task summary against its artifacts"},
@@ -200,6 +200,7 @@
       "Jev was evaluated and not adopted for routing or gates. It remains an optional manual advisor.",
       "Extra tooling has not shown a gate-quality gain; the evaluation was inconclusive, so the gates stay as they are.",
       "Benchmark results inform model choice. They are not measurements of this harness.",
+      "Its Bash guards are accident guards, not a sandbox: they deny destructive commands whose resolved target lies outside the permitted locations, and wait loops built on readers that never end; their coverage limits are documented.",
       "The default mode needs Linux, bash, Python 3, Git, tmux, a logged-in Claude Code and Codex CLI, and a Claude subscription. Codex-only mode needs Linux, bash, Python 3.11 or later, Git, tmux and a logged-in Codex CLI, and no Claude setup.",
       "The source is not public, and this page shows no code."
     ]
@@ -209,7 +210,7 @@
     "h2": "Questions",
     "items": [
       {"q": "Is the code open?", "a": "No. The source is not public. This page describes the design and ships no code, so there is no install command here."},
-      {"q": "Which models does it use?", "a": "Claude Opus 5.5 and Sonnet 5.5 on the Claude side; GPT-6.1 Sol, GPT-6 Astra and GPT-6 Luna on the Codex side. Tables 1 and 2 list each role."},
+      {"q": "Which models does it use?", "a": "Claude Opus 5.5 and Sonnet 5.5 on the Claude side, plus Fable 5.2 for critical and deep leads in sessions that opt in; GPT-6.1 Sol, GPT-6 Astra and GPT-6 Luna on the Codex side. Tables 1 and 2 list each role."},
       {"q": "Can I use only Codex?", "a": "Yes. A Codex-only mode runs all four tiers on Codex CLI, with GPT-6.1 Sol and GPT-6 Astra chosen per role and no automatic fallback to another model or to Claude. A session can switch between the default mode and Codex-only mode; branches, changes and task files carry over. In Codex-only mode the cross-family check does not apply."},
       {"q": "Can I use only Claude?", "a": "There is no separate Claude-only mode. If Codex is unavailable, a task can fall back to Claude devs and a Claude verifier, and the report records the degraded gate."},
       {"q": "Does it pick models by remaining quota?", "a": "No. Usage and reset times are displayed for information only."}
@@ -230,14 +231,14 @@
     "meta.title": ["C01"], "meta.description": ["C02", "C03"], "hero.eyebrow": ["C02"], "hero.h1": ["C01"], "hero.lede": ["C02", "C03"], "hero.stats": ["C04", "C05", "C06"],
     "problem.p": ["X01", "C07"], "problem.fig.*": ["C03"],
     "arch.h2": ["C04"], "arch.p": ["C04"], "arch.caption": ["C13", "C16"], "arch.nodes.t1.*": ["C08"], "arch.nodes.t2.*": ["C09", "C10"], "arch.nodes.t3.*": ["C11", "C12"], "arch.nodes.t4.*": ["C13", "C18"],
-    "arch.leadByRisk": ["C16"], "arch.captions": ["C08", "C09", "C11", "C14", "C13"], "arch.gateCaption.*": ["C13", "C15", "C18"], "arch.twin": ["C08", "C09", "C11", "C12", "C13", "C16"],
-    "routing.h2": ["C16", "C17"], "routing.p": ["C13", "C16", "C17"], "routing.gateText.*": ["C13"], "routing.deepNote": ["C16"], "routing.codexCaption": ["C18"], "routing.codexRows": ["C18"],
+    "arch.leadByRisk": ["C16"], "arch.captions": ["C08", "C09", "C11", "C14", "C13"], "arch.gateCaption.*": ["C13", "C15", "C18"], "arch.twin": ["C08", "C09", "C11", "C12", "C13", "C16", "C45"],
+    "routing.h2": ["C16", "C17"], "routing.p": ["C13", "C16", "C17"], "routing.gateText.*": ["C13"], "routing.deepNote": ["C16", "C45"], "routing.codexCaption": ["C18"], "routing.codexRows": ["C18"],
     "gates.h2": ["C13"], "gates.p": ["C13", "C19", "C20", "C21"],
-    "providers.h2": ["C05", "C22"], "providers.p": ["C22"], "providers.claude": ["C16", "C12"], "providers.codex": ["C18"], "providers.crossA": ["C22"], "providers.crossB": ["C22"], "providers.note": ["C23"],
-    "lifecycle.p": ["C14", "C24", "C25", "C26", "C27"], "lifecycle.tree": ["C26"], "lifecycle.branch": ["C24"],
-    "helpers.h2": ["C28"], "helpers.p": ["C28", "C30"], "helpers.cards": ["C28", "C29", "C30", "C31", "C32"], "helpers.more": ["C33"],
-    "limits.h2": ["C34", "C35", "C36"], "limits.items": ["C34", "C35", "C36", "C39", "C37", "C38"],
-    "faq.items": ["C38", "C40", "C41", "C42", "C43", "C17"],
+    "providers.h2": ["C05", "C22"], "providers.p": ["C22"], "providers.claude": ["C16", "C12", "C45"], "providers.codex": ["C18"], "providers.crossA": ["C22"], "providers.crossB": ["C22"], "providers.note": ["C23"],
+    "lifecycle.p": ["C14", "C24", "C25", "C26", "C27", "C48"], "lifecycle.tree": ["C26"], "lifecycle.branch": ["C24"],
+    "helpers.h2": ["C28"], "helpers.p": ["C28", "C30"], "helpers.cards": ["C28", "C29", "C30", "C31", "C32"], "helpers.more": ["C33", "C47"],
+    "limits.h2": ["C34", "C35", "C36"], "limits.items": ["C34", "C35", "C36", "C39", "C46", "C37", "C38"],
+    "faq.items": ["C38", "C40", "C41", "C42", "C43", "C17", "C45"],
     "footer.facts": ["C44"]
   },
   "_nonclaims": ["meta.*", "hero.ctaPrimary", "hero.ctaSecondary", "*.kicker", "*.h2", "arch.riskLabel", "arch.risks.*", "arch.tier",

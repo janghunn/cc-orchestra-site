@@ -157,7 +157,7 @@
       {
         "icon": "gauge",
         "title": "benchmark로 고르는 모델",
-        "text": "매주 실행되는 job이 각 역할을 Artificial Analysis 점수 하한과 지연 상한을 만족하는 가장 저렴한 모델과 effort에 둡니다. 모든 guard가 성립할 때만 변경을 적용합니다."
+        "text": "매주 실행되는 job이 관리 대상인 각 역할을 Artificial Analysis 점수 하한과 지연 상한을 만족하는 가장 저렴한 모델과 effort에 둡니다. 모든 guard가 성립할 때만 변경을 적용합니다."
       }
     ]
   },

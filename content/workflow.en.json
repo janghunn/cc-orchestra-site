@@ -157,7 +157,7 @@
       {
         "icon": "gauge",
         "title": "Models by benchmark",
-        "text": "A weekly job keeps each role on the cheapest model and effort that meets its Artificial Analysis score floor and latency cap. It applies a change only when every guard holds."
+        "text": "A weekly job keeps each managed role on the cheapest model and effort that meets its Artificial Analysis score floor and latency cap. It applies a change only when every guard holds."
       }
     ]
   },
