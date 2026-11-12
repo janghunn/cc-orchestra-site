@@ -1,41 +1,63 @@
 # Design system (short)
 
-The site uses the house style `web-style-gradient`. `src/css/tokens.css`, `src/css/base.css` and `src/js/kit.js` are kit copies; their changes are marked in each file header. Page-specific code lives in `src/css/site.css` and `src/js/viz.js`.
+The site uses the house identity **Paper & Lamp**: warm paper and off-white cards in light mode, a separately designed warm lamplight palette in dark mode, one accent per project plus one comparison colour, numbered section cards, one takeaway band per page, 44 px targets, no gradients and no shadows. `src/css/tokens.css` is the kit's token file; `src/css/base.css` and `src/css/site.css` follow the kit's `base.css`, `components.css` and `landing.css` rule shapes, adapted to this site's class names. `src/js/kit.js` is the site's own controller (theme, language links, reveal, motion), not the kit script.
 
-## Tokens used
+## Tokens
 
-- Surfaces and text: `--bg --bg2 --card --line --line-strong --fg --muted`, `--code-bg/--code-fg` (the tree panel). There are two palettes, light "paper" and dark "night", designed separately (kit). The site adds no colour of its own.
-- Accent roles:
-  - `--accent-a` is the **Claude** family; `site.css` aliases it as `--fam-a`.
-  - `--accent-b` is the **Codex** family (`--fam-b`). These two are the kit's comparison pair, and their gradient carries large text, rules and bars.
-  - `--accent-c` is interaction: active step, selected risk row, focus ring, the packet.
-- Composite tints are `color-mix(<accent> 6-13%, var(--card))`. They are used for lit gate items, required cells, the selected row, the current table row and pinned Viz B items. Text on them is `--fg` or `--muted`. All pairs were measured in both themes, all ≥ 4.5:1 (lowest: `accent-a` gate state on its 9% tint in light, 4.83:1). Control borders are ≥ 3:1. Gradient text is used for `h1 em` only.
-- Type: system sans for EN (no webfont), mono for labels, weights 400 and 700 only. Scale `--fs-*` (13/15/17/18-21/26-36 px); the hero h1 is 38-58 px. Prose is capped at `--measure` (68ch).
+- `src/css/tokens.css` is the kit file verbatim, with its two fenced blocks (`=== ACCENT` and `=== ACCENT-DARK`) set to the catalogue entry **`teal`** (light accent `#00766c`, dark `#60bcb0`; comparison amber `#e69f00` / `#e0a33a`). The accent is registered for this site in the kit's accent registry. The build copies the file unchanged to `dist/assets/css/tokens.css` (comments kept, so the fences survive) and every page links it before `assets/site.css`. Only this file holds colour literals (and the standalone `favicon.svg`).
+- Neutral tokens: `--bg --surface --ink --muted --line --control --focus --code-bg --media-bg --ph-stripe --on-media --warn --warn-text --warn-fill --series-other --series-other-text`; accent tokens: `--accent --accent-strong --accent-tint --accent-soft --on-accent --band --on-band --compare --compare-text --compare-tint`. There is no dark palette under `prefers-color-scheme` (kit rule).
+- Site tokens without colour live in a `:root` block at the top of `base.css`: type scale `--fs-*`, `--measure` (68ch), space `--sp-*`, radii `--radius-*` (aliases of the kit's `--r-s --r --card-r`), motion `--dur-* --ease*`, `--font-label` (= the body font), `--disc`.
+
+## Role mapping
+
+| role | token |
+|---|---|
+| Claude family (fills, dots, bars) | `--fam-a` = `--compare`; text and marks that must be seen `--fam-a-text` = `--compare-text`; tint `--fam-a-tint` = `--compare-tint` |
+| Codex family | `--fam-b` = `--fam-b-text` = `--accent`; tint `--fam-b-tint` = `--accent-tint` |
+| done / main lane / success | `--accent` |
+| links, link-like and note icons | `--accent`, hover `--accent-strong` |
+| selected control (pressed risk segment, selected matrix risk) | fill `--ink`, text `--surface` |
+| current node (Viz A tier, selected matrix row) | 2px `--ink` border on `--surface` |
+| current table row | `--accent-tint` fill, `--accent-strong` 700 text |
+| packets | `--ink` |
+| control borders, off / skipped / manual borders, dashed return paths, tree lines | `--control` |
+| figure wells (Viz A stage, Viz C matrix) | `--bg`; the tree panel `--code-bg` |
+| focus ring | 3px `--focus`, offset 3px |
+| `::selection` | `--accent-soft` fill, `--ink` text |
+
+Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compare/ours convention. Every family-coloured mark has the family name in text next to it or in its row/column header. Text on a family tint is `--ink` or the family text colour (both ≥ 4.5:1 in both themes). The helper tiles' icons are all `--accent` (kit feature tiles), so no icon suggests a family it does not belong to.
+
+## Components
+
+- **Nav** (`.topbar`): sticky `--surface` bar, 1px `--line` rule, 60 px. Brand = two-circle mark (`--compare`, `--accent`) + name, 900 (KO 700), `--accent`. Section links 700 `--muted`, 44 px, hover `--accent-tint`; hidden below 860 px. The language link and theme button are kit controls: 44 px pills with a 2px `--control` border (the theme button 44 × 44).
+- **Hero**: `--surface` with a 6px `--accent` bottom rule; columns 7fr / 5fr, stacking at ≤ 900 px. The eyebrow is a kit tag; `h1` 900 (KO 700) in `--ink`, its `em` in `--accent` (no gradient text). Stats are kit stat tiles (`--accent-tint`, number in `--accent`).
+- **Takeaway band**: the hero lede (`.lede.band`), in place: `--band` fill, `--on-band` 700 text, radius 16 px. One per page.
+- **Section cards**: every numbered section is `section > .wrap > .card` (2px `--line`, radius 16 px, `--surface`) on the `--bg` page. The section number in the kicker is a numbered disc (`.disc`, 46-60 px, `--accent` / `--on-accent`, Lato 900) left of the kicker + `h2` pair; the separator `.kicker-sep` stays in the DOM, visually hidden.
+- **Buttons** (`.btn`): pill, 2px border, 44 px, 700. Primary = `--accent` fill with `--on-accent`, hover `--accent-strong` fill; secondary = accent outline; ghost = `--control` border with `--ink` text. Outline and ghost hover = `--accent-tint` fill with `--accent-strong` text. Every hover rule states colour and background together.
+- **Inner panels** (comparison cards, flow nodes, table wrappers, helper tiles, limits, commands, cross notes): `--surface`, 2px `--line`, radius 12 px. **Callout** (`.callout`): `--accent-tint`, 2px `--accent` border. **Illustrative chip**: 2px dashed `--control` pill, `--muted` 700.
+- **FAQ** and text twins: native `details` with an accent chevron; 2px `--line` rules.
+- **Footer**: `--muted`, 2px top rule; the KO S-Core Dream credit line stays.
+- Type: kit body `400 clamp(16px, .45vw + 13.5px, 18px)/var(--lh)`, `h2`/`h3` per kit, labels in the body font (mono only for code, paths and branch names). KO: `word-break: keep-all`, line height 1.75, no negative letter-spacing, no uppercase.
 
 ## Korean type
 
 - `ko-font.css` is linked only from `/ko/` and is the only file that names the KO family `SCDream`. It holds 400 = `SCDream4.otf` and 700 = `SCDream6.otf`, both unmodified, with `font-display: swap`. The faces use no `local()`, and there is no preload.
-- Shared CSS carries the fallback stack only: `"Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif`.
+- Shared CSS carries the kit's fallback stack only (`--font-ko`); `ko-font.css` puts the families first on KO pages.
 - First paint uses `"SCDream Fallback"`, a `local()` Noto Sans CJK KR / Noto Sans KR face with metric overrides (values measured in Chrome):
   - 400: `size-adjust` 104.35%. Hangul advance is .96 em in S-Core Dream and .92 em in Noto.
   - 700: 102.4%, the measured ratio on this page's bold text.
 - First visit: after the first contentful paint, the `/ko/` head script loads both SCDream faces and then sets `html.ko-font`, switching to them in one step. Later visits set the class before first paint (`localStorage["ppk-kofont"]`).
-- Result: the 1.47 MB of OTF never delays first paint, and the swap moves nothing vertically in a 412 px viewport.
-- Leading is `--lh-body` 1.75 and headings 1.3 (`html[lang=ko]`), with `word-break: keep-all`. Uppercase and letter-spacing are dropped for KO labels.
+- Result: the 1.47 MB of OTF never delays first paint.
 
 ## Motion rules
 
-- Only `transform` and `opacity` animate or transition. Colour, border and shadow state changes are instant.
+- Only `transform` and `opacity` animate or transition. Colour and border state changes are instant.
 - Every animation's resting state is the final picture:
   - the hero board shows a full rail with every check;
   - the gate matrix shows the selected row lit;
   - the reveal shows content in place.
-- `prefers-reduced-motion: reduce` (including a change at runtime) uses the kit block in `base.css`: no animation and no transition. `html.motion-off`, set by the "Pause motion" button and saved in `ppk-motion`, applies the same rules. Under either one, `document.getAnimations().length === 0`.
-- Loops:
-  - The hero glow drifts on a 22 s cycle.
-  - The hero board runs an 8 s cycle: the packet hops tier to tier, rows light, checks appear and the rail fills.
-  - The board's gradient ring rotates once every 10 s.
-  - All of these pause while the tab is hidden or the hero is off screen, and stop under Pause motion or reduced motion.
+- `prefers-reduced-motion: reduce` (including a change at runtime) uses the block in `base.css`: no animation and no transition. `html.motion-off`, set by the "Pause motion" button and saved in `ppk-motion`, applies the same rules. Under either one, `document.getAnimations().length === 0`.
+- Loop: the hero board runs an 8 s cycle (the packet hops tier to tier, checks appear and the rail fills). It pauses while the tab is hidden or the hero is off screen, and stops under Pause motion or reduced motion. The old decorative motion (hero glow drift, rotating board ring, row glow) is gone.
 - One-shots:
   - reveal-on-scroll, 600 ms;
   - Viz A packet, 900 ms;
@@ -60,7 +82,7 @@ The site uses the house style `web-style-gradient`. `src/css/tokens.css`, `src/c
   - Twin: Table 3, generated from `facts.json`.
 - **Viz B** `#fig-providers` (`[data-viz-b]`):
   - Two real lists (Claude, Codex) of buttons, which make the figure its own text twin.
-  - Hover or focus highlights the counterpart role; Space or Enter pins it; Escape clears.
+  - Hover or focus highlights the counterpart role (its curve in `--ink`); Space or Enter pins it; Escape clears.
   - On desktop an SVG band draws one curve per shared role. Rows are kept equal with CSS subgrid and `contain: size` on the band.
   - Layout: stacked below 760 px.
 - **Shared risk state:** selecting a risk anywhere updates both selectors, the Tier 2 lead model, the Tier 4 gates and caption, the Viz C row and the Table 1 current row.
@@ -73,6 +95,14 @@ The site uses the house style `web-style-gradient`. `src/css/tokens.css`, `src/c
 - Tables: `tbl-routing tbl-codex tbl-gates`.
 
 Both pages come from the same template, so they have the same DOM.
+
+## Documented limits
+
+1. JavaScript off: the light theme (kit limit (a)); the old `prefers-color-scheme` dark fallback is removed on purpose.
+2. No EN webfont: the kit's stack starts with Lato, which renders only where it is installed; otherwise `Segoe UI` / system sans. The site's QA requires zero font requests on EN pages.
+3. The kit checker run on the built site (`check_kit.py --site dist`): token contract and contrast (check 2) and no hard-coded colours (check 7) pass. Check 6 does not apply (each page needs its two absolute `hreflang` links, which the site's own no-network QA exempts), nor does check 9 (the kit's single `assets/fonts/` layout with Lato; the site keeps S-Core Dream in `fonts/ko`, linked only from KO pages).
+4. Section links are hidden below 860 px, as before (no kit menu sheet).
+5. Visual taste is advisory (kit limit (d)); the gates cover contrast, targets, overflow and behaviour.
 
 ## Workflow page (`/workflow/`, `/ko/workflow/`)
 

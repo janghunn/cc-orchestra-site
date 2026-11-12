@@ -5,7 +5,8 @@
      home      src/page.html      content/en.json, ko.json                    -> index.html, ko/index.html
      workflow  src/workflow.html  content/workflow.en.json, workflow.ko.json  -> workflow/index.html,
                                                                                  ko/workflow/index.html
-   plus shared assets/site.css, assets/site.js, the KO-only assets/ko-font.css and the vendored fonts.
+   plus shared assets/css/tokens.css (the kit token file, copied verbatim so its ACCENT fences stay),
+   assets/site.css, assets/site.js, the KO-only assets/ko-font.css and the vendored fonts.
 
    Usage: node scripts/build.mjs [--out DIR] [--content-dir DIR] [--facts FILE]
      --out          output directory (default: <repo>/dist). Built in a fresh sibling temp dir and swapped
@@ -420,14 +421,16 @@ function build(opts, outDir) {
   const fact = makeFacts(facts);
   const copy = makeCopy(fact);
 
-  const css = ['tokens.css', 'base.css', 'site.css', 'workflow.css'].map((f) => `/* ${f} */\n` + read(path.join(REPO, 'src/css', f))).join('\n');
+  const tokensCss = read(path.join(REPO, 'src/css/tokens.css'));
+  const css = ['base.css', 'site.css', 'workflow.css'].map((f) => `/* ${f} */\n` + read(path.join(REPO, 'src/css', f))).join('\n');
   const siteCss = stripCssComments(css);
   const koCss = stripCssComments(read(path.join(REPO, 'src/css/ko-font.css')));
   const siteJs = ['kit.js', 'viz.js', 'loop.js'].map((f) => read(path.join(REPO, 'src/js', f))).join('\n');
   if (/SCDream/.test(siteCss)) fail('site.css must not contain "SCDream" (it belongs in ko-font.css only)');
+  if (/SCDream/.test(tokensCss)) fail('tokens.css must not contain "SCDream" (it belongs in ko-font.css only)');
   if (/SCDream/.test(siteJs)) fail('site.js must not contain "SCDream"');
   if (!/SCDream/.test(koCss)) fail('ko-font.css does not declare the SCDream family');
-  if (/\{\{/.test(siteCss + siteJs + koCss)) fail('leftover "{{" in CSS or JS');
+  if (/\{\{/.test(tokensCss + siteCss + siteJs + koCss)) fail('leftover "{{" in CSS or JS');
 
   const outputs = [];
   for (const pg of PAGES) {
@@ -493,6 +496,7 @@ function build(opts, outDir) {
     fs.writeFileSync(p, data);
   };
   for (const [rel, html] of outputs) w(rel, html);
+  w('assets/css/tokens.css', tokensCss);
   w('assets/site.css', siteCss);
   w('assets/ko-font.css', koCss);
   w('assets/site.js', siteJs);
@@ -502,7 +506,7 @@ function build(opts, outDir) {
   w(MARKER, MARKER_TEXT);
 
   const report = [
-    ...outputs, ['assets/site.css', siteCss], ['assets/ko-font.css', koCss], ['assets/site.js', siteJs]
+    ...outputs, ['assets/css/tokens.css', tokensCss], ['assets/site.css', siteCss], ['assets/ko-font.css', koCss], ['assets/site.js', siteJs]
   ].map(([n, d]) => `  ${n.padEnd(24)} ${String(Buffer.byteLength(d)).padStart(7)} B  gz ${String(gz(Buffer.from(d))).padStart(6)} B`);
   return { report, site: SITE };
 }
