@@ -114,12 +114,11 @@
 <main id="main">
   <!-- 1. hero -->
   <section class="hero" id="hero" aria-labelledby="hero-title">
-    <div class="hero-glow" aria-hidden="true"></div>
     <div class="wrap hero-grid">
       <div class="hero-copy">
         <p class="eyebrow">{{t:hero.eyebrow}}</p>
         <h1 id="hero-title">{{t:hero.h1}}</h1>
-        <p class="lede">{{t:hero.lede}}</p>
+        <p class="lede band">{{t:hero.lede}}</p>
         <div class="btn-row hero-cta">
           <a class="btn btn-primary" href="#loop">{{t:hero.ctaPrimary}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
           <a class="btn btn-secondary" href="{{homeHref}}">{{t:hero.ctaSecondary}}</a>
@@ -128,14 +127,13 @@
       <div class="hero-side">
         <div class="wf-orbit" aria-hidden="true">
           <svg class="wf-orbit-ring" viewBox="0 0 200 200" focusable="false">
-            <defs><linearGradient id="wf-orbit-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="stop-a"/><stop offset="1" class="stop-b"/></linearGradient></defs>
             <circle cx="100" cy="100" r="78"/>
           </svg>
           {{#each loop.stages}}<span class="wf-orbit-node"><svg class="ico"><use href="#i-stage-{{v:@n}}"/></svg></span>
           {{/each}}
           <span class="wf-orbit-core"><svg class="brand-mark" viewBox="0 0 24 24"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg></span>
         </div>
-        <p class="wf-hero-note"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:hero.note}}</span></p>
+        <p class="callout wf-hero-note"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:hero.note}}</span></p>
         <button type="button" class="btn btn-ghost motion-btn" data-motion-toggle data-label-pause="{{a:meta.motionPause}}" data-label-resume="{{a:meta.motionResume}}">
           <svg class="ico ico-pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="ico ico-play" aria-hidden="true"><use href="#i-play"/></svg><span data-motion-label>{{t:meta.motionPause}}</span>
         </button>
@@ -146,279 +144,291 @@
   <!-- 2. the research loop: Figure 1 (loop.js) -->
   <section class="section" id="loop" aria-labelledby="loop-title">
     <div class="wrap">
-      <div class="section-head rv">
-        <p class="kicker">01 · {{t:loop.kicker}}</p>
-        <h2 id="loop-title">{{t:loop.h2}}</h2>
-        <p class="sub">{{t:loop.p}}</p>
-      </div>
-      <figure class="figure" id="fig-loop">
-        <div class="stage wf-loop rv" data-viz-loop data-interval="1600" data-label-run="{{a:loop.run}}" data-label-pause="{{a:loop.pause}}">
-          <div class="loop-head"><span class="wf-ill">{{t:meta.illustrative}}</span></div>
-          <div class="loop-ring">
-            <ol class="loop-nodes">
-              {{#each loop.stages}}<li class="loop-node{{#if @first}} is-active{{/if}}" data-loop-node data-cap="{{a:loop.stageLabel}} {{v:@n}}: {{a:.title}} — {{a:.text}}"{{#if @first}} aria-current="step"{{/if}}>
-                <span class="loop-ico" aria-hidden="true"><svg class="ico"><use href="#i-stage-{{v:@n}}"/></svg></span>
-                <span class="loop-head-txt"><span class="loop-num">{{t:loop.stageLabel}} {{v:@n}}</span><span class="loop-title">{{t:.title}}</span></span>
-                <span class="loop-text">{{t:.text}}</span>
-                <span class="loop-chips">{{#each .chips}}<span class="loop-chip"><svg class="ico" aria-hidden="true"><use href="#i-message"/></svg>{{t:.}}</span>{{/each}}</span>
-                <span class="loop-conn" aria-hidden="true"></span>
-              </li>
-              {{/each}}
-            </ol>
-            <span class="loop-ret" aria-hidden="true"><span class="loop-ret-badge"><svg class="ico"><use href="#i-loop"/></svg></span></span>
-            <span class="loop-hand" aria-hidden="true"></span>
-            <span class="loop-hub" aria-hidden="true"><span class="loop-hub-label">{{t:loop.stageLabel}}</span><span class="loop-hub-num" data-loop-num>1</span></span>
-            <span class="loop-back" aria-hidden="true"><svg class="ico"><use href="#i-loop"/></svg></span>
-          </div>
-          <div class="flow-foot">
-            <p class="flow-cap" data-loop-caption role="status" aria-live="polite">{{t:loop.stageLabel}} 1: {{t:loop.stages.0.title}} — {{t:loop.stages.0.text}}</p>
-            <div class="flow-ctl">
-              <button type="button" class="btn btn-primary" data-loop-run><svg class="ico ico-play" aria-hidden="true"><use href="#i-play"/></svg><svg class="ico ico-pause" aria-hidden="true"><use href="#i-pause"/></svg><span data-loop-run-label>{{t:loop.run}}</span></button>
-              <button type="button" class="btn btn-secondary" data-loop-step><svg class="ico" aria-hidden="true"><use href="#i-step"/></svg>{{t:loop.step}}</button>
-              <button type="button" class="btn btn-ghost" data-loop-reset><svg class="ico" aria-hidden="true"><use href="#i-reset"/></svg>{{t:loop.reset}}</button>
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">01</span><span class="kicker-sep"> · </span>{{t:loop.kicker}}</p>
+          <h2 id="loop-title">{{t:loop.h2}}</h2>
+          <p class="sub">{{t:loop.p}}</p>
+        </div>
+        <figure class="figure" id="fig-loop">
+          <div class="stage wf-loop rv" data-viz-loop data-interval="1600" data-label-run="{{a:loop.run}}" data-label-pause="{{a:loop.pause}}">
+            <div class="loop-head"><span class="wf-ill">{{t:meta.illustrative}}</span></div>
+            <div class="loop-ring">
+              <ol class="loop-nodes">
+                {{#each loop.stages}}<li class="loop-node{{#if @first}} is-active{{/if}}" data-loop-node data-cap="{{a:loop.stageLabel}} {{v:@n}}: {{a:.title}} — {{a:.text}}"{{#if @first}} aria-current="step"{{/if}}>
+                  <span class="loop-ico" aria-hidden="true"><svg class="ico"><use href="#i-stage-{{v:@n}}"/></svg></span>
+                  <span class="loop-head-txt"><span class="loop-num">{{t:loop.stageLabel}} {{v:@n}}</span><span class="loop-title">{{t:.title}}</span></span>
+                  <span class="loop-text">{{t:.text}}</span>
+                  <span class="loop-chips">{{#each .chips}}<span class="loop-chip"><svg class="ico" aria-hidden="true"><use href="#i-message"/></svg>{{t:.}}</span>{{/each}}</span>
+                  <span class="loop-conn" aria-hidden="true"></span>
+                </li>
+                {{/each}}
+              </ol>
+              <span class="loop-ret" aria-hidden="true"><span class="loop-ret-badge"><svg class="ico"><use href="#i-loop"/></svg></span></span>
+              <span class="loop-hand" aria-hidden="true"></span>
+              <span class="loop-hub" aria-hidden="true"><span class="loop-hub-label">{{t:loop.stageLabel}}</span><span class="loop-hub-num" data-loop-num>1</span></span>
+              <span class="loop-back" aria-hidden="true"><svg class="ico"><use href="#i-loop"/></svg></span>
+            </div>
+            <div class="flow-foot">
+              <p class="flow-cap" data-loop-caption role="status" aria-live="polite">{{t:loop.stageLabel}} 1: {{t:loop.stages.0.title}} — {{t:loop.stages.0.text}}</p>
+              <div class="flow-ctl">
+                <button type="button" class="btn btn-primary" data-loop-run><svg class="ico ico-play" aria-hidden="true"><use href="#i-play"/></svg><svg class="ico ico-pause" aria-hidden="true"><use href="#i-pause"/></svg><span data-loop-run-label>{{t:loop.run}}</span></button>
+                <button type="button" class="btn btn-secondary" data-loop-step><svg class="ico" aria-hidden="true"><use href="#i-step"/></svg>{{t:loop.step}}</button>
+                <button type="button" class="btn btn-ghost" data-loop-reset><svg class="ico" aria-hidden="true"><use href="#i-reset"/></svg>{{t:loop.reset}}</button>
+              </div>
             </div>
           </div>
-        </div>
-        <figcaption>{{cap:loop.caption}}</figcaption>
-        <details class="twin" data-twin>
-          <summary>{{t:meta.textTwin}}</summary>
-          <h3>{{t:loop.twinTitle}}</h3>
-          <ol>
-            {{#each loop.stages}}<li><strong>{{t:.title}}</strong> — {{t:.text}}<ul class="twin-chips">{{#each .chips}}<li>{{t:.}}</li>{{/each}}</ul></li>
-            {{/each}}
-          </ol>
-        </details>
-      </figure>
+          <figcaption>{{cap:loop.caption}}</figcaption>
+          <details class="twin" data-twin>
+            <summary>{{t:meta.textTwin}}</summary>
+            <h3>{{t:loop.twinTitle}}</h3>
+            <ol>
+              {{#each loop.stages}}<li><strong>{{t:.title}}</strong> — {{t:.text}}<ul class="twin-chips">{{#each .chips}}<li>{{t:.}}</li>{{/each}}</ul></li>
+              {{/each}}
+            </ol>
+          </details>
+        </figure>
+      </div>
     </div>
   </section>
 
   <!-- 3. methods: nine icon tiles -->
-  <section class="section alt" id="methods" aria-labelledby="methods-title">
+  <section class="section" id="methods" aria-labelledby="methods-title">
     <div class="wrap">
-      <div class="section-head rv">
-        <p class="kicker">02 · {{t:methods.kicker}}</p>
-        <h2 id="methods-title">{{t:methods.h2}}</h2>
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">02</span><span class="kicker-sep"> · </span>{{t:methods.kicker}}</p>
+          <h2 id="methods-title">{{t:methods.h2}}</h2>
+        </div>
+        <ul class="wf-tiles">
+          {{#each methods.cards}}<li class="wf-tile rv" style="--i:{{v:@i}}">
+            <span class="wf-tile-ico" aria-hidden="true"><svg class="ico"><use href="#i-{{v:.icon}}"/></svg></span>
+            <h3>{{t:.title}}</h3>
+            <p>{{t:.text}}</p>
+          </li>
+          {{/each}}
+        </ul>
       </div>
-      <ul class="wf-tiles">
-        {{#each methods.cards}}<li class="wf-tile rv" style="--i:{{v:@i}}">
-          <span class="wf-tile-ico" aria-hidden="true"><svg class="ico"><use href="#i-{{v:.icon}}"/></svg></span>
-          <h3>{{t:.title}}</h3>
-          <p>{{t:.text}}</p>
-        </li>
-        {{/each}}
-      </ul>
     </div>
   </section>
 
   <!-- 4. automated flows: Figures 2-4 -->
   <section class="section" id="flows" aria-labelledby="flows-title">
     <div class="wrap">
-      <div class="section-head rv">
-        <p class="kicker">03 · {{t:flows.kicker}}</p>
-        <h2 id="flows-title">{{t:flows.h2}}</h2>
-      </div>
-
-      <figure class="figure wf-fig rv" id="fig-pipeline">
-        <div class="wf-panel">
-          <h3 class="wf-panel-title">{{t:flows.pipeline.title}}</h3>
-          <ol class="wf-steps wf-steps-5">
-            {{#each flows.pipeline.steps}}<li class="wf-step" style="--i:{{v:@i}}"><span class="wf-step-ico" aria-hidden="true"><svg class="ico"><use href="#i-pipe-{{v:@n}}"/></svg></span><span class="wf-step-label">{{t:.label}}</span><span class="wf-step-text">{{t:.text}}</span></li>
-            {{/each}}
-          </ol>
-          <p class="wf-manual-note"><svg class="ico" aria-hidden="true"><use href="#i-hand"/></svg><span>{{t:flows.pipeline.manual}}</span></p>
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">03</span><span class="kicker-sep"> · </span>{{t:flows.kicker}}</p>
+          <h2 id="flows-title">{{t:flows.h2}}</h2>
         </div>
-        <figcaption>{{cap:flows.pipeline.caption}}</figcaption>
-        <details class="twin" data-twin>
-          <summary>{{t:meta.textTwin}}</summary>
-          <h3>{{t:flows.pipeline.twinTitle}}</h3>
-          <ol>
-            {{#each flows.pipeline.steps}}<li><strong>{{t:.label}}</strong> — {{t:.text}}</li>
-            {{/each}}
-          </ol>
-        </details>
-      </figure>
 
-      <figure class="figure wf-fig rv" id="fig-reviews">
-        <div class="wf-panel">
-          <h3 class="wf-panel-title">{{t:flows.reviews.title}}</h3>
-          <ol class="wf-steps wf-steps-5 wf-cycle">
-            {{#each flows.reviews.steps}}<li class="wf-step" style="--i:{{v:@i}}"><span class="wf-step-ico" aria-hidden="true"><svg class="ico"><use href="#i-rev-{{v:@n}}"/></svg></span><span class="wf-step-label">{{t:.label}}</span><span class="wf-step-text">{{t:.text}}</span></li>
-            {{/each}}
-          </ol>
-          <div class="wf-scores" aria-hidden="true">
-            <div class="wf-sub-head">
-              <h4>{{t:flows.reviews.scoreTitle}}</h4>
-              <span class="wf-ill">{{t:meta.illustrative}}</span>
-            </div>
-            <p class="wf-legend"><span class="fam-key fam-b">{{t:flows.reviews.cols.1}}</span><span class="fam-key fam-a">{{t:flows.reviews.cols.2}}</span></p>
-            <ol class="wf-attempts">
-              <li class="wf-att"><span class="wf-att-n">{{t:flows.reviews.cols.0}} {{t:flows.reviews.rows.0.0}}</span><span class="wf-lab fam-b"><span class="wf-scale" data-level="3"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.0.1}}</span><span class="wf-lab fam-a"><span class="wf-scale" data-level="2"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.0.2}}</span><span class="wf-maj"><span>{{t:flows.reviews.cols.3}}</span><b>{{t:flows.reviews.rows.0.3}}</b></span></li>
-              <li class="wf-att"><span class="wf-att-n">{{t:flows.reviews.cols.0}} {{t:flows.reviews.rows.1.0}}</span><span class="wf-lab fam-b"><span class="wf-scale" data-level="4"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.1.1}}</span><span class="wf-lab fam-a"><span class="wf-scale" data-level="3"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.1.2}}</span><span class="wf-maj"><span>{{t:flows.reviews.cols.3}}</span><b>{{t:flows.reviews.rows.1.3}}</b></span></li>
-              <li class="wf-att is-clear"><span class="wf-att-n">{{t:flows.reviews.cols.0}} {{t:flows.reviews.rows.2.0}}</span><span class="wf-lab fam-b"><span class="wf-scale" data-level="5"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.2.1}}</span><span class="wf-lab fam-a"><span class="wf-scale" data-level="4"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.2.2}}</span><span class="wf-maj"><span>{{t:flows.reviews.cols.3}}</span><b>{{t:flows.reviews.rows.2.3}}</b><svg class="ico"><use href="#i-check"/></svg></span></li>
+        <figure class="figure wf-fig rv" id="fig-pipeline">
+          <div class="wf-panel">
+            <h3 class="wf-panel-title">{{t:flows.pipeline.title}}</h3>
+            <ol class="wf-steps wf-steps-5">
+              {{#each flows.pipeline.steps}}<li class="wf-step" style="--i:{{v:@i}}"><span class="wf-step-ico" aria-hidden="true"><svg class="ico"><use href="#i-pipe-{{v:@n}}"/></svg></span><span class="wf-step-label">{{t:.label}}</span><span class="wf-step-text">{{t:.text}}</span></li>
+              {{/each}}
             </ol>
+            <p class="wf-manual-note"><svg class="ico" aria-hidden="true"><use href="#i-hand"/></svg><span>{{t:flows.pipeline.manual}}</span></p>
           </div>
-        </div>
-        <figcaption>{{cap:flows.reviews.caption}}</figcaption>
-        <details class="twin" data-twin>
-          <summary>{{t:meta.textTwin}}</summary>
-          <h3>{{t:flows.reviews.twinTitle}}</h3>
-          <ol>
-            {{#each flows.reviews.steps}}<li><strong>{{t:.label}}</strong> — {{t:.text}}</li>
-            {{/each}}
-          </ol>
-          <div class="tscroll" role="region" tabindex="0" aria-label="{{a:flows.reviews.tableCaption}}">
-            <table class="tbl tbl-twin" id="tbl-reviews">
-              <caption>{{t:flows.reviews.tableCaption}}</caption>
-              <thead><tr>{{#each flows.reviews.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
-              <tbody>
-                {{#each flows.reviews.rows}}<tr><th scope="row">{{t:.0}}</th><td>{{t:.1}}</td><td>{{t:.2}}</td><td>{{t:.3}}</td></tr>
-                {{/each}}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      </figure>
-      <ul class="wf-notes rv">
-        <li><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:flows.reviews.milestone}}</span></li>
-        <li><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>{{t:flows.reviews.count}}</span></li>
-        <li class="is-caution"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg><span>{{t:flows.reviews.caution}}</span></li>
-      </ul>
+          <figcaption>{{cap:flows.pipeline.caption}}</figcaption>
+          <details class="twin" data-twin>
+            <summary>{{t:meta.textTwin}}</summary>
+            <h3>{{t:flows.pipeline.twinTitle}}</h3>
+            <ol>
+              {{#each flows.pipeline.steps}}<li><strong>{{t:.label}}</strong> — {{t:.text}}</li>
+              {{/each}}
+            </ol>
+          </details>
+        </figure>
 
-      <figure class="figure wf-fig rv" id="fig-gpu">
-        <div class="wf-panel">
-          <h3 class="wf-panel-title">{{t:flows.gpu.title}}</h3>
-          <div class="wf-lanes">
-            <div class="wf-lane">
-              <h4 class="wf-lane-title">{{t:flows.gpu.sharedTitle}}</h4>
-              <ol class="wf-steps wf-steps-4">
-                {{#each flows.gpu.shared}}<li class="wf-step" style="--i:{{v:@i}}"><span class="wf-step-ico" aria-hidden="true"><svg class="ico"><use href="#i-shared-{{v:@n}}"/></svg></span><span class="wf-step-label">{{t:.label}}</span><span class="wf-step-text">{{t:.text}}</span></li>
-                {{/each}}
+        <figure class="figure wf-fig rv" id="fig-reviews">
+          <div class="wf-panel">
+            <h3 class="wf-panel-title">{{t:flows.reviews.title}}</h3>
+            <ol class="wf-steps wf-steps-5 wf-cycle">
+              {{#each flows.reviews.steps}}<li class="wf-step" style="--i:{{v:@i}}"><span class="wf-step-ico" aria-hidden="true"><svg class="ico"><use href="#i-rev-{{v:@n}}"/></svg></span><span class="wf-step-label">{{t:.label}}</span><span class="wf-step-text">{{t:.text}}</span></li>
+              {{/each}}
+            </ol>
+            <div class="wf-scores" aria-hidden="true">
+              <div class="wf-sub-head">
+                <h4>{{t:flows.reviews.scoreTitle}}</h4>
+                <span class="wf-ill">{{t:meta.illustrative}}</span>
+              </div>
+              <p class="wf-legend"><span class="fam-key fam-b">{{t:flows.reviews.cols.1}}</span><span class="fam-key fam-a">{{t:flows.reviews.cols.2}}</span></p>
+              <ol class="wf-attempts">
+                <li class="wf-att"><span class="wf-att-n">{{t:flows.reviews.cols.0}} {{t:flows.reviews.rows.0.0}}</span><span class="wf-lab fam-b"><span class="wf-scale" data-level="3"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.0.1}}</span><span class="wf-lab fam-a"><span class="wf-scale" data-level="2"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.0.2}}</span><span class="wf-maj"><span>{{t:flows.reviews.cols.3}}</span><b>{{t:flows.reviews.rows.0.3}}</b></span></li>
+                <li class="wf-att"><span class="wf-att-n">{{t:flows.reviews.cols.0}} {{t:flows.reviews.rows.1.0}}</span><span class="wf-lab fam-b"><span class="wf-scale" data-level="4"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.1.1}}</span><span class="wf-lab fam-a"><span class="wf-scale" data-level="3"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.1.2}}</span><span class="wf-maj"><span>{{t:flows.reviews.cols.3}}</span><b>{{t:flows.reviews.rows.1.3}}</b></span></li>
+                <li class="wf-att is-clear"><span class="wf-att-n">{{t:flows.reviews.cols.0}} {{t:flows.reviews.rows.2.0}}</span><span class="wf-lab fam-b"><span class="wf-scale" data-level="5"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.2.1}}</span><span class="wf-lab fam-a"><span class="wf-scale" data-level="4"><i></i><i></i><i></i><i></i><i></i><i></i></span>{{t:flows.reviews.rows.2.2}}</span><span class="wf-maj"><span>{{t:flows.reviews.cols.3}}</span><b>{{t:flows.reviews.rows.2.3}}</b><svg class="ico"><use href="#i-check"/></svg></span></li>
               </ol>
             </div>
-            <div class="wf-lane">
-              <h4 class="wf-lane-title">{{t:flows.gpu.remoteTitle}}</h4>
-              <ol class="wf-steps wf-steps-4">
-                {{#each flows.gpu.remote}}<li class="wf-step" style="--i:{{v:@i}}"><span class="wf-step-ico" aria-hidden="true"><svg class="ico"><use href="#i-remote-{{v:@n}}"/></svg></span><span class="wf-step-label">{{t:.label}}</span><span class="wf-step-text">{{t:.text}}</span></li>
-                {{/each}}
-              </ol>
+          </div>
+          <figcaption>{{cap:flows.reviews.caption}}</figcaption>
+          <details class="twin" data-twin>
+            <summary>{{t:meta.textTwin}}</summary>
+            <h3>{{t:flows.reviews.twinTitle}}</h3>
+            <ol>
+              {{#each flows.reviews.steps}}<li><strong>{{t:.label}}</strong> — {{t:.text}}</li>
+              {{/each}}
+            </ol>
+            <div class="tscroll" role="region" tabindex="0" aria-label="{{a:flows.reviews.tableCaption}}">
+              <table class="tbl tbl-twin" id="tbl-reviews">
+                <caption>{{t:flows.reviews.tableCaption}}</caption>
+                <thead><tr>{{#each flows.reviews.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+                <tbody>
+                  {{#each flows.reviews.rows}}<tr><th scope="row">{{t:.0}}</th><td>{{t:.1}}</td><td>{{t:.2}}</td><td>{{t:.3}}</td></tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </figure>
+        <ul class="wf-notes rv">
+          <li><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:flows.reviews.milestone}}</span></li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>{{t:flows.reviews.count}}</span></li>
+          <li class="is-caution"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg><span>{{t:flows.reviews.caution}}</span></li>
+        </ul>
+
+        <figure class="figure wf-fig rv" id="fig-gpu">
+          <div class="wf-panel">
+            <h3 class="wf-panel-title">{{t:flows.gpu.title}}</h3>
+            <div class="wf-lanes">
+              <div class="wf-lane">
+                <h4 class="wf-lane-title">{{t:flows.gpu.sharedTitle}}</h4>
+                <ol class="wf-steps wf-steps-4">
+                  {{#each flows.gpu.shared}}<li class="wf-step" style="--i:{{v:@i}}"><span class="wf-step-ico" aria-hidden="true"><svg class="ico"><use href="#i-shared-{{v:@n}}"/></svg></span><span class="wf-step-label">{{t:.label}}</span><span class="wf-step-text">{{t:.text}}</span></li>
+                  {{/each}}
+                </ol>
+              </div>
+              <div class="wf-lane">
+                <h4 class="wf-lane-title">{{t:flows.gpu.remoteTitle}}</h4>
+                <ol class="wf-steps wf-steps-4">
+                  {{#each flows.gpu.remote}}<li class="wf-step" style="--i:{{v:@i}}"><span class="wf-step-ico" aria-hidden="true"><svg class="ico"><use href="#i-remote-{{v:@n}}"/></svg></span><span class="wf-step-label">{{t:.label}}</span><span class="wf-step-text">{{t:.text}}</span></li>
+                  {{/each}}
+                </ol>
+              </div>
+            </div>
+            <div class="wf-board" aria-hidden="true">
+              <div class="wf-sub-head">
+                <h4>{{t:flows.gpu.boardTitle}}</h4>
+                <span class="wf-ill">{{t:meta.illustrative}}</span>
+              </div>
+              <div class="wf-gpu-row">
+                <span class="wf-gpu-name"><svg class="ico"><use href="#i-gpu"/></svg>{{t:flows.gpu.rows.0.0}}</span>
+                <span class="wf-gpu-track">
+                  <span class="wf-hold" style="--span:2 / 5"><svg class="ico"><use href="#i-lock"/></svg><b>{{t:flows.gpu.rows.0.1}}</b><span class="wf-hold-time">{{t:flows.gpu.rows.0.2}} – {{t:flows.gpu.rows.0.3}}</span><span class="wf-hold-state">{{t:flows.gpu.rows.0.4}}</span></span>
+                </span>
+              </div>
+              <div class="wf-gpu-row">
+                <span class="wf-gpu-name"><svg class="ico"><use href="#i-gpu"/></svg>{{t:flows.gpu.rows.1.0}}</span>
+                <span class="wf-gpu-track">
+                  <span class="wf-hold" style="--span:3 / 8"><svg class="ico"><use href="#i-lock"/></svg><b>{{t:flows.gpu.rows.1.1}}</b><span class="wf-hold-time">{{t:flows.gpu.rows.1.2}} – {{t:flows.gpu.rows.1.3}}</span><span class="wf-hold-state">{{t:flows.gpu.rows.1.4}}</span></span>
+                  <span class="wf-hold is-wait" style="--span:8 / 11"><svg class="ico"><use href="#i-unlock"/></svg><b>{{t:flows.gpu.rows.2.1}}</b><span class="wf-hold-time">{{t:flows.gpu.rows.2.2}} – {{t:flows.gpu.rows.2.3}}</span><span class="wf-hold-state">{{t:flows.gpu.rows.2.4}}</span></span>
+                </span>
+              </div>
             </div>
           </div>
-          <div class="wf-board" aria-hidden="true">
-            <div class="wf-sub-head">
-              <h4>{{t:flows.gpu.boardTitle}}</h4>
-              <span class="wf-ill">{{t:meta.illustrative}}</span>
+          <figcaption>{{cap:flows.gpu.caption}}</figcaption>
+          <details class="twin" data-twin>
+            <summary>{{t:meta.textTwin}}</summary>
+            <h3>{{t:flows.gpu.sharedTitle}}</h3>
+            <ol>
+              {{#each flows.gpu.shared}}<li><strong>{{t:.label}}</strong> — {{t:.text}}</li>
+              {{/each}}
+            </ol>
+            <h3>{{t:flows.gpu.remoteTitle}}</h3>
+            <ol>
+              {{#each flows.gpu.remote}}<li><strong>{{t:.label}}</strong> — {{t:.text}}</li>
+              {{/each}}
+            </ol>
+            <div class="tscroll" role="region" tabindex="0" aria-label="{{a:flows.gpu.tableCaption}}">
+              <table class="tbl tbl-twin" id="tbl-gpu">
+                <caption>{{t:flows.gpu.tableCaption}}</caption>
+                <thead><tr>{{#each flows.gpu.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+                <tbody>
+                  {{#each flows.gpu.rows}}<tr><th scope="row">{{t:.0}}</th><td>{{t:.1}}</td><td>{{t:.2}}</td><td>{{t:.3}}</td><td>{{t:.4}}</td></tr>
+                  {{/each}}
+                </tbody>
+              </table>
             </div>
-            <div class="wf-gpu-row">
-              <span class="wf-gpu-name"><svg class="ico"><use href="#i-gpu"/></svg>{{t:flows.gpu.rows.0.0}}</span>
-              <span class="wf-gpu-track">
-                <span class="wf-hold" style="--span:2 / 5"><svg class="ico"><use href="#i-lock"/></svg><b>{{t:flows.gpu.rows.0.1}}</b><span class="wf-hold-time">{{t:flows.gpu.rows.0.2}} – {{t:flows.gpu.rows.0.3}}</span><span class="wf-hold-state">{{t:flows.gpu.rows.0.4}}</span></span>
-              </span>
-            </div>
-            <div class="wf-gpu-row">
-              <span class="wf-gpu-name"><svg class="ico"><use href="#i-gpu"/></svg>{{t:flows.gpu.rows.1.0}}</span>
-              <span class="wf-gpu-track">
-                <span class="wf-hold" style="--span:3 / 8"><svg class="ico"><use href="#i-lock"/></svg><b>{{t:flows.gpu.rows.1.1}}</b><span class="wf-hold-time">{{t:flows.gpu.rows.1.2}} – {{t:flows.gpu.rows.1.3}}</span><span class="wf-hold-state">{{t:flows.gpu.rows.1.4}}</span></span>
-                <span class="wf-hold is-wait" style="--span:8 / 11"><svg class="ico"><use href="#i-unlock"/></svg><b>{{t:flows.gpu.rows.2.1}}</b><span class="wf-hold-time">{{t:flows.gpu.rows.2.2}} – {{t:flows.gpu.rows.2.3}}</span><span class="wf-hold-state">{{t:flows.gpu.rows.2.4}}</span></span>
-              </span>
-            </div>
-          </div>
-        </div>
-        <figcaption>{{cap:flows.gpu.caption}}</figcaption>
-        <details class="twin" data-twin>
-          <summary>{{t:meta.textTwin}}</summary>
-          <h3>{{t:flows.gpu.sharedTitle}}</h3>
-          <ol>
-            {{#each flows.gpu.shared}}<li><strong>{{t:.label}}</strong> — {{t:.text}}</li>
-            {{/each}}
-          </ol>
-          <h3>{{t:flows.gpu.remoteTitle}}</h3>
-          <ol>
-            {{#each flows.gpu.remote}}<li><strong>{{t:.label}}</strong> — {{t:.text}}</li>
-            {{/each}}
-          </ol>
-          <div class="tscroll" role="region" tabindex="0" aria-label="{{a:flows.gpu.tableCaption}}">
-            <table class="tbl tbl-twin" id="tbl-gpu">
-              <caption>{{t:flows.gpu.tableCaption}}</caption>
-              <thead><tr>{{#each flows.gpu.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
-              <tbody>
-                {{#each flows.gpu.rows}}<tr><th scope="row">{{t:.0}}</th><td>{{t:.1}}</td><td>{{t:.2}}</td><td>{{t:.3}}</td><td>{{t:.4}}</td></tr>
-                {{/each}}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      </figure>
-      <ul class="wf-notes rv">
-        {{#each flows.gpu.notes}}<li><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:.}}</span></li>
-        {{/each}}
-      </ul>
+          </details>
+        </figure>
+        <ul class="wf-notes rv">
+          {{#each flows.gpu.notes}}<li><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:.}}</span></li>
+          {{/each}}
+        </ul>
+      </div>
     </div>
   </section>
 
   <!-- 5. roles: Figure 5 -->
-  <section class="section alt" id="roles" aria-labelledby="roles-title">
+  <section class="section" id="roles" aria-labelledby="roles-title">
     <div class="wrap">
-      <div class="section-head rv">
-        <p class="kicker">04 · {{t:roles.kicker}}</p>
-        <h2 id="roles-title">{{t:roles.h2}}</h2>
-        <p class="sub">{{t:roles.p}}</p>
-      </div>
-      <figure class="figure rv" id="fig-roles">
-        <ul class="wf-roles">
-          <li class="wf-role fam-a"><h3>{{t:roles.roles.0.0}}</h3><span class="mdl fam-a">{{t:roles.roles.0.1}}</span><p>{{t:roles.roles.0.2}}</p></li>
-          <li class="wf-role fam-a"><h3>{{t:roles.roles.1.0}}</h3><span class="mdl fam-a">{{t:roles.roles.1.1}}</span><p>{{t:roles.roles.1.2}}</p></li>
-          <li class="wf-role fam-a"><h3>{{t:roles.roles.3.0}}</h3><span class="mdl fam-a">{{t:roles.roles.3.1}}</span><p>{{t:roles.roles.3.2}}</p></li>
-          <li class="wf-role fam-b"><h3>{{t:roles.roles.2.0}}</h3><span class="mdl fam-b">{{t:roles.roles.2.1}}</span><p>{{t:roles.roles.2.2}}</p></li>
-          <li class="wf-role fam-b"><h3>{{t:roles.roles.4.0}}</h3><span class="mdl fam-b">{{t:roles.roles.4.1}}</span><p>{{t:roles.roles.4.2}}</p></li>
-          <li class="wf-role is-both"><h3>{{t:roles.roles.5.0}}</h3><span class="mdl wf-both">{{t:roles.roles.5.1}}</span><p>{{t:roles.roles.5.2}}</p></li>
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">04</span><span class="kicker-sep"> · </span>{{t:roles.kicker}}</p>
+          <h2 id="roles-title">{{t:roles.h2}}</h2>
+          <p class="sub">{{t:roles.p}}</p>
+        </div>
+        <figure class="figure rv" id="fig-roles">
+          <ul class="wf-roles">
+            <li class="wf-role fam-a"><h3>{{t:roles.roles.0.0}}</h3><span class="mdl fam-a">{{t:roles.roles.0.1}}</span><p>{{t:roles.roles.0.2}}</p></li>
+            <li class="wf-role fam-a"><h3>{{t:roles.roles.1.0}}</h3><span class="mdl fam-a">{{t:roles.roles.1.1}}</span><p>{{t:roles.roles.1.2}}</p></li>
+            <li class="wf-role fam-a"><h3>{{t:roles.roles.3.0}}</h3><span class="mdl fam-a">{{t:roles.roles.3.1}}</span><p>{{t:roles.roles.3.2}}</p></li>
+            <li class="wf-role fam-b"><h3>{{t:roles.roles.2.0}}</h3><span class="mdl fam-b">{{t:roles.roles.2.1}}</span><p>{{t:roles.roles.2.2}}</p></li>
+            <li class="wf-role fam-b"><h3>{{t:roles.roles.4.0}}</h3><span class="mdl fam-b">{{t:roles.roles.4.1}}</span><p>{{t:roles.roles.4.2}}</p></li>
+            <li class="wf-role is-both"><h3>{{t:roles.roles.5.0}}</h3><span class="mdl wf-both">{{t:roles.roles.5.1}}</span><p>{{t:roles.roles.5.2}}</p></li>
+          </ul>
+          <figcaption>{{cap:roles.caption}}</figcaption>
+          <details class="twin" data-twin>
+            <summary>{{t:meta.textTwin}}</summary>
+            <div class="tscroll" role="region" tabindex="0" aria-label="{{a:roles.tableCaption}}">
+              <table class="tbl tbl-twin" id="tbl-roles">
+                <caption>{{t:roles.tableCaption}}</caption>
+                <thead><tr>{{#each roles.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+                <tbody>
+                  {{#each roles.roles}}<tr><th scope="row">{{t:.0}}</th><td>{{t:.1}}</td><td>{{t:.2}}</td></tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </figure>
+        <ul class="wf-notes rv">
+          {{#each roles.notes}}<li><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:.}}</span></li>
+          {{/each}}
         </ul>
-        <figcaption>{{cap:roles.caption}}</figcaption>
-        <details class="twin" data-twin>
-          <summary>{{t:meta.textTwin}}</summary>
-          <div class="tscroll" role="region" tabindex="0" aria-label="{{a:roles.tableCaption}}">
-            <table class="tbl tbl-twin" id="tbl-roles">
-              <caption>{{t:roles.tableCaption}}</caption>
-              <thead><tr>{{#each roles.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
-              <tbody>
-                {{#each roles.roles}}<tr><th scope="row">{{t:.0}}</th><td>{{t:.1}}</td><td>{{t:.2}}</td></tr>
-                {{/each}}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      </figure>
-      <ul class="wf-notes rv">
-        {{#each roles.notes}}<li><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:.}}</span></li>
-        {{/each}}
-      </ul>
+      </div>
     </div>
   </section>
 
   <!-- 6. what stays manual -->
   <section class="section" id="manual" aria-labelledby="manual-title">
     <div class="wrap">
-      <div class="section-head rv">
-        <p class="kicker">05 · {{t:manual.kicker}}</p>
-        <h2 id="manual-title">{{t:manual.h2}}</h2>
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">05</span><span class="kicker-sep"> · </span>{{t:manual.kicker}}</p>
+          <h2 id="manual-title">{{t:manual.h2}}</h2>
+        </div>
+        <ul class="wf-manual">
+          {{#each manual.items}}<li class="rv" style="--i:{{v:@i}}"><span class="wf-manual-ico" aria-hidden="true"><svg class="ico"><use href="#i-manual-{{v:@n}}"/></svg></span><h3>{{t:.title}}</h3><p>{{t:.text}}</p></li>
+          {{/each}}
+        </ul>
       </div>
-      <ul class="wf-manual">
-        {{#each manual.items}}<li class="rv" style="--i:{{v:@i}}"><span class="wf-manual-ico" aria-hidden="true"><svg class="ico"><use href="#i-manual-{{v:@n}}"/></svg></span><h3>{{t:.title}}</h3><p>{{t:.text}}</p></li>
-        {{/each}}
-      </ul>
     </div>
   </section>
 
   <!-- 7. tips -->
-  <section class="section alt" id="tips" aria-labelledby="tips-title">
+  <section class="section" id="tips" aria-labelledby="tips-title">
     <div class="wrap">
-      <div class="section-head rv">
-        <p class="kicker">06 · {{t:tips.kicker}}</p>
-        <h2 id="tips-title">{{t:tips.h2}}</h2>
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">06</span><span class="kicker-sep"> · </span>{{t:tips.kicker}}</p>
+          <h2 id="tips-title">{{t:tips.h2}}</h2>
+        </div>
+        <ul class="wf-tips">
+          {{#each tips.items}}<li class="rv" style="--i:{{v:@i}}"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>{{t:.}}</span></li>
+          {{/each}}
+        </ul>
       </div>
-      <ul class="wf-tips">
-        {{#each tips.items}}<li class="rv" style="--i:{{v:@i}}"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>{{t:.}}</span></li>
-        {{/each}}
-      </ul>
     </div>
   </section>
 </main>
