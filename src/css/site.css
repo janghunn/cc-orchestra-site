@@ -956,6 +956,7 @@ html[lang="ko"] .hero h1 { max-width: 18ch; font-weight: 700; line-height: 1.25;
 .foot-grid { display: grid; gap: var(--sp-6); }
 @media (min-width: 760px) { .foot-grid { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); } }
 .foot-main .brand { margin-bottom: var(--sp-3); color: var(--accent); }
+.foot-main .brand:hover { color: var(--accent-strong); }
 .foot-title { margin: 10px 0 var(--sp-2); color: var(--muted); font-size: .9rem; font-weight: 700; }
 .foot-links { display: grid; margin: 0; padding: 0; list-style: none; }
 .foot-links a { display: inline-flex; align-items: center; min-height: 44px; }

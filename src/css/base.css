@@ -99,6 +99,8 @@ a:hover { color: var(--accent-strong); }
   font-weight: 700;
   text-decoration: none;
 }
+/* stated again for :hover/:focus so the generic a:hover (0,1,1) never recolours the text on the ink pill */
+.skip-link:hover, .skip-link:focus { background: var(--ink); color: var(--surface); }
 .skip-link:not(:focus) { width: 1px; height: 1px; min-height: 0; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* utilities */
