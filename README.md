@@ -31,7 +31,7 @@ npm run build
 ```
 
 `npm run build` runs `node scripts/build.mjs` and writes `dist/index.html`, `dist/ko/index.html`,
-`dist/workflow/index.html`, `dist/ko/workflow/index.html`, `dist/assets/`, `dist/fonts/ko/`, `favicon.svg`, `robots.txt` and `.nojekyll`. The build itself has no
+`dist/workflow/index.html`, `dist/ko/workflow/index.html`, `dist/assets/css/tokens.css`, `dist/assets/`, `dist/fonts/ko/`, `favicon.svg`, `robots.txt` and `.nojekyll`. The build itself has no
 dependencies; `npm ci` only installs the QA tools. `node scripts/build.mjs --out DIR` writes elsewhere;
 the output directory is replaced only after a complete build.
 

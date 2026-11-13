@@ -1,9 +1,9 @@
 // WCAG 2.x contrast over the theme tokens, light and dark.
 // Reads the light block (":root") and the dark block (':root[data-theme="dark"]') of src/css/tokens.css
 // (plus any custom properties the other src/css files define in the same two selectors), then checks:
-//  - the kit's text/UI token pairs (BASE below), and
+//  - the Paper & Lamp kit's text/UI token pairs (BASE below), and
 //  - every pair found in src/css/*.css: a rule that sets `color: <token>` is paired with its own
-//    background if it sets one, else with each page surface (bg, bg2, card).
+//    background if it sets one, else with each page surface (bg, surface).
 // Text needs 4.5:1; large text and UI indicators (focus ring, control borders) need 3:1.
 // Translucent colours and color-mix() are composited over the pair's background.
 // Exit 0 = all PASS, 1 = a FAIL or no tokens. Usage: node scripts/contrast.mjs [--tokens FILE] [--quiet]
@@ -171,16 +171,23 @@ const T = 4.5;
 const U = 3;
 const v = (n) => `var(--${n})`;
 const BASE = [];
-for (const s of ['bg', 'bg2', 'card']) {
-  for (const f of ['fg', 'muted', 'accent-a', 'accent-b', 'accent-c']) BASE.push([`${f} on ${s}`, v(f), v(s), T, 'text']);
+for (const s of ['bg', 'surface']) {
+  for (const f of ['ink', 'muted', 'accent', 'accent-strong', 'compare-text', 'warn-text']) BASE.push([`${f} on ${s}`, v(f), v(s), T, 'text']);
   BASE.push([`focus ring vs ${s}`, v('focus'), v(s), U, 'ui']);
-  BASE.push([`control border line-strong vs ${s}`, v('line-strong'), v(s), U, 'ui']);
+  BASE.push([`control border vs ${s}`, v('control'), v(s), U, 'ui']);
+  BASE.push([`accent mark vs ${s}`, v('accent'), v(s), U, 'ui']);
+  BASE.push([`compare-text mark vs ${s}`, v('compare-text'), v(s), U, 'ui']);
 }
-BASE.push(['warn on bg', v('warn'), v('bg'), T, 'text']);
-BASE.push(['warn on card', v('warn'), v('card'), T, 'text']);
-BASE.push(['primary button btn-fg on btn-bg', v('btn-fg'), v('btn-bg'), T, 'text']);
-BASE.push(['code-fg on code-bg', v('code-fg'), v('code-bg'), T, 'text']);
-for (const a of ['accent-a', 'accent-b', 'accent-c']) BASE.push([`on-accent on ${a}`, v('on-accent'), v(a), T, 'text']);
+for (const f of ['ink', 'muted']) BASE.push([`${f} on code-bg`, v(f), v('code-bg'), T, 'text']);
+for (const b of ['accent-tint', 'accent-soft', 'compare-tint', 'warn-fill']) BASE.push([`ink on ${b}`, v('ink'), v(b), T, 'text']);
+for (const f of ['accent-strong', 'accent']) BASE.push([`${f} on accent-tint`, v(f), v('accent-tint'), T, 'text']);
+BASE.push(['compare-text on compare-tint', v('compare-text'), v('compare-tint'), T, 'text']);
+BASE.push(['on-accent on accent', v('on-accent'), v('accent'), T, 'text']);
+BASE.push(['on-accent on accent-strong (primary hover)', v('on-accent'), v('accent-strong'), T, 'text']);
+BASE.push(['on-band on band', v('on-band'), v('band'), T, 'text']);
+BASE.push(['warn-text on warn-fill', v('warn-text'), v('warn-fill'), T, 'text']);
+BASE.push(['surface on ink (selected control)', v('surface'), v('ink'), T, 'text']);
+BASE.push(['on-media on media-bg', v('on-media'), v('media-bg'), T, 'text']);
 
 // custom properties set on components (not :root), e.g. a per-family colour: name -> Set of values
 function localVars(files) {
@@ -220,7 +227,7 @@ function sitePairs() {
       const sel = r.sel.replace(/\s+/g, ' ').slice(0, 60);
       for (const [fgx, note] of expand(fg, locals)) {
         if (bg) for (const [bgx, n2] of expand(bg, locals)) out.push([`${f}: ${sel}${note}${n2}`, fgx, bgx, T, 'text']);
-        else for (const s of ['bg', 'bg2', 'card']) out.push([`${f}: ${sel}${note} (on ${s})`, fgx, v(s), T, 'text']);
+        else for (const s of ['bg', 'surface']) out.push([`${f}: ${sel}${note} (on ${s})`, fgx, v(s), T, 'text']);
       }
     }
   }

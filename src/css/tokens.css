@@ -1,155 +1,64 @@
-/* web-style-gradient / tokens.css  (copied from the kit; changed only at html[lang="ko"])
-   Custom properties only. Two separately designed palettes:
-   - light "paper": warm off-white surface, ink text, soft warm shadows, darker accents
-   - dark "night":  deep navy surface, luminous accents, hairline borders instead of shadows
-   :root holds the light palette; [data-theme="dark"] (set by the pre-paint script or the toggle)
-   holds the dark one; the media-query copy covers pages with JavaScript disabled.
-   Contrast ratios for every pair are listed in references/design-rules.md. */
+/* Paper & Lamp tokens: warm paper (light) and lamplight (dark). Colours live only here and in accents.css;
+   tools/check_kit.py checks every text/UI pair in both themes. The pre-paint script in each page sets
+   html[data-theme] (light | dark) and html[lang] (en | ko); kit.js maps print to the light palette. */
+/* cc-orchestra-site: the kit tokens.css with the accent blocks set to the catalogue entry "teal". */
 :root {
   color-scheme: light;
+  /* Neutral layer, light: shared by every page, do not re-theme. */
+  --bg:#f3efe7; --surface:#fffcf7; --ink:#22201c; --muted:#5e584f; --line:#e2dacd;
+  --control:#857b6c;            /* button/select borders, dashed placeholders */
+  --focus:#a3520f;              /* focus ring */
+  --code-bg:#f8f4ec;            /* code blocks */
+  --media-bg:#15130f;           /* behind video and figure crops */
+  --ph-stripe:#ddd5c7;          /* placeholder stripes */
+  --on-media:#ffffff;           /* text and outlines over media */
+  --warn:#c25400; --warn-text:#a14600; --warn-fill:#fbeee2;   /* scope / caution box */
+  --series-other:#9a948a; --series-other-text:#6b655c;       /* other plot series */
+  --font-sans:"Lato","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --font-ko:"S-Core Dream","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --font-body:var(--font-sans);
+  --lh:1.6;                    /* body line height; Korean sets its own */
+  --s1:.25rem; --s2:.5rem; --s3:1rem; --s4:1.5rem; --s5:2.5rem; --s6:4rem;
+  --r-s:8px; --r:12px; --card-r:16px; --maxw:1240px; --nav-h:60px;
 
-  /* light "paper" palette */
-  --bg: #fcfbf8;
-  --bg2: #f4f1ea;
-  --card: #ffffff;
-  --line: #e6e0d4;
-  --line-strong: #8f877a;
-  --fg: #1d1b18;
-  --muted: #5c564c;
-  --accent-a: #b04a17;
-  --accent-b: #0d7352;
-  --accent-c: #2453b3;
-  --warn: #8a5b00;
-  --on-accent: #ffffff;
-  --btn-bg: #1d1b18;
-  --btn-fg: #fcfbf8;
-  --code-bg: #f4f1ea;
-  --code-fg: #1d1b18;
-  --focus: #2453b3;
-  --selection: rgba(176, 74, 23, .18);
-  --glow-a: rgba(244, 152, 98, .40);
-  --glow-b: rgba(72, 196, 152, .30);
-  --glow-opacity: .9;
-  --grid-dot: rgba(29, 27, 24, .10);
-  --tint: .08;
-  --shadow-1: 0 1px 2px rgba(70, 48, 20, .05), 0 6px 18px -8px rgba(70, 48, 20, .12);
-  --shadow-2: 0 2px 4px rgba(70, 48, 20, .06), 0 18px 36px -14px rgba(70, 48, 20, .22);
-
-  /* type */
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-body: var(--font-sans);
-  --font-label: var(--font-mono);
-  --fs-xs: .8125rem;
-  --fs-sm: .9375rem;
-  --fs-base: 1.0625rem;
-  --fs-md: clamp(1.125rem, 1.02rem + .5vw, 1.3125rem);
-  --fs-h3: 1.125rem;
-  --fs-h2: clamp(1.625rem, 1.2rem + 1.7vw, 2.25rem);
-  --fs-h1: clamp(2.375rem, 1.3rem + 4.6vw, 4.25rem);
-  --fs-title: clamp(1.875rem, 1.25rem + 2.9vw, 3.125rem);
-  --lh-body: 1.65;
-  --lh-tight: 1.12;
-  --measure: 68ch;
-
-  /* space (4px base) */
-  --sp-1: 4px;
-  --sp-2: 8px;
-  --sp-3: 12px;
-  --sp-4: 16px;
-  --sp-5: 24px;
-  --sp-6: 32px;
-  --sp-7: 48px;
-  --sp-8: 64px;
-  --sp-9: 96px;
-  --gutter: 16px;
-  --wrap: 1120px;
-  --section-y: clamp(56px, 7vw, 92px);
-  --nav-h: 60px;
-
-  /* shape */
-  --radius-s: 8px;
-  --radius-m: 14px;
-  --radius-l: 22px;
-  --radius-pill: 999px;
-
-  /* motion */
-  --dur-fast: 160ms;
-  --dur-med: 320ms;
-  --dur-slow: 600ms;
-  --dur-drift: 22s;
-  --dur-step: 1900ms;
-  --ease: cubic-bezier(.2, .7, .2, 1);
-  --ease-inout: cubic-bezier(.65, 0, .35, 1);
+  /* === ACCENT: per-project colour, light; re-theme by replacing this block and ACCENT-DARK (see COLOR.md) === */
+  --accent:#00766c;             /* fills, links, borders, accent text */
+  --accent-strong:#005851;      /* text on tints, hover */
+  --accent-tint:#e0efed;        /* stat tile, highlight row, tags */
+  --accent-soft:#c2dedc;        /* equation box */
+  --on-accent:#ffffff;          /* text on accent fill */
+  --band:#00766c;               /* takeaway band */
+  --on-band:#ffffff;            /* text on the band */
+  --compare:#e69f00;            /* comparison / baseline series and borders */
+  --compare-text:#8f6100;       /* comparison labels */
+  --compare-tint:#fdebc8;       /* comparison box fill */
+  /* === /ACCENT === */
 }
-
-/* cc-orchestra-site change: the KO webfont family is named only in ko-font.css (linked from /ko/ only),
-   so this shared file carries the fallback stack alone and never names it. */
-html[lang="ko"] {
-  --font-ko: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --font-body: var(--font-ko);
-  --font-label: var(--font-ko);
-  --lh-body: 1.75;
-}
-
 :root[data-theme="dark"] {
   color-scheme: dark;
+  /* Neutral layer, dark (lamplight). */
+  --bg:#191714; --surface:#23201b; --ink:#efe8dc; --muted:#b3a999; --line:#3a342c;
+  --control:#8a8070;
+  --focus:#f0b45a;
+  --code-bg:#1c1a16;
+  --media-bg:#0d0c0a;
+  --ph-stripe:#38322a;
+  --on-media:#ffffff;
+  --warn:#ec8a3c; --warn-text:#f2a468; --warn-fill:#3a2619;
+  --series-other:#8a8378; --series-other-text:#ada597;
 
-  /* dark "night" palette */
-  --bg: #0b0d12;
-  --bg2: #10131a;
-  --card: #151922;
-  --line: #252b38;
-  --line-strong: #646d82;
-  --fg: #e9ecf3;
-  --muted: #a0a9ba;
-  --accent-a: #f0a070;
-  --accent-b: #4fd1a5;
-  --accent-c: #8ab4ff;
-  --warn: #f2c14e;
-  --on-accent: #0b0d12;
-  --btn-bg: #e9ecf3;
-  --btn-fg: #0b0d12;
-  --code-bg: #07090d;
-  --code-fg: #e3e7f0;
-  --focus: #8ab4ff;
-  --selection: rgba(138, 180, 255, .28);
-  --glow-a: rgba(224, 145, 95, .34);
-  --glow-b: rgba(79, 209, 165, .26);
-  --glow-opacity: .75;
-  --grid-dot: rgba(160, 176, 210, .09);
-  --tint: .12;
-  --shadow-1: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
-  --shadow-2: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 22px 44px -18px rgba(0, 0, 0, .85);
+  /* === ACCENT-DARK: per-project colour, dark; same 10 tokens as ACCENT === */
+  --accent:#60bcb0;
+  --accent-strong:#9fe7dc;
+  --accent-tint:#24302b;
+  --accent-soft:#2b423d;
+  --on-accent:#141c19;
+  --band:#035049;
+  --on-band:#f4eee4;
+  --compare:#e0a33a;
+  --compare-text:#e9b45c;
+  --compare-tint:#3a2e1a;
+  /* === /ACCENT-DARK === */
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    color-scheme: dark;
-    --bg: #0b0d12;
-    --bg2: #10131a;
-    --card: #151922;
-    --line: #252b38;
-    --line-strong: #646d82;
-    --fg: #e9ecf3;
-    --muted: #a0a9ba;
-    --accent-a: #f0a070;
-    --accent-b: #4fd1a5;
-    --accent-c: #8ab4ff;
-    --warn: #f2c14e;
-    --on-accent: #0b0d12;
-    --btn-bg: #e9ecf3;
-    --btn-fg: #0b0d12;
-    --code-bg: #07090d;
-    --code-fg: #e3e7f0;
-    --focus: #8ab4ff;
-    --selection: rgba(138, 180, 255, .28);
-    --glow-a: rgba(224, 145, 95, .34);
-    --glow-b: rgba(79, 209, 165, .26);
-    --glow-opacity: .75;
-    --grid-dot: rgba(160, 176, 210, .09);
-    --tint: .12;
-    --shadow-1: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
-    --shadow-2: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 22px 44px -18px rgba(0, 0, 0, .85);
-  }
-}
+html[lang="ko"] { --font-body:var(--font-ko); --lh:1.75; }
