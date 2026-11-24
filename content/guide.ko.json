@@ -22,7 +22,7 @@
   "hero": {
     "eyebrow": "입문 안내",
     "h1": "cc-orchestra는 무엇이고 <em>언제 쓸 만한가</em>",
-    "lede": "기본 모드의 cc-orchestra는 Claude Code와 Codex CLI 위에서 돌아갑니다. orchestrator가 사용자와 대화하며 요청을 작업으로 나누고 작업마다 lead 하나가 끝까지 맡습니다. 코드는 기본적으로 Codex가 쓰고 Claude lead가 실제 diff를 읽은 뒤 별도의 Codex gate가 결과를 verify하고 review합니다. 각 에이전트는 대화 전체가 아니라 자기 몫의 파일을 보고 일하며 작업 상태도 파일에 남습니다.",
+    "lede": "기본 모드의 cc-orchestra는 Claude Code와 Codex CLI 위에서 돌아갑니다. orchestrator가 사용자와 대화하며 요청을 작업으로 나누고 작업마다 lead 하나가 끝까지 맡습니다. 코드는 기본적으로 Codex가 쓰고 Claude lead가 실제 diff를 읽은 뒤 별도의 Codex gate가 결과를 verify하고 review합니다. lead와 그 아래 에이전트는 사용자와의 대화가 아니라 파일을 보고 일하며 작업 상태도 파일에 남습니다.",
     "ctaPrimary": "기본부터 읽기",
     "ctaSecondary": "전체 개요",
     "tocTitle": "이 페이지 내용"
@@ -61,11 +61,11 @@
     "steps": [
       {
         "title": "orchestrator (Tier 1)",
-        "text": "launcher가 Claude Code를 orchestrator agent로 띄우므로 첫 턴부터 orchestrator prompt가 적용됩니다. 편집 도구가 빠져 있어 작업 범위를 정하고 brief를 쓸 수는 있어도 제품 코드는 고치지 못합니다."
+        "text": "launcher가 Claude Code를 orchestrator agent로 띄우므로 첫 턴부터 orchestrator prompt가 적용됩니다. 편집 도구가 빠져 있고 prompt도 제품 코드 작성을 금지합니다. orchestrator는 작업 범위를 정하고 brief를 쓰며 코드는 lead에게 맡깁니다."
       },
       {
         "title": "lead (Tier 2)",
-        "text": "orchestrator가 작업의 위험도를 정하면 routing 명령이 그에 맞는 lead 종류를 돌려줍니다(예: route-lead-alpha-normal). lead가 받는 prompt는 슬롯 이름과 brief 경로 정도로 짧고 자세한 내용은 brief 파일에 있습니다."
+        "text": "orchestrator가 작업의 위험도를 정하면 routing 명령이 그에 맞는 lead 종류를 돌려줍니다(예: route-lead-alpha-normal). lead가 받는 prompt는 슬롯과 profile, brief·저장소·작업 디렉터리 경로 정도로 짧고 자세한 내용은 brief 파일에 있습니다."
       },
       {
         "title": "구현 (Tier 3)",
@@ -132,7 +132,7 @@
       {
         "label": "검증",
         "ext": "모델이 자기 결과를 스스로 확인합니다. 다른 모델의 검토는 사람이 직접 붙여 넣어야 합니다",
-        "orch": "코드를 쓰지 않은 쪽 계열이 코드를 읽습니다. low 이상에서는 Codex의 실행 검증과 review를 통과해야 PASS이고 스크립트가 요약을 판정 파일과 대조합니다"
+        "orch": "코드를 쓰지 않은 쪽 계열이 코드를 읽습니다. low 이상에서는 Codex의 실행 검증과 review를 통과해야 PASS입니다(low 위험도의 문서·설정 전용 변경은 review를 생략할 수 있습니다). 스크립트가 요약을 판정 파일과 대조합니다"
       },
       {
         "label": "완료",
@@ -141,12 +141,12 @@
       },
       {
         "label": "규칙 전달",
-        "ext": "대화로 매번 알려 줍니다. 새 세션이나 하위 에이전트는 그 규칙을 모릅니다",
+        "ext": "대화로 매번 알려 줍니다. 새 세션이나 subagent는 그 규칙을 모릅니다",
         "orch": "상시 지시와 skill 파일에 적어 두어 어느 에이전트든 읽을 수 있습니다"
       },
       {
         "label": "맥락",
-        "ext": "압축되거나 새 세션을 열면 앞선 결정을 다시 설명해야 합니다",
+        "ext": "긴 대화는 요약으로 압축되며 새 세션은 앞선 결정을 다시 알려 주기 전까지 모릅니다",
         "orch": "상태가 파일에 있어 압축 뒤에도 이어지고 무거운 작업은 각 lead 안에서 끝납니다"
       },
       {
@@ -481,6 +481,12 @@
     ],
     "footer.facts": [
       "C44"
+    ],
+    "footer.privacy": [
+      "G30"
+    ],
+    "footer.fontCredit": [
+      "G31"
     ]
   },
   "_nonclaims": [
@@ -532,10 +538,8 @@
     "choose.cols",
     "choose.ctaHome",
     "choose.ctaResearch",
-    "footer.privacy",
     "footer.linksTitle",
     "footer.links",
-    "footer.fontCredit",
     "footer.fontLink"
   ]
 }

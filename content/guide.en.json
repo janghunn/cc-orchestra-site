@@ -22,7 +22,7 @@
   "hero": {
     "eyebrow": "For beginners",
     "h1": "What cc-orchestra is, <em>and when it is worth using.</em>",
-    "lede": "In its default mode, cc-orchestra runs on Claude Code and Codex CLI. An orchestrator agent talks to you and splits the request into tasks, a lead agent owns each task, Codex writes the code by default, the Claude lead reads the real diff, and separate Codex gates verify and review the result. Each agent works from its own files rather than the whole conversation, and the state of the work is kept in files.",
+    "lede": "In its default mode, cc-orchestra runs on Claude Code and Codex CLI. An orchestrator agent talks to you and splits the request into tasks, a lead agent owns each task, Codex writes the code by default, the Claude lead reads the real diff, and separate Codex gates verify and review the result. Leads and the agents below them work from files rather than from your conversation, and the state of the work is kept in files.",
     "ctaPrimary": "Start with the basics",
     "ctaSecondary": "Full overview",
     "tocTitle": "On this page"
@@ -61,11 +61,11 @@
     "steps": [
       {
         "title": "Orchestrator (Tier 1)",
-        "text": "The launcher starts Claude Code with the orchestrator as its agent, so the orchestrator prompt is in place from the first turn. Its edit tools are removed: it can scope work and write briefs, but it cannot change product code."
+        "text": "The launcher starts Claude Code with the orchestrator as its agent, so the orchestrator prompt is in place from the first turn. Its edit tools are removed and its prompt rules out product code: it scopes work and writes briefs, and leaves the code to the leads."
       },
       {
         "title": "Lead (Tier 2)",
-        "text": "The orchestrator sets each task's risk level, and a routing command returns the matching lead type, such as route-lead-alpha-normal. The lead's prompt is short: its slot name and the path to the brief. The detail is in the brief file."
+        "text": "The orchestrator sets each task's risk level, and a routing command returns the matching lead type, such as route-lead-alpha-normal. The lead's prompt is short: its slot and profile, and the paths to the brief, the repository and the task directory. The detail is in the brief file."
       },
       {
         "title": "Implementation (Tier 3)",
@@ -132,7 +132,7 @@
       {
         "label": "Checking",
         "ext": "The model checks its own result; a review by another model is pasted in by hand",
-        "orch": "The family that did not write the code reads it; from low risk up, PASS needs Codex's executable verification and review, and a script checks the summary against the verdict files"
+        "orch": "The family that did not write the code reads it; from low risk up, PASS needs Codex's executable verification and its review (a low-risk docs-only or pure-config change may skip the review), and a script checks the summary against the verdict files"
       },
       {
         "label": "Done",
@@ -146,7 +146,7 @@
       },
       {
         "label": "Context",
-        "ext": "Compaction or a new session, after which earlier decisions are explained again",
+        "ext": "Long chats are compacted into a summary, and a new session starts without the earlier decisions unless you restate them",
         "orch": "State in files carries over a compaction, and heavy work stays inside each lead"
       },
       {
@@ -481,6 +481,12 @@
     ],
     "footer.facts": [
       "C44"
+    ],
+    "footer.privacy": [
+      "G30"
+    ],
+    "footer.fontCredit": [
+      "G31"
     ]
   },
   "_nonclaims": [
@@ -532,10 +538,8 @@
     "choose.cols",
     "choose.ctaHome",
     "choose.ctaResearch",
-    "footer.privacy",
     "footer.linksTitle",
     "footer.links",
-    "footer.fontCredit",
     "footer.fontLink"
   ]
 }

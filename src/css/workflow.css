@@ -621,7 +621,7 @@
 @media (min-width: 901px) { .gd .gd-toc { justify-self: end; width: 100%; max-width: 340px; } }
 .gd .gd-toc-title { margin: 0 0 var(--sp-2); color: var(--muted); font-size: var(--fs-sm); line-height: 1.4; }
 .gd .gd-toc ol { margin: 0; padding-left: 1.4em; color: var(--muted); font-size: var(--fs-base); }
-.gd .gd-toc a { display: inline-flex; align-items: center; min-height: 44px; }
+.gd .gd-toc a { display: flex; align-items: center; min-height: 44px; }
 @media (min-width: 760px) { .gd .gd-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .gd .gd-steps li { border-style: solid; border-color: var(--line); }
 .gd .gd-step-n { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-tint); color: var(--accent-strong); font: 900 1.125rem/1 var(--font-sans); }
