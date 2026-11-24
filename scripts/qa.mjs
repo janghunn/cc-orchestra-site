@@ -31,14 +31,20 @@ const WORKFLOW = {
   figures: ['fig-loop', 'fig-pipeline', 'fig-reviews', 'fig-gpu', 'fig-roles'],
   illustrative: ['fig-loop', 'fig-reviews', 'fig-gpu'],
 };
+// The beginners' guide contract: section ids in order; no <figure>; links home (../) and to the research page (../workflow/).
+const GUIDE = { sections: ['hero', 'why', 'roles', 'files', 'compare', 'costs', 'choose'], links: ['../', '../workflow/'] };
 // The built pages. hreflang: the absolute URLs of the page pair; toggle: the language link's hreflang and href.
 const PAGES = [
   { page: 'home', lang: 'en', file: 'index.html', hreflang: ['', 'ko/'], toggle: ['ko', 'ko/'] },
   { page: 'home', lang: 'ko', file: 'ko/index.html', hreflang: ['', 'ko/'], toggle: ['en', '../?lang=en'] },
   { page: 'workflow', lang: 'en', file: 'workflow/index.html', hreflang: ['workflow/', 'ko/workflow/'], toggle: ['ko', '../ko/workflow/'] },
   { page: 'workflow', lang: 'ko', file: 'ko/workflow/index.html', hreflang: ['workflow/', 'ko/workflow/'], toggle: ['en', '../../workflow/?lang=en'] },
+  { page: 'guide', lang: 'en', file: 'guide/index.html', hreflang: ['guide/', 'ko/guide/'], toggle: ['ko', '../ko/guide/'] },
+  { page: 'guide', lang: 'ko', file: 'ko/guide/index.html', hreflang: ['guide/', 'ko/guide/'], toggle: ['en', '../../guide/?lang=en'] },
 ];
-const CONTENT = { home: 'content/{lang}.json', workflow: 'content/workflow.{lang}.json' };
+const CONTENT = { home: 'content/{lang}.json', workflow: 'content/workflow.{lang}.json', guide: 'content/guide.{lang}.json' };
+// A real SITE_URL appears exactly in the two hreflang alternates of every page in PAGES (never counted from the output).
+const ALLOW_COUNT = 2 * PAGES.length;
 const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const rel = (p) => path.relative(ROOT, p) || '.';
@@ -143,7 +149,7 @@ const checks = {
       const [tLang, tHref] = p.toggle;
       const toggle = anchors.find((a) => attr(a, 'hreflang') === tLang && attr(a, 'href') === tHref);
       if (!toggle) problems.push(`${tag}: language toggle link missing (hreflang="${tLang}" href="${tHref}")`);
-      if (p.page === 'home' && !anchors.some((a) => attr(a, 'href') === 'workflow/')) problems.push(`${tag}: no nav link href="workflow/"`);
+      if (p.page === 'home') for (const h of ['workflow/', 'guide/']) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no nav link href="${h}"`);
       if (p.page === 'workflow' && !anchors.some((a) => attr(a, 'href') === '../')) problems.push(`${tag}: no home link href="../"`);
       const sections = [...html.matchAll(/<section\b[^>]*\bid=["']([^"']+)["']/gi)].map((m) => m[1]);
       const figures = [...html.matchAll(/<figure\b[^>]*\bid=["']([^"']+)["']/gi)].map((m) => m[1]);
@@ -162,6 +168,11 @@ const checks = {
           if (!inside && !referenced) problems.push(`${tag}: figure ${id} has no [data-twin] element (inside or via aria-describedby)`);
           if (chip && WORKFLOW.illustrative.includes(id) && !text(m[2]).includes(chip)) problems.push(`${tag}: figure ${id} lacks the "${chip}" chip`);
         }
+      }
+      if (p.page === 'guide') {
+        if (sections.join() !== GUIDE.sections.join()) problems.push(`${tag}: section ids [${sections}], want [${GUIDE.sections}]`);
+        if (/<figure\b/i.test(html)) problems.push(`${tag}: has a <figure>, the guide has none`);
+        for (const h of GUIDE.links) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no link href="${h}"`);
       }
       const main = /<main\b[\s\S]*<\/main>/i.exec(html)?.[0] || html;
       const skeleton = [...main.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*)>/gi)]
@@ -191,8 +202,8 @@ const checks = {
       problems.length ? 'FAIL' : 'PASS',
       problems.length
         ? problems.join('; ')
-        : `${PAGES.length} pages; lang en/ko; 2 absolute hreflang links per page from ${SITE_URL}; toggle links; home nav links workflow/, workflow home link ../; ` +
-            `workflow figures have [data-twin] and Illustrative chips; ${summary.join('; ')}`,
+        : `${PAGES.length} pages; lang en/ko; 2 absolute hreflang links per page from ${SITE_URL}; toggle links; home nav links workflow/ and guide/, workflow home link ../; ` +
+            `guide sections [${GUIDE.sections.join(', ')}], no figure, links ${GUIDE.links.join(' and ')}; workflow figures have [data-twin] and Illustrative chips; ${summary.join('; ')}`,
     );
   },
 
@@ -210,7 +221,7 @@ const checks = {
     } else {
       return line('safety', 'FAIL', 'private patterns file not found: set SAFETY_PRIVATE_PATTERNS (or QA_ALLOW_NO_PRIVATE=1 for a non-evidence run)');
     }
-    const allow = SITE_URL !== PLACEHOLDER ? ['--allow', SITE_URL, '--allow-count', '8'] : [];
+    const allow = SITE_URL !== PLACEHOLDER ? ['--allow', SITE_URL, '--allow-count', String(ALLOW_COUNT)] : [];
     const env = { ...process.env };
     delete env.SAFETY_PRIVATE_PATTERNS;
     const a = sh('bash', ['safety-grep.sh', rel(DIST), ...base, ...allow], { env });
@@ -222,7 +233,7 @@ const checks = {
     line(
       'safety',
       ok ? 'PASS' : 'FAIL',
-      `safety-grep.sh ${rel(DIST)}${priv ? ' --require-private' : ''}${allow.length ? ' --allow <SITE_URL> --allow-count 8' : ''} -> exit ${a.code} (${lastLine(a.out)}); ` +
+      `safety-grep.sh ${rel(DIST)}${priv ? ' --require-private' : ''}${allow.length ? ` --allow <SITE_URL> --allow-count ${ALLOW_COUNT}` : ''} -> exit ${a.code} (${lastLine(a.out)}); ` +
         `safety-grep.sh . --source-mode -> exit ${b.code} (${lastLine(b.out)})${priv ? '' : '; WITHOUT private patterns'}`,
     );
   },

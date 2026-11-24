@@ -1,15 +1,17 @@
 // Browser QA over the local static server (scripts/serve.mjs) with Playwright and the system Chrome.
 // Usage: node scripts/browser-qa.mjs [--only layout,axe,motion,keyboard,loop-motion,font,requests]
 // Env: DIST (default dist), CHROME_PATH (default /usr/bin/google-chrome).
-// Pages: /, /ko/, /workflow/, /ko/workflow/. Checks (light + dark, every page, 390 + 1280 px unless noted):
+// Pages: /, /ko/, /workflow/, /ko/workflow/, /guide/, /ko/guide/. Checks (light + dark, every page, 390 + 1280 px
+// unless noted):
 //   layout    no horizontal scroll (before and after scrolling through the page); the theme applied;
-//             home pages: at least one a[href="workflow/"] visible (non-zero box) and focusable
+//             home pages: at least one a[href="workflow/"] and one a[href="guide/"] visible (non-zero box) and
+//             focusable; guide pages: the same for a[href="../"] and a[href="../workflow/"]
 //   axe       axe-core: 0 violations
 //   motion    prefers-reduced-motion: reduce -> document.getAnimations().length === 0 after load,
 //             after scrolling, and after a runtime switch to reduce
 //   keyboard  every control inside a figure is reached with Tab and changes the figure when operated
-//             with the keyboard alone; every interactive figure has a text twin; the workflow pages
-//             have fig-loop
+//             with the keyboard alone; every interactive figure has a text twin; home and workflow pages
+//             have at least one figure with controls (the guide has no figure); the workflow pages have fig-loop
 //   loop-motion  workflow pages, motion enabled: fig-loop Run (keyboard) autoplays (>= 2 stage changes
 //             within 2 x data-interval) and reads Pause; Pause, the global "Pause motion" button and a
 //             runtime switch to prefers-reduced-motion: reduce each stop it for 2 intervals
@@ -54,13 +56,19 @@ try {
   throw e;
 }
 const ORIGIN = new URL(server.url).origin;
-// [tag, lang, url, workflow page?]
+// [tag, lang, url, page kind: home | workflow | guide]
 const PAGES = [
-  ['/', 'en', server.url, false],
-  ['/ko/', 'ko', server.url + 'ko/', false],
-  ['/workflow/', 'en', server.url + 'workflow/', true],
-  ['/ko/workflow/', 'ko', server.url + 'ko/workflow/', true],
+  ['/', 'en', server.url, 'home'],
+  ['/ko/', 'ko', server.url + 'ko/', 'home'],
+  ['/workflow/', 'en', server.url + 'workflow/', 'workflow'],
+  ['/ko/workflow/', 'ko', server.url + 'ko/workflow/', 'workflow'],
+  ['/guide/', 'en', server.url + 'guide/', 'guide'],
+  ['/ko/guide/', 'ko', server.url + 'ko/guide/', 'guide'],
 ];
+// links each page kind must offer visible and focusable at every width
+const NAV_LINKS = { home: ['workflow/', 'guide/'], workflow: [], guide: ['../', '../workflow/'] };
+// page kinds that must have at least one figure with controls
+const FIGURE_KINDS = new Set(['home', 'workflow']);
 // fig-loop button labels, from the workflow content (the template prints them verbatim)
 const LOOP_LABELS = Object.fromEntries(
   ['en', 'ko'].map((l) => {
@@ -117,7 +125,7 @@ try {
 
   // ---- layout + axe --------------------------------------------------------------------------
   if (want('layout') || want('axe')) {
-    for (const [name, , url, workflow] of PAGES) {
+    for (const [name, , url, kind] of PAGES) {
       for (const theme of THEMES) {
         for (const width of WIDTHS) {
           const tag = `${name} ${theme}/${width}`;
@@ -146,10 +154,10 @@ try {
                 `${tag}: scrollWidth ${o2.sw} <= clientWidth ${o2.cw}; theme ${dark ? 'dark' : 'light'}` +
                   (errors.length ? `; page errors: ${errors.slice(0, 3).join(' | ')}` : ''),
               );
-              if (!workflow) {
-                // the home pages must offer a visible, focusable link to the workflow page at every width
-                const link = await page.evaluate(() => {
-                  const all = [...document.querySelectorAll('a[href="workflow/"]')];
+              for (const href of NAV_LINKS[kind]) {
+                // home pages link to the workflow and guide pages, guide pages to home and workflow: visible and focusable at every width
+                const link = await page.evaluate((href) => {
+                  const all = [...document.querySelectorAll(`a[href="${href}"]`)];
                   const ok = all.filter((a) => {
                     const r = a.getBoundingClientRect();
                     if (!a.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || !(r.width > 0 && r.height > 0)) return false;
@@ -159,8 +167,8 @@ try {
                     return focused;
                   });
                   return { total: all.length, ok: ok.length };
-                });
-                report('layout', link.ok > 0, `${tag}: ${link.ok} of ${link.total} a[href="workflow/"] visible and focusable`);
+                }, href);
+                report('layout', link.ok > 0, `${tag}: ${link.ok} of ${link.total} a[href="${href}"] visible and focusable`);
               }
             }
             if (want('axe')) {
@@ -217,7 +225,7 @@ try {
 
   // ---- keyboard ------------------------------------------------------------------------------
   if (want('keyboard')) {
-    for (const [lang, , url, workflow] of PAGES) {
+    for (const [lang, , url, kind] of PAGES) {
       const { ctx, page } = await newPage({ colorScheme: 'light', reducedMotion: 'reduce' });
       try {
         await page.goto(url, { waitUntil: 'load' });
@@ -249,8 +257,8 @@ try {
           });
           return out;
         });
-        if (!figs.length) report('keyboard', false, `${lang}: no figure with controls found`);
-        if (workflow) {
+        if (!figs.length && FIGURE_KINDS.has(kind)) report('keyboard', false, `${lang}: no figure with controls found`);
+        if (kind === 'workflow') {
           const loop = figs.find((f) => f.id === 'fig-loop');
           report('keyboard', !!loop, `${lang}: fig-loop ${loop ? `present with ${loop.ctrls.length} control(s)` : 'MISSING (or has no controls)'}`);
         }
@@ -316,8 +324,8 @@ try {
 
   // ---- loop motion (workflow pages, motion enabled) ------------------------------------------
   if (want('loop-motion')) {
-    for (const [name, lang, url, workflow] of PAGES) {
-      if (!workflow) continue;
+    for (const [name, lang, url, kind] of PAGES) {
+      if (kind !== 'workflow') continue;
       const labels = LOOP_LABELS[lang];
       const { ctx, page, errors } = await newPage({ colorScheme: 'light', reducedMotion: 'no-preference' });
       try {

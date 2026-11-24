@@ -22,15 +22,18 @@ printf '# synthetic roots\nQ\t%s\nZ\tws/z\n' "$W/ws/q" >"$W/roots.tsv"   # Z is 
 
 home='{ "hero": { "title": "T", "lede": "L" }, "_claims": { "hero.lede": ["H01"] }, "_nonclaims": ["hero.title"] }'
 flow='{ "intro": { "p": ["one", "two"] }, "label": "x", "_claims": { "intro.p": ["W01", "W02"] }, "_nonclaims": ["label"] }'
+guide='{ "why": { "p": "P", "cards": ["a", "b"] }, "kicker": "k", "_claims": { "why": ["G01"] }, "_nonclaims": ["kicker"] }'
 write_content() {
   printf '%s\n' "$1" >"$R/content/en.json";          printf '%s\n' "$1" >"$R/content/ko.json"
   printf '%s\n' "$2" >"$R/content/workflow.en.json"; printf '%s\n' "$2" >"$R/content/workflow.ko.json"
+  printf '%s\n' "$guide" >"$R/content/guide.en.json"; printf '%s\n' "$guide" >"$R/content/guide.ko.json"
 }
 claims() { # $1 = source cell of W02
   cat >"$R/content/claims.md" <<EOF
 | id | EN claim | source | note |
 |---|---|---|---|
 | H01 | Home claim. | docs/a.md:1-2@abc1234 | |
+| G01 | Guide claim. | framing | |
 | W01 | Workflow claim one. | ws:Q/docs/guide.md:2-4@2026-01-02; ws:site/design/notes.md:3@2026-01-02 | |
 | W02 | Workflow claim two. | $1 | |
 EOF
@@ -49,7 +52,7 @@ RT="CLAIMS_WORKSPACE_ROOTS=$W/roots.tsv"
 write_content "$home" "$flow"
 claims 'ws:Z/one.txt:1@2026-01-02'
 run 0 "format only without CLAIMS_WORKSPACE_ROOTS" "workspace ranges not checked: CLAIMS_WORKSPACE_ROOTS unset" NOOP=1
-run 0 "both content sets counted" "content sets: home 2, workflow 3" NOOP=1
+run 0 "all three content sets counted" "content sets: home 2, workflow 3, guide 4" NOOP=1
 run 0 "ranges checked with roots (relative dir resolves from the TSV)" "workspace ranges checked (3 of 3, 2 alias(es) + site)" "$RT"
 
 claims 'ws:Y/one.txt:1@2026-01-02'
@@ -89,6 +92,9 @@ printf '%s\n' '{ "intro": { "p": ["one"] }, "label": "x", "_claims": { "intro.p"
 run 1 "EN/KO shape differs in the workflow set" "key only in content/workflow.en.json: intro.p.1" NOOP=1
 rm "$R/content/workflow.ko.json"
 run 1 "a missing workflow file fails" "workflow: content file(s) missing: content/workflow.ko.json" NOOP=1
+write_content "$home" "$flow"
+rm "$R/content/guide.ko.json"
+run 1 "a missing guide file fails" "guide: content file(s) missing: content/guide.ko.json" NOOP=1
 
 echo "# check-claims tests: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

@@ -1,5 +1,6 @@
 // Claim coverage check for the content sets and content/claims.md.
-// Content sets (each an EN + KO pair): content/{en,ko}.json (home) and content/workflow.{en,ko}.json (workflow).
+// Content sets (each an EN + KO pair): content/{en,ko}.json (home), content/workflow.{en,ko}.json (workflow) and
+// content/guide.{en,ko}.json (guide).
 // Per set:
 // - every leaf string key of both content files is covered by _claims or _nonclaims
 //   (pattern = exact key (covers its subtree), "prefix.*" (below prefix), "*.leaf" (that name in any section));
@@ -29,6 +30,7 @@ const readJson = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8'));
 const SETS = [
   { name: 'home', en: 'content/en.json', ko: 'content/ko.json' },
   { name: 'workflow', en: 'content/workflow.en.json', ko: 'content/workflow.ko.json' },
+  { name: 'guide', en: 'content/guide.en.json', ko: 'content/guide.ko.json' },
 ];
 const facts = readJson('facts.json');
 const SHA = facts.sourceSha;
