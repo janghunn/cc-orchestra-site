@@ -81,7 +81,7 @@
   "files": {
     "kicker": "Files",
     "h2": "Rules and state live in files, not in the chat",
-    "p": "A lead starts from a brief written so that an agent with no conversation context can begin work. A rule you mention to the orchestrator in passing reaches a lead only once it is written down.",
+    "p": "A lead starts from a brief written so that an agent with no conversation context can begin work. Your later instructions reach a lead as messages the orchestrator forwards or as amendments to the brief, and standing rules go into files that every agent can read.",
     "cards": [
       {
         "icon": "pen",
@@ -132,7 +132,7 @@
       {
         "label": "Checking",
         "ext": "The model checks its own result; a review by another model is pasted in by hand",
-        "orch": "The family that did not write the code reads it; from low risk up, PASS needs Codex's executable verification and its review (a low-risk docs-only or pure-config change may skip the review), and a script checks the summary against the verdict files"
+        "orch": "The family that did not write the code reads it. From low risk up, PASS needs the Codex verify and review gates (a low-risk docs-only or pure-config change may skip the review, and a Claude verifier stands in if Codex is unavailable); a script checks the summary against the verdict files"
       },
       {
         "label": "Done",
@@ -146,7 +146,7 @@
       },
       {
         "label": "Context",
-        "ext": "Long chats are compacted into a summary, and a new session starts without the earlier decisions unless you restate them",
+        "ext": "Long chats are compacted into a summary; what a new session knows depends on the tool's own memory, not on a project record",
         "orch": "State in files carries over a compaction, and heavy work stays inside each lead"
       },
       {
@@ -305,7 +305,9 @@
       "C46"
     ],
     "files.p": [
-      "G10"
+      "G10",
+      "G11",
+      "G12"
     ],
     "files.cards.0.text": [
       "G11"
@@ -357,6 +359,7 @@
     "compare.rows.1.orch": [
       "C22",
       "C13",
+      "C43",
       "C27"
     ],
     "compare.rows.2.ext": [
@@ -480,7 +483,7 @@
       "G29"
     ],
     "footer.facts": [
-      "C44"
+      "G32"
     ],
     "footer.privacy": [
       "G30"
