@@ -81,7 +81,7 @@
   "files": {
     "kicker": "Files",
     "h2": "Rules and state live in files, not in the chat",
-    "p": "A lead starts from a brief written so that an agent with no conversation context can begin work. Your later instructions reach a lead as messages the orchestrator forwards or as amendments to the brief, and standing rules go into files that every agent can read.",
+    "p": "A lead starts from a brief written so that an agent with no conversation context can begin work. Your later instructions reach a lead as messages the orchestrator forwards or as amendments to the brief, and standing rules go into DIRECTIVES.md and skill files.",
     "cards": [
       {
         "icon": "pen",
@@ -132,7 +132,7 @@
       {
         "label": "Checking",
         "ext": "The model checks its own result; a review by another model is pasted in by hand",
-        "orch": "The family that did not write the code reads it. From low risk up, PASS needs the Codex verify and review gates (a low-risk docs-only or pure-config change may skip the review, and a Claude verifier stands in if Codex is unavailable); a script checks the summary against the verdict files"
+        "orch": "Normally the family that did not write the code reads it. From low risk up, PASS needs the Codex verify and review gates (a low-risk docs-only or pure-config change may skip the review, and a Claude verifier stands in if Codex is unavailable); a script checks the summary against the verdict files"
       },
       {
         "label": "Done",
@@ -141,12 +141,12 @@
       },
       {
         "label": "Rules",
-        "ext": "Repeated in the chat; a new session or a subagent does not know them",
-        "orch": "Standing instructions and skill files that every agent can read"
+        "ext": "Repeated in the chat or kept in the tool's own memory",
+        "orch": "Standing instructions in DIRECTIVES.md and skill files, written down once"
       },
       {
         "label": "Context",
-        "ext": "Long chats are compacted into a summary; what a new session knows depends on the tool's own memory, not on a project record",
+        "ext": "Long chats are compacted into a summary; decisions reach a new session through the tool's memory or what you restate",
         "orch": "State in files carries over a compaction, and heavy work stays inside each lead"
       },
       {
@@ -180,7 +180,7 @@
     "issuesTitle": "Problems that come up with the extensions alone",
     "issues": [
       "The same model writes and checks, so “tests pass” is easy to take on trust.",
-      "With no rules file, project rules have to be repeated in each new session, and a missed one shows up as drift.",
+      "With no rules file, project rules live in the chat or the tool's memory, and a rule that was never saved has to be repeated.",
       "The reasons behind a change live only in the chat and are hard to find weeks later.",
       "An edit to a file nobody asked about is caught only by your own eyes."
     ],
@@ -232,8 +232,8 @@
     "ctaResearch": "See the research workflow"
   },
   "footer": {
-    "facts": "Harness facts as of {{f:sourceDate}} ({{f:sourceSha}}), taken from the project's policy files.",
-    "privacy": "No cookies, no analytics, no third-party requests.",
+    "facts": "Harness facts as of {{f:sourceDate}} ({{f:sourceSha}}).",
+    "privacy": "No third-party requests.",
     "linksTitle": "The two CLIs it connects",
     "links": [
       {
@@ -370,14 +370,16 @@
       "C21"
     ],
     "compare.rows.3.ext": [
-      "G27"
+      "G27",
+      "G33"
     ],
     "compare.rows.3.orch": [
       "G11",
       "G12"
     ],
     "compare.rows.4.ext": [
-      "G27"
+      "G27",
+      "G33"
     ],
     "compare.rows.4.orch": [
       "G02",
@@ -430,7 +432,8 @@
       "C07"
     ],
     "compare.issues.1": [
-      "G28"
+      "G28",
+      "G33"
     ],
     "compare.issues.2": [
       "G28"
