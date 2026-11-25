@@ -46,7 +46,7 @@ Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compar
 - First paint uses `"SCDream Fallback"`, a `local()` Noto Sans CJK KR / Noto Sans KR face with metric overrides (values measured in Chrome):
   - 400: `size-adjust` 104.35%. Hangul advance is .96 em in S-Core Dream and .92 em in Noto.
   - 700: 102.4%, the measured ratio on this page's bold text.
-- First visit: the KO pages' head script (the KO-only block of `src/js/head.js`, inlined into each KO page) loads both SCDream faces after the load event, once the first contentful paint has happened (3 s after the load event at the latest), and then sets `html.ko-font`, switching to them in one step. Later visits set the class before first paint (`localStorage["ppk-kofont"]`).
+- First visit: the KO pages' head script (the KO-only block of `src/js/head.js`, inlined into each KO page) starts loading both SCDream faces after the load event, as soon as the first contentful paint has been recorded or when a 3 s timer started at the load event fires, whichever comes first; in a background tab that has not painted yet, the timer can start the loads before first paint. It sets `html.ko-font` once both faces have loaded, switching to them in one step; if either load fails, or the browser has no Font Loading API, it sets the class (and saves the flag) at once. Later visits set the class before first paint (`localStorage["ppk-kofont"]`).
 - Result: the 1.47 MB of OTF never delays first paint.
 
 ## Motion rules
