@@ -41,12 +41,12 @@ Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compar
 
 ## Korean type
 
-- `ko-font.css` is linked only from `/ko/` and is the only file that names the KO family `SCDream`. It holds 400 = `SCDream4.otf` and 700 = `SCDream6.otf`, both unmodified, with `font-display: swap`. The faces use no `local()`, and there is no preload.
+- `ko-font.css` is linked from the three KO pages (`/ko/`, `/ko/workflow/`, `/ko/guide/`) and from no EN page. It is the only stylesheet that names the KO family `SCDream`; the KO pages' inlined head script names it to load the faces, and no EN page, `site.css` or `site.js` does. It holds 400 = `SCDream4.otf` and 700 = `SCDream6.otf`, both unmodified, with `font-display: swap`. The faces use no `local()`, and there is no preload.
 - Shared CSS carries the kit's fallback stack only (`--font-ko`); `ko-font.css` puts the families first on KO pages.
 - First paint uses `"SCDream Fallback"`, a `local()` Noto Sans CJK KR / Noto Sans KR face with metric overrides (values measured in Chrome):
   - 400: `size-adjust` 104.35%. Hangul advance is .96 em in S-Core Dream and .92 em in Noto.
   - 700: 102.4%, the measured ratio on this page's bold text.
-- First visit: after the first contentful paint, the `/ko/` head script loads both SCDream faces and then sets `html.ko-font`, switching to them in one step. Later visits set the class before first paint (`localStorage["ppk-kofont"]`).
+- First visit: the KO pages' head script (the KO-only block of `src/js/head.js`, inlined into each KO page) starts loading both SCDream faces after the load event, as soon as the first contentful paint has been recorded or when a 3 s timer started at the load event fires, whichever comes first; in a background tab that has not painted yet, the timer can start the loads before first paint. It sets `html.ko-font` once both faces have loaded, switching to them in one step; if either load fails, or the browser has no Font Loading API, it sets the class at once. Both paths also try to save the flag; later visits whose flag was saved set the class before first paint (`localStorage["ppk-kofont"]`).
 - Result: the 1.47 MB of OTF never delays first paint.
 
 ## Motion rules

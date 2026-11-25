@@ -40,7 +40,7 @@
       {
         "icon": "gate",
         "title": "믿고 맡길 수 있는 검증",
-        "text": "자기 코드를 스스로 검토하는 모델은 자기 맹점을 그대로 안고 갑니다. 그래서 코드는 보통 쓰지 않은 쪽 모델 계열이 읽습니다. Codex가 쓰면 Claude lead가 diff를 읽고 Claude dev가 쓰면 Codex gate가 확인합니다. 위험도별 gate를 모두 통과해야 작업이 PASS가 됩니다."
+        "text": "자기 코드를 스스로 검토하는 모델은 자기 맹점을 그대로 안고 갑니다. 그래서 코드는 보통 쓰지 않은 쪽 모델 계열이 읽습니다. Codex가 쓰면 Claude lead가 diff를 읽고 Claude dev가 쓰면 Codex gate가 확인합니다. 보통은 위험도별 gate를 모두 통과해야 작업이 PASS가 됩니다. Codex를 쓸 수 없으면 Claude verifier가 Codex verify gate를 대신할 수 있으며 이때는 Codex review가 보고에 unavailable로 기록된 채로도 작업이 PASS가 될 수 있습니다."
       },
       {
         "icon": "doc",
@@ -261,7 +261,8 @@
       "C07",
       "C13",
       "C22",
-      "C43"
+      "C43",
+      "G33"
     ],
     "why.cards.2.text": [
       "G02",
