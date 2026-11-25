@@ -1,18 +1,19 @@
 # cc-orchestra-site
 
 The public project page for cc-orchestra, a multi-agent harness that connects Claude Code and Codex CLI.
-Four static pages, two pairs of English and Korean built from one template each: the overview (`/`,
-`/ko/`) and a research-workflow case study (`/workflow/`, `/ko/workflow/`). The pages describe the
-architecture and the workflow only: no source code of the harness, no install command, no third-party
-requests.
+Six static pages, three pairs of English and Korean built from one template each: the overview (`/`,
+`/ko/`), a research-workflow case study (`/workflow/`, `/ko/workflow/`) and a beginners' guide (`/guide/`,
+`/ko/guide/`). The pages describe the architecture and the workflow only: no source code of the harness,
+no install command, no third-party requests.
 
 Layout:
 
 | path | what |
 |---|---|
-| `src/` | page template, CSS, JS, static files |
+| `src/` | page templates (`page.html` overview, `workflow.html`, `guide.html`), CSS, JS, static files |
 | `content/en.json`, `content/ko.json` | every overview-page string; `_claims` / `_nonclaims` map each string to a claim or mark it as UI text |
 | `content/workflow.en.json`, `content/workflow.ko.json` | the same for the workflow page |
+| `content/guide.en.json`, `content/guide.ko.json` | the same for the beginners' guide page (template `src/guide.html`) |
 | `content/claims.md` | one row per factual claim, with the source line it rests on |
 | `facts.json` | model, effort and count values injected into the copy (`{{f:key}}`) |
 | `fonts/ko/` | S-Core Dream OTF files, unmodified, with `SHA256SUMS` and the licence notes |
@@ -31,7 +32,8 @@ npm run build
 ```
 
 `npm run build` runs `node scripts/build.mjs` and writes `dist/index.html`, `dist/ko/index.html`,
-`dist/workflow/index.html`, `dist/ko/workflow/index.html`, `dist/assets/css/tokens.css`, `dist/assets/`, `dist/fonts/ko/`, `favicon.svg`, `robots.txt` and `.nojekyll`. The build itself has no
+`dist/workflow/index.html`, `dist/ko/workflow/index.html`, `dist/guide/index.html`, `dist/ko/guide/index.html`,
+`dist/assets/css/tokens.css`, `dist/assets/`, `dist/fonts/ko/`, `favicon.svg`, `robots.txt` and `.nojekyll`. The build itself has no
 dependencies; `npm ci` only installs the QA tools. `node scripts/build.mjs --out DIR` writes elsewhere;
 the output directory is replaced only after a complete build.
 
@@ -59,20 +61,20 @@ success line; a child that cannot start or is killed is a FAIL.
 
 | id | what it checks | acceptance criteria | in `qa:static` |
 |---|---|---|---|
-| `build` | clean rebuild; all four pages written | 1 | yes |
+| `build` | clean rebuild; all six pages written | 1 | yes |
 | `facts` | no `{{` left in the output; every `{{f:key}}` resolves in `facts.json` | 1, 2 | yes |
-| `structure` | per page: `<html lang>`, the pair's two absolute hreflang links, language toggle link; per pair: same section ids, figure ids and `<main>` element structure EN = KO; overview: 10 sections and a nav link `workflow/`; workflow: the section ids and figure ids in order (the `WORKFLOW` constant in `scripts/qa.mjs`), a home link `../`, a `[data-twin]` text twin for every figure and the Illustrative chip on every synthetic figure | 1 | yes |
+| `structure` | per page: `<html lang>`, the pair's two absolute hreflang links, language toggle link; per pair: same section ids, figure ids and `<main>` element structure EN = KO; overview: 10 sections and nav links `workflow/` and `guide/`; workflow: the section ids and figure ids in order (the `WORKFLOW` constant in `scripts/qa.mjs`), a home link `../`, a `[data-twin]` text twin for every figure and the Illustrative chip on every synthetic figure; guide: the section ids in order (the `GUIDE` constant), no `<figure>`, links `../` (home) and `../workflow/` | 1 | yes |
 | `safety` | `safety-grep.sh dist` and `safety-grep.sh . --source-mode`, private patterns required | 3 | yes |
 | `safety-tests` | `tests/safety-grep.test.sh` | 3 | yes |
 | `no-network` | every resource URL in the built HTML/CSS resolves to the page's own origin; no `fetch(`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`, `import(` in JS | 4 | yes |
 | `fonts` | `dist/fonts/ko` hashes match `SHA256SUMS` and the official ones; no `SCDream` in the EN pages, `site.css`, `site.js`; only the KO pages link `ko-font.css` | 5 | yes |
 | `budgets` | `gzip -9` sizes: HTML 40 KB per page, CSS 25 KB, JS 30 KB, EN fonts 120 KB; KO OTF sizes reported | 6 | yes |
 | `contrast` | `scripts/contrast.mjs`: theme token pairs, light and dark, 4.5:1 text, 3:1 UI | 7 | yes |
-| `claims` | `scripts/check-claims.mjs`: in both content sets every string is in `_claims` or `_nonclaims`; claim ids match `content/claims.md`; every source cell is citations (forms below), `framing`, a URL, or one `observation: <text>` | 2 | yes |
+| `claims` | `scripts/check-claims.mjs`: in all three content sets (home, workflow, guide) every string is in `_claims` or `_nonclaims`; claim ids match `content/claims.md`; every source cell is citations (forms below), `framing`, a URL, or one `observation: <text>` | 2 | yes |
 | `deps` | lockfile present and in step with `package.json`; exact versions; install scripts listed below | 10 | yes |
-| `browser` | `scripts/browser-qa.mjs` (Playwright + system Chrome over the local server): all four pages, light + dark, 390 + 1280 px: no horizontal scroll, a visible and focusable link to `workflow/` on the overview pages, axe-core 0 violations, reduced motion leaves `document.getAnimations()` empty, keyboard-only operation of every figure control, text twins, the research-loop figure's Run / Pause, global pause and reduced-motion stop with motion enabled (`loop-motion`), KO pages' font loaded (`document.fonts.check('400 16px SCDream')` and a loaded 400 face) with KO font bytes, no request to another origin | 4, 5, 7 | no |
-| `lighthouse` | `scripts/lighthouse.mjs`: pinned Lighthouse, mobile, all four pages, median of 3 runs: Performance 95, Accessibility 100, Best Practices 95, SEO 95 | 8 | no |
-| `links` | pinned linkinator against the local server: 0 broken internal links or fragments; all four pages reached from `/` | 8 | no |
+| `browser` | `scripts/browser-qa.mjs` (Playwright + system Chrome over the local server): all six pages, light + dark, 390 + 1280 px: no horizontal scroll, visible and focusable links to `workflow/` and `guide/` on the overview pages and to `../` and `../workflow/` on the guide pages, axe-core 0 violations, reduced motion leaves `document.getAnimations()` empty, keyboard-only operation of every figure control, text twins, at least one figure with controls on the overview and workflow pages (the guide has no interactive figure, so this minimum does not apply to it), the research-loop figure's Run / Pause, global pause and reduced-motion stop with motion enabled (`loop-motion`), KO pages' font loaded (`document.fonts.check('400 16px SCDream')` and a loaded 400 face) with KO font bytes, no request to another origin | 4, 5, 7 | no |
+| `lighthouse` | `scripts/lighthouse.mjs`: pinned Lighthouse, mobile, all six pages, median of 3 runs: Performance 95, Accessibility 100, Best Practices 95, SEO 95 | 8 | no |
+| `links` | pinned linkinator against the local server: 0 broken internal links or fragments; all six pages reached from `/` | 8 | no |
 
 `browser`, `lighthouse` and `links` print `SKIP` when Chrome is missing or no loopback socket can be
 opened. They use the system Chrome (set `CHROME_PATH` to override) in headless mode without GPU; no
@@ -125,12 +127,12 @@ publish.
   hit every built-in class; `tests/private-patterns.sample` and `tests/denylist.sample` are synthetic
   samples for the private and denylist classes.
 
-**The one listed allowance.** CI passes `--allow <Pages base URL> --allow-count 8`. That single URL
+**The one listed allowance.** CI passes `--allow <Pages base URL> --allow-count 12`. That single URL
 (`https://<owner>.github.io/<repo>/`, the only accepted form) is exempt from every private class
 (`private:*`) and from `unlisted-url`, and from no other built-in class and not from the denylist: its
 exact occurrences are blanked and each private pattern is re-tested on the rest of the line, so any other
-match on that line still hits. It must occur exactly 8 times in `dist/` (the two
-hreflang links on each of the four pages); any other count fails with `HIT [allow-count]`. The repository and a local
+match on that line still hits. It must occur exactly 12 times in `dist/` (the two
+hreflang links on each of the six pages); any other count fails with `HIT [allow-count]`. The repository and a local
 build contain the owner handle zero times.
 
 ## Publishing (hand steps, not automated)

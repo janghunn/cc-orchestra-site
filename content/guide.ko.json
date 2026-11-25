@@ -1,0 +1,519 @@
+{
+  "meta": {
+    "title": "처음 보는 분을 위한 cc-orchestra 입문 안내",
+    "description": "cc-orchestra를 처음 접하는 분을 위한 안내입니다. Claude Code만으로 충분한 경우, 각 에이전트가 역할을 받는 방식, 규칙과 작업 상태를 두는 곳, harness를 쓰는 데 드는 시간과 절차를 설명합니다.",
+    "langName": "한국어",
+    "otherLangName": "English",
+    "otherLangLabel": "Read this page in English",
+    "skip": "본문으로 건너뛰기",
+    "brand": "cc-orchestra",
+    "homeLabel": "cc-orchestra 개관",
+    "navLabel": "주 메뉴",
+    "nav": [
+      "필요할까",
+      "역할",
+      "파일",
+      "비교",
+      "고르기"
+    ],
+    "themeToDark": "어두운 테마로 전환",
+    "themeToLight": "밝은 테마로 전환"
+  },
+  "hero": {
+    "eyebrow": "입문 안내",
+    "h1": "cc-orchestra는 무엇이고 <em>언제 쓸 만한가</em>",
+    "lede": "기본 모드의 cc-orchestra는 Claude Code와 Codex CLI 위에서 돌아갑니다. orchestrator가 사용자와 대화하며 요청을 작업으로 나누고 작업마다 lead 하나가 끝까지 맡습니다. 코드는 기본적으로 Codex가 쓰고 Claude lead가 실제 diff를 읽은 뒤 별도의 Codex gate가 결과를 verify하고 review합니다. lead와 그 아래 에이전트는 사용자와의 대화가 아니라 파일을 보고 일하며 작업 상태도 파일에 남습니다.",
+    "ctaPrimary": "기본부터 읽기",
+    "ctaSecondary": "전체 개요",
+    "tocTitle": "이 페이지 내용"
+  },
+  "why": {
+    "kicker": "필요할까",
+    "h2": "Claude Code만 쓰는 편이 나을 때가 많습니다",
+    "p": "짧은 질문, 파일 한두 개 수정, 탐색하듯 해 보는 작업이라면 Claude Code 세션 하나가 더 빠르고 저렴합니다. cc-orchestra의 추가 절차는 여러 작업을 동시에 굴리거나, 검증을 믿고 맡기고 싶거나, 몇 주씩 이어지는 일을 할 때 값을 합니다.",
+    "cards": [
+      {
+        "icon": "sessions",
+        "title": "여러 작업을 동시에",
+        "text": "이름 붙은 lead 슬롯 네 개(alpha~delta)가 각자 작업 하나씩을 동시에 맡습니다. 사용자는 “lead-bravo에게 이거 전해 줘”처럼 슬롯 이름으로 작업을 부릅니다."
+      },
+      {
+        "icon": "gate",
+        "title": "믿고 맡길 수 있는 검증",
+        "text": "자기 코드를 스스로 검토하는 모델은 자기 맹점을 그대로 안고 갑니다. 그래서 코드는 보통 쓰지 않은 쪽 모델 계열이 읽습니다. Codex가 쓰면 Claude lead가 diff를 읽고 Claude dev가 쓰면 Codex gate가 확인합니다. 위험도별 gate를 모두 통과해야 작업이 PASS가 됩니다."
+      },
+      {
+        "icon": "doc",
+        "title": "몇 주씩 이어지는 일",
+        "text": "작업 목록, 사용자의 상시 지시, 작업별 brief와 요약이 모두 파일이라 긴 대화가 압축된 뒤에도 일이 이어집니다."
+      },
+      {
+        "icon": "sync",
+        "title": "사용량 분산",
+        "text": "구현은 Codex가, 계획과 관리는 Claude가 맡아 한쪽 provider의 주간 한도에 일이 막힐 가능성이 줄어듭니다."
+      }
+    ]
+  },
+  "roles": {
+    "kicker": "역할",
+    "h2": "역할은 시작할 때 받은 prompt가 정합니다",
+    "p": "에이전트가 스스로 역할을 알아내는 것이 아닙니다. 에이전트 종류마다 역할 prompt가 따로 있고 launcher나 상위 에이전트가 그 prompt로 에이전트를 띄웁니다.",
+    "steps": [
+      {
+        "title": "orchestrator (Tier 1)",
+        "text": "launcher가 Claude Code를 orchestrator agent로 띄우므로 첫 턴부터 orchestrator prompt가 적용됩니다. 편집 도구가 빠져 있고 prompt도 제품 코드 작성을 금지합니다. orchestrator는 작업 범위를 정하고 brief를 쓰며 코드는 lead에게 맡깁니다."
+      },
+      {
+        "title": "lead (Tier 2)",
+        "text": "orchestrator가 작업의 위험도를 정하면 routing 명령이 그에 맞는 lead 종류를 돌려줍니다(예: route-lead-alpha-normal). lead가 받는 prompt는 슬롯과 profile, brief·저장소·작업 디렉터리 경로 정도로 짧고 자세한 내용은 brief 파일에 있습니다."
+      },
+      {
+        "title": "구현 (Tier 3)",
+        "text": "lead가 계획을 쓰고 작업 단위마다 Codex에게 넘깁니다. Claude dev는 Codex 샌드박스가 닿지 못하는 GPU 작업처럼 사유를 기록한 예외에만 투입됩니다."
+      },
+      {
+        "title": "검증 (Tier 4)",
+        "text": "lead가 Codex의 실행 검증과 review를 돌립니다. critical 작업에는 Claude verifier가 더해지는데, 이 verifier는 작업 대화 없이 계획과 저장소만 보고 다시 확인합니다."
+      }
+    ],
+    "hooks": "hook은 맥락과 점검을 자동으로 붙입니다. 사용자가 보내는 메시지에는 짧은 routing 안내를 더하고 압축 뒤에는 복구한 상태를 다시 넣습니다. Bash 명령 전에는 guard가 돌고 lead가 끝나면 요약을 점검합니다."
+  },
+  "files": {
+    "kicker": "파일",
+    "h2": "규칙과 상태는 대화가 아니라 파일에 둡니다",
+    "p": "lead는 brief에서 출발합니다. brief는 대화 맥락이 전혀 없는 에이전트도 일을 시작할 수 있게 씁니다. 이후의 지시는 orchestrator가 전달하는 메시지나 brief 수정으로 lead에게 닿고 계속 지켜야 할 규칙은 DIRECTIVES.md와 skill 파일에 적습니다.",
+    "cards": [
+      {
+        "icon": "pen",
+        "title": "상시 지시",
+        "text": "계속 지켜야 할 지시는 DIRECTIVES.md에 날짜를 붙여 한 줄씩 적고 사용자가 말할 때만 더하거나 뺍니다."
+      },
+      {
+        "icon": "review",
+        "title": "skill",
+        "text": "skill은 작업 분배, 완료 조건, 검증처럼 반복되는 일을 위한 지시 파일입니다. 어느 에이전트가 읽든 같은 문장을 받으므로 매번 다시 설명하며 생기는 차이가 없습니다."
+      },
+      {
+        "icon": "branch",
+        "title": "작업 파일",
+        "text": "작업마다 디렉터리와 git branch가 따로 있고 그 안에 brief, 계획, review, gate 판정, 요약이 남습니다."
+      },
+      {
+        "icon": "sync",
+        "title": "압축 뒤",
+        "text": "orchestrator 세션도 오래 쓰면 맥락이 차서 압축됩니다. 그러면 hook이 작업 목록, 슬롯 현황, 상시 지시를 다시 넣어 주고 orchestrator는 메시지를 전달하기 전에 작업 목록을 다시 읽습니다."
+      }
+    ],
+    "biasTitle": "orchestrator의 판단이 치우치지 않도록",
+    "biasP": "orchestrator는 lead의 요약만 읽고 diff는 보지 않으므로 lead의 판단을 너무 쉽게 믿을 위험이 있습니다.",
+    "bias": [
+      "orchestrator는 무엇을 하고 어떻게 확인할지만 씁니다. 설계는 lead의 몫입니다.",
+      "lead는 설계에 앞서 brief를 실제 코드와 대조하고 그 결과를 clean, amended, defective 중 하나로 보고합니다.",
+      "PASS가 되려면 위험도에 맞는 gate 결과가 모두 있어야 하고 점검 스크립트가 요약에 적힌 gate 결과를 디스크의 판정 파일과 맞춰 봅니다.",
+      "회차 한도(normal 작업은 2회)에 이르면 작업이 멈추고 사용자가 결정합니다. 사용자가 받아들인 결과는 예외 수락으로 기록되며 PASS로 남지 않습니다."
+    ]
+  },
+  "compare": {
+    "kicker": "비교",
+    "h2": "에디터 extension만 쓸 때와 비교하면",
+    "p": "여기서 비교 대상은 에디터에 Claude Code와 Codex extension을 설치하기만 하고 CLAUDE.md, AGENTS.md, skill, hook 같은 harness 파일은 따로 두지 않은 상태입니다. 이때 일하는 방식은 대부분 요청할 때마다 대화로 정해집니다.",
+    "tableCaption": "표 1. extension만 쓸 때와 cc-orchestra 비교.",
+    "cols": [
+      "항목",
+      "extension만 사용",
+      "cc-orchestra"
+    ],
+    "rows": [
+      {
+        "label": "일의 구조",
+        "ext": "대화 하나에서 모델 하나가 조사, 설계, 구현, 확인을 모두 맡습니다",
+        "orch": "orchestrator가 일을 나누면 lead가 설계하고 Codex가 구현하며 별도 gate가 검증합니다"
+      },
+      {
+        "label": "검증",
+        "ext": "모델이 자기 결과를 스스로 확인합니다. 다른 모델의 검토는 사람이 직접 붙여 넣어야 합니다",
+        "orch": "보통은 코드를 쓰지 않은 쪽 계열이 코드를 읽습니다. low 이상에서는 Codex의 verify와 review gate를 통과해야 PASS입니다(low 위험도의 문서·설정 전용 변경은 review를 생략할 수 있고 Codex를 쓸 수 없으면 Claude verifier가 대신합니다). 스크립트가 요약을 판정 파일과 대조합니다"
+      },
+      {
+        "label": "완료",
+        "ext": "모델이 끝났다고 하면 끝입니다",
+        "orch": "명령으로 확인되는 완료 조건과 gate를 통과해야 끝납니다. 회차 한도를 넘기면 멈추고 사용자에게 묻습니다"
+      },
+      {
+        "label": "병렬 작업",
+        "ext": "창을 여러 개 띄우고 파일 충돌은 사람이 챙깁니다",
+        "orch": "lead 최대 네 개가 동시에 일하며 두 lead가 같은 파일을 맡지 않게 작업을 나눕니다"
+      },
+      {
+        "label": "모델 선택",
+        "ext": "사람이 고른 모델 하나",
+        "orch": "위험도에 따라 lead의 모델과 effort, gate 구성이 정해집니다"
+      },
+      {
+        "label": "안전장치",
+        "ext": "extension의 권한 확인 창",
+        "orch": "권한 확인에 hook guard가 더해집니다. lead는 main에 push하지 않고 병합은 사용자가 요청할 때만 합니다"
+      },
+      {
+        "label": "기록",
+        "ext": "대화 기록이 전부입니다",
+        "orch": "작업마다 brief, 계획, 판정, 요약이 남습니다"
+      }
+    ],
+    "betterTitle": "extension만 쓸 때가 나은 점",
+    "better": [
+      "빠릅니다. 질문이나 파일 하나 수정은 세션 하나에서 끝나지만 cc-orchestra에서는 같은 일도 조사, 설계, 구현, gate를 거칩니다.",
+      "저렴합니다. 에이전트 하나만 돌고 gate 회차도 반복되지 않습니다.",
+      "에디터에서 diff를 보며 바로 방향을 바꿀 수 있습니다. cc-orchestra에서는 지시가 lead를 거쳐 코드에 닿습니다.",
+      "슬롯, 위험도, gate, 회차 한도 같은 개념을 익히지 않아도 됩니다."
+    ],
+    "issuesTitle": "extension만 쓸 때 생기기 쉬운 문제",
+    "issues": [
+      "같은 모델이 쓰고 확인하니 “테스트 통과했습니다”를 그대로 믿기 쉽습니다.",
+      "왜 그렇게 고쳤는지가 대화에만 남아 몇 주 뒤에는 찾기 어렵습니다.",
+      "요청하지 않은 파일을 고쳐도 막아 주는 것은 사람의 눈뿐입니다."
+    ],
+    "closing": "extension만 쓰면 사람이 관리자와 검증자 역할을 직접 맡습니다. cc-orchestra는 그 역할의 상당 부분을 글로 적은 규칙, 다른 모델 계열의 코드 읽기, 스크립트 점검으로 옮겼고 그 대가로 시간과 token과 절차가 더 듭니다."
+  },
+  "costs": {
+    "kicker": "득실",
+    "h2": "얻는 것과 치르는 것",
+    "prosTitle": "얻는 것",
+    "pros": [
+      "보통은 코드를 쓰지 않은 쪽 모델 계열이 코드를 읽으므로 같은 계열끼리 공유하는 맹점이 줄어듭니다. 다만 오류가 서로 독립이라는 보장은 아닙니다.",
+      "결정과 그 이유가 파일로 남아 몇 주 뒤에도 따라가 볼 수 있습니다.",
+      "여러 작업을 병렬로 돌리고 각 작업을 이름으로 부릅니다.",
+      "위험도에 따라 무게를 조절합니다. 작은 변경은 가벼운 경로로, 핵심 작업은 더 강한 모델과 더 많은 gate로 처리합니다."
+    ],
+    "consTitle": "치르는 것",
+    "cons": [
+      "시간과 token. 에이전트 여럿과 gate 반복으로 token을 많이 씁니다. 작은 기능 하나도 조사, 설계, 구현, 검증을 거칩니다.",
+      "절차. 한 줄 수정도 lead를 거칩니다. 가장 가벼운 trivial 경로는 gate 실행을 건너뛰지만 lead는 거칩니다.",
+      "깐깐한 gate. 회차 한도 안에 gate를 넘지 못한 작업은 BLOCKED로 멈추며 마무리는 사용자가 판단해야 합니다.",
+      "학습 곡선. 보고서를 읽으려면 슬롯, 위험도, gate, 회차 한도 같은 개념을 알아야 합니다.",
+      "환경. 기본 모드에는 Linux, bash, Python 3, Git, tmux와 로그인된 Claude Code, Codex CLI가 필요합니다.",
+      "유지 비용. harness도 소프트웨어라 고치고 관리하는 일이 따로 생깁니다."
+    ]
+  },
+  "choose": {
+    "kicker": "고르기",
+    "h2": "일에 맞춰 도구를 고르세요",
+    "tableCaption": "표 2. 상황별 권장 도구.",
+    "cols": [
+      "상황",
+      "권장"
+    ],
+    "rows": [
+      {
+        "situation": "질문, 짧은 수정, 코드 탐색",
+        "use": "Claude Code 단독"
+      },
+      {
+        "situation": "며칠 이상 이어지는 프로젝트, 여러 작업의 병렬 진행",
+        "use": "cc-orchestra"
+      },
+      {
+        "situation": "검증이 중요한 코드(실험 파이프라인, 공개 도구)",
+        "use": "cc-orchestra"
+      }
+    ],
+    "ctaHome": "전체 개요 읽기",
+    "ctaResearch": "연구자용 사례 보기"
+  },
+  "footer": {
+    "facts": "이 페이지의 harness 사실 정보는 {{f:sourceDate}} ({{f:sourceSha}}) 기준입니다.",
+    "privacy": "제삼자 요청이 없습니다.",
+    "linksTitle": "cc-orchestra가 연결하는 두 CLI",
+    "links": [
+      {
+        "text": "Claude Code",
+        "href": "https://github.com/anthropics/claude-code"
+      },
+      {
+        "text": "Codex CLI",
+        "href": "https://github.com/openai/codex"
+      }
+    ],
+    "fontCredit": "이 페이지에는 에스코어가 제공한 에스코어 드림 폰트가 적용되어 있습니다.",
+    "fontLink": "https://s-core.co.kr/company/font2/"
+  },
+  "_claims": {
+    "meta.description": [
+      "G25"
+    ],
+    "hero.lede": [
+      "C02",
+      "C03",
+      "C08",
+      "C09",
+      "C11",
+      "G10",
+      "G02"
+    ],
+    "why.p": [
+      "G26"
+    ],
+    "why.cards.0.text": [
+      "C10",
+      "G01"
+    ],
+    "why.cards.1.text": [
+      "C07",
+      "C13",
+      "C22",
+      "C43"
+    ],
+    "why.cards.2.text": [
+      "G02",
+      "G13"
+    ],
+    "why.cards.3.text": [
+      "G03"
+    ],
+    "roles.p": [
+      "G04"
+    ],
+    "roles.steps.0.text": [
+      "C08",
+      "G05"
+    ],
+    "roles.steps.1.text": [
+      "C16",
+      "G06"
+    ],
+    "roles.steps.2.text": [
+      "C11",
+      "C12",
+      "G07"
+    ],
+    "roles.steps.3.text": [
+      "C13",
+      "G08"
+    ],
+    "roles.hooks": [
+      "G09",
+      "C46"
+    ],
+    "files.p": [
+      "G10",
+      "G11",
+      "G12"
+    ],
+    "files.cards.0.text": [
+      "G11"
+    ],
+    "files.cards.1.text": [
+      "G12",
+      "G28"
+    ],
+    "files.cards.2.text": [
+      "C24",
+      "C26"
+    ],
+    "files.cards.3.text": [
+      "G13"
+    ],
+    "files.biasP": [
+      "G14"
+    ],
+    "files.bias.0": [
+      "G15"
+    ],
+    "files.bias.1": [
+      "C09",
+      "G16"
+    ],
+    "files.bias.2": [
+      "C13",
+      "C27"
+    ],
+    "files.bias.3": [
+      "C21",
+      "G17",
+      "G24"
+    ],
+    "compare.p": [
+      "G27"
+    ],
+    "compare.rows.0.ext": [
+      "G27"
+    ],
+    "compare.rows.0.orch": [
+      "C03",
+      "C08",
+      "C09"
+    ],
+    "compare.rows.1.ext": [
+      "G27"
+    ],
+    "compare.rows.1.orch": [
+      "C22",
+      "C13",
+      "C43",
+      "C27"
+    ],
+    "compare.rows.2.ext": [
+      "G27"
+    ],
+    "compare.rows.2.orch": [
+      "G19",
+      "C21"
+    ],
+    "compare.rows.3.ext": [
+      "G27"
+    ],
+    "compare.rows.3.orch": [
+      "C10",
+      "G20"
+    ],
+    "compare.rows.4.ext": [
+      "G27"
+    ],
+    "compare.rows.4.orch": [
+      "C16",
+      "C13"
+    ],
+    "compare.rows.5.ext": [
+      "G27"
+    ],
+    "compare.rows.5.orch": [
+      "C46",
+      "G21"
+    ],
+    "compare.rows.6.ext": [
+      "G27"
+    ],
+    "compare.rows.6.orch": [
+      "C26"
+    ],
+    "compare.better.0": [
+      "G28",
+      "C09"
+    ],
+    "compare.better.1": [
+      "G28"
+    ],
+    "compare.better.2": [
+      "G28",
+      "G22"
+    ],
+    "compare.better.3": [
+      "G28"
+    ],
+    "compare.issues.0": [
+      "G28",
+      "C07"
+    ],
+    "compare.issues.1": [
+      "G28"
+    ],
+    "compare.issues.2": [
+      "G28"
+    ],
+    "compare.closing": [
+      "G28",
+      "C22",
+      "C27"
+    ],
+    "costs.pros.0": [
+      "C22",
+      "C23",
+      "C43"
+    ],
+    "costs.pros.1": [
+      "C26"
+    ],
+    "costs.pros.2": [
+      "C10",
+      "G01"
+    ],
+    "costs.pros.3": [
+      "C16",
+      "C13"
+    ],
+    "costs.cons.0": [
+      "G28",
+      "C09"
+    ],
+    "costs.cons.1": [
+      "G23",
+      "C13"
+    ],
+    "costs.cons.2": [
+      "G24",
+      "G17"
+    ],
+    "costs.cons.3": [
+      "G28"
+    ],
+    "costs.cons.4": [
+      "C37"
+    ],
+    "costs.cons.5": [
+      "G28"
+    ],
+    "choose.rows": [
+      "G29"
+    ],
+    "footer.facts": [
+      "G32"
+    ],
+    "footer.privacy": [
+      "G30"
+    ],
+    "footer.fontCredit": [
+      "G31"
+    ]
+  },
+  "_nonclaims": [
+    "meta.*",
+    "hero.eyebrow",
+    "hero.h1",
+    "hero.ctaPrimary",
+    "hero.ctaSecondary",
+    "hero.tocTitle",
+    "*.kicker",
+    "*.h2",
+    "why.cards.0.icon",
+    "why.cards.0.title",
+    "why.cards.1.icon",
+    "why.cards.1.title",
+    "why.cards.2.icon",
+    "why.cards.2.title",
+    "why.cards.3.icon",
+    "why.cards.3.title",
+    "roles.steps.0.title",
+    "roles.steps.1.title",
+    "roles.steps.2.title",
+    "roles.steps.3.title",
+    "files.cards.0.icon",
+    "files.cards.0.title",
+    "files.cards.1.icon",
+    "files.cards.1.title",
+    "files.cards.2.icon",
+    "files.cards.2.title",
+    "files.cards.3.icon",
+    "files.cards.3.title",
+    "files.biasTitle",
+    "compare.tableCaption",
+    "compare.cols",
+    "compare.rows.0.label",
+    "compare.rows.1.label",
+    "compare.rows.2.label",
+    "compare.rows.3.label",
+    "compare.rows.4.label",
+    "compare.rows.5.label",
+    "compare.rows.6.label",
+    "compare.betterTitle",
+    "compare.issuesTitle",
+    "costs.prosTitle",
+    "costs.consTitle",
+    "choose.tableCaption",
+    "choose.cols",
+    "choose.ctaHome",
+    "choose.ctaResearch",
+    "footer.linksTitle",
+    "footer.links",
+    "footer.fontLink"
+  ]
+}

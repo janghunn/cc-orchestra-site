@@ -1,0 +1,519 @@
+{
+  "meta": {
+    "title": "cc-orchestra for beginners: what it is and when it is worth using",
+    "description": "An introduction for newcomers: when Claude Code on its own is enough, how each cc-orchestra agent gets its role, where rules and task state are kept, and what the harness costs in time and procedure.",
+    "langName": "English",
+    "otherLangName": "한국어",
+    "otherLangLabel": "Read this page in Korean",
+    "skip": "Skip to content",
+    "brand": "cc-orchestra",
+    "homeLabel": "cc-orchestra overview",
+    "navLabel": "Primary",
+    "nav": [
+      "Do I need it?",
+      "Roles",
+      "Files",
+      "Compared",
+      "Which to use"
+    ],
+    "themeToDark": "Switch to dark theme",
+    "themeToLight": "Switch to light theme"
+  },
+  "hero": {
+    "eyebrow": "For beginners",
+    "h1": "What cc-orchestra is, <em>and when it is worth using.</em>",
+    "lede": "In its default mode, cc-orchestra runs on Claude Code and Codex CLI. An orchestrator agent talks to you and splits the request into tasks, a lead agent owns each task, Codex writes the code by default, the Claude lead reads the real diff, and separate Codex gates verify and review the result. Leads and the agents below them work from files rather than from your conversation, and the state of the work is kept in files.",
+    "ctaPrimary": "Start with the basics",
+    "ctaSecondary": "Full overview",
+    "tocTitle": "On this page"
+  },
+  "why": {
+    "kicker": "Do I need it?",
+    "h2": "Often, Claude Code on its own is the better choice",
+    "p": "For a quick question, a fix to one or two files or exploratory work, a single Claude Code session is faster and cheaper. cc-orchestra's extra procedure pays off when you run several tasks at once, need checks you can rely on, or work on something that spans weeks.",
+    "cards": [
+      {
+        "icon": "sessions",
+        "title": "Several tasks at once",
+        "text": "Four named lead slots, alpha to delta, can each run a task at the same time. You address a task by its slot, for example “tell lead-bravo to …”."
+      },
+      {
+        "icon": "gate",
+        "title": "Checks you can rely on",
+        "text": "A model that reviews its own code shares its own blind spots, so the code is normally read by the model family that did not write it: when Codex writes, the Claude lead reads the diff; when a Claude dev writes, the Codex gates check it. A task passes only after every gate for its risk level has passed."
+      },
+      {
+        "icon": "doc",
+        "title": "Work that spans weeks",
+        "text": "The task registry, your standing instructions and each task's brief and summary are files, so the work carries on after a long chat is compacted."
+      },
+      {
+        "icon": "sync",
+        "title": "Two usage pools",
+        "text": "Implementation runs on Codex while planning and management run on Claude, so one provider's weekly limit is less likely to cap the work."
+      }
+    ]
+  },
+  "roles": {
+    "kicker": "Roles",
+    "h2": "An agent's role comes from the prompt it starts with",
+    "p": "Agents do not work out their roles. Each agent type has its own role prompt, and the launcher or the agent above it starts the agent with that prompt.",
+    "steps": [
+      {
+        "title": "Orchestrator (Tier 1)",
+        "text": "The launcher starts Claude Code with the orchestrator as its agent, so the orchestrator prompt is in place from the first turn. Its edit tools are removed and its prompt rules out product code: it scopes work and writes briefs, and leaves the code to the leads."
+      },
+      {
+        "title": "Lead (Tier 2)",
+        "text": "The orchestrator sets each task's risk level, and a routing command returns the matching lead type, such as route-lead-alpha-normal. The lead's prompt is short: its slot and profile, and the paths to the brief, the repository and the task directory. The detail is in the brief file."
+      },
+      {
+        "title": "Implementation (Tier 3)",
+        "text": "The lead writes the plan and hands each unit to Codex. A Claude dev takes a unit only for a recorded exception, such as GPU work that the Codex sandbox cannot reach."
+      },
+      {
+        "title": "Verification (Tier 4)",
+        "text": "The lead runs Codex's executable verification and its review. Critical tasks add a Claude verifier that re-checks from the plan and the repository, without the task's conversation."
+      }
+    ],
+    "hooks": "Hooks add context and checks automatically: a short routing note on the messages you send, the saved task state again after a compaction, guards that run before Bash commands, and a summary check when a lead finishes."
+  },
+  "files": {
+    "kicker": "Files",
+    "h2": "Rules and state live in files, not in the chat",
+    "p": "A lead starts from a brief written so that an agent with no conversation context can begin work. Your later instructions reach a lead as messages the orchestrator forwards or as amendments to the brief, and standing rules go into DIRECTIVES.md and skill files.",
+    "cards": [
+      {
+        "icon": "pen",
+        "title": "Standing instructions",
+        "text": "Each instruction you want kept is one dated line in DIRECTIVES.md, added or removed only on your word."
+      },
+      {
+        "icon": "review",
+        "title": "Skills",
+        "text": "Skills are reusable instruction files for recurring work such as dispatch, acceptance criteria and verification. Every agent that reads one gets the same wording, not a retelling."
+      },
+      {
+        "icon": "branch",
+        "title": "Task files",
+        "text": "Each task has its own directory and git branch, holding the brief, the plan, the review, the gate verdicts and the summary."
+      },
+      {
+        "icon": "sync",
+        "title": "After a compaction",
+        "text": "A long orchestrator session does fill its context and get compacted. A hook then re-injects the registry, the slot board and the standing instructions, and the orchestrator re-reads the registry before relaying a message."
+      }
+    ],
+    "biasTitle": "Keeping the orchestrator honest",
+    "biasP": "The orchestrator reads each lead's summary, not its diff, so it could trust a lead too easily. These rules work against that.",
+    "bias": [
+      "The orchestrator writes what to do and how to check it. The design belongs to the lead.",
+      "Before designing, the lead checks the brief against the real code and reports it as clean, amended or defective.",
+      "A PASS needs every gate result for the task's risk level, and a checker compares the summary's gate claims with the verdict files on disk.",
+      "When the round cap is reached (two rounds for a normal task), the task stops and you decide. A result you accept is recorded as accepted with exceptions, not as a PASS."
+    ]
+  },
+  "compare": {
+    "kicker": "Compared",
+    "h2": "cc-orchestra and the editor extensions on their own",
+    "p": "The comparison here is with the Claude Code and Codex extensions installed in an editor and no harness files of your own: no CLAUDE.md, AGENTS.md, skills or hooks. How the work is done is then mostly settled in the chat, one request at a time.",
+    "tableCaption": "Table 1. The editor extensions alone compared with cc-orchestra.",
+    "cols": [
+      "Aspect",
+      "Extensions alone",
+      "cc-orchestra"
+    ],
+    "rows": [
+      {
+        "label": "Structure",
+        "ext": "One conversation in which one model investigates, designs, implements and checks",
+        "orch": "The orchestrator splits the work, a lead designs, Codex implements and separate gates verify"
+      },
+      {
+        "label": "Checking",
+        "ext": "The model checks its own result; a review by another model is pasted in by hand",
+        "orch": "Normally the family that did not write the code reads it. From low risk up, PASS needs the Codex verify and review gates (a low-risk docs-only or pure-config change may skip the review, and a Claude verifier stands in if Codex is unavailable); a script checks the summary against the verdict files"
+      },
+      {
+        "label": "Done",
+        "ext": "Done when the model says so",
+        "orch": "Done when acceptance checks that reduce to commands, and the gates, have passed; after the round cap it stops and asks you"
+      },
+      {
+        "label": "Parallel work",
+        "ext": "Several windows, with file conflicts managed by you",
+        "orch": "Up to four leads at once, with tasks split so that no two leads get the same files"
+      },
+      {
+        "label": "Model choice",
+        "ext": "The one model you picked",
+        "orch": "The risk level sets the lead's model and effort and the gate set"
+      },
+      {
+        "label": "Safety",
+        "ext": "The extension's permission prompts",
+        "orch": "Permission prompts plus hook guards; a lead never pushes to main, and a merge waits for your request"
+      },
+      {
+        "label": "Record",
+        "ext": "The chat history",
+        "orch": "A brief, a plan, verdicts and a summary for every task"
+      }
+    ],
+    "betterTitle": "Where the extensions alone are better",
+    "better": [
+      "Speed: a question or a one-file fix ends within one session, while the same work through cc-orchestra goes through investigation, design, implementation and gates.",
+      "Cost: one agent runs, and no gate rounds repeat.",
+      "Control: you watch the diff in the editor and change direction at once. In cc-orchestra your instructions reach the code through a lead.",
+      "No new concepts: slots, risk levels, gates and round caps stay out of your way."
+    ],
+    "issuesTitle": "Problems that come up with the extensions alone",
+    "issues": [
+      "The same model writes and checks, so “tests pass” is easy to take on trust.",
+      "The reasons behind a change live only in the chat and are hard to find weeks later.",
+      "An edit to a file nobody asked about is caught only by your own eyes."
+    ],
+    "closing": "With the extensions alone, you are the manager and the checker. cc-orchestra moves much of that work into written rules, cross-family reading of the code and scripted checks, and charges for it in time, tokens and procedure."
+  },
+  "costs": {
+    "kicker": "Trade-offs",
+    "h2": "What you gain and what it costs",
+    "prosTitle": "Gains",
+    "pros": [
+      "Code is normally read by the model family that did not write it, which reduces shared blind spots. It does not guarantee that the errors are independent.",
+      "Decisions and their reasons are kept in files that you can trace weeks later.",
+      "Several tasks run in parallel, and you reach each one by name.",
+      "The risk level sets the weight: a light path for small changes, stronger models and more gates for critical work."
+    ],
+    "consTitle": "Costs",
+    "cons": [
+      "Time and tokens: several agents and repeated gate rounds. Even a small feature goes through investigation, design, implementation and verification.",
+      "Procedure: even a one-line change goes through a lead. The lightest path, trivial, skips the gate run but not the lead.",
+      "Strict gates: a task that does not pass its gates within the round cap stops as BLOCKED, and closing it takes your decision.",
+      "A learning curve: reports use slots, risk levels, gates and round caps.",
+      "Platform: the default mode needs Linux, bash, Python 3, Git, tmux, and Claude Code and Codex CLI signed in.",
+      "Upkeep: the harness is software too, and keeping it working is work of its own."
+    ]
+  },
+  "choose": {
+    "kicker": "Which to use",
+    "h2": "Pick the tool for the job",
+    "tableCaption": "Table 2. Which tool fits which job.",
+    "cols": [
+      "Situation",
+      "Suggested tool"
+    ],
+    "rows": [
+      {
+        "situation": "A question, a short fix, exploring code",
+        "use": "Claude Code on its own"
+      },
+      {
+        "situation": "A project that runs for days, or several tasks in parallel",
+        "use": "cc-orchestra"
+      },
+      {
+        "situation": "Code where the checks matter, such as an experiment pipeline or a public tool",
+        "use": "cc-orchestra"
+      }
+    ],
+    "ctaHome": "Read the full overview",
+    "ctaResearch": "See the research workflow"
+  },
+  "footer": {
+    "facts": "Harness facts as of {{f:sourceDate}} ({{f:sourceSha}}).",
+    "privacy": "No third-party requests.",
+    "linksTitle": "The two CLIs it connects",
+    "links": [
+      {
+        "text": "Claude Code",
+        "href": "https://github.com/anthropics/claude-code"
+      },
+      {
+        "text": "Codex CLI",
+        "href": "https://github.com/openai/codex"
+      }
+    ],
+    "fontCredit": "",
+    "fontLink": ""
+  },
+  "_claims": {
+    "meta.description": [
+      "G25"
+    ],
+    "hero.lede": [
+      "C02",
+      "C03",
+      "C08",
+      "C09",
+      "C11",
+      "G10",
+      "G02"
+    ],
+    "why.p": [
+      "G26"
+    ],
+    "why.cards.0.text": [
+      "C10",
+      "G01"
+    ],
+    "why.cards.1.text": [
+      "C07",
+      "C13",
+      "C22",
+      "C43"
+    ],
+    "why.cards.2.text": [
+      "G02",
+      "G13"
+    ],
+    "why.cards.3.text": [
+      "G03"
+    ],
+    "roles.p": [
+      "G04"
+    ],
+    "roles.steps.0.text": [
+      "C08",
+      "G05"
+    ],
+    "roles.steps.1.text": [
+      "C16",
+      "G06"
+    ],
+    "roles.steps.2.text": [
+      "C11",
+      "C12",
+      "G07"
+    ],
+    "roles.steps.3.text": [
+      "C13",
+      "G08"
+    ],
+    "roles.hooks": [
+      "G09",
+      "C46"
+    ],
+    "files.p": [
+      "G10",
+      "G11",
+      "G12"
+    ],
+    "files.cards.0.text": [
+      "G11"
+    ],
+    "files.cards.1.text": [
+      "G12",
+      "G28"
+    ],
+    "files.cards.2.text": [
+      "C24",
+      "C26"
+    ],
+    "files.cards.3.text": [
+      "G13"
+    ],
+    "files.biasP": [
+      "G14"
+    ],
+    "files.bias.0": [
+      "G15"
+    ],
+    "files.bias.1": [
+      "C09",
+      "G16"
+    ],
+    "files.bias.2": [
+      "C13",
+      "C27"
+    ],
+    "files.bias.3": [
+      "C21",
+      "G17",
+      "G24"
+    ],
+    "compare.p": [
+      "G27"
+    ],
+    "compare.rows.0.ext": [
+      "G27"
+    ],
+    "compare.rows.0.orch": [
+      "C03",
+      "C08",
+      "C09"
+    ],
+    "compare.rows.1.ext": [
+      "G27"
+    ],
+    "compare.rows.1.orch": [
+      "C22",
+      "C13",
+      "C43",
+      "C27"
+    ],
+    "compare.rows.2.ext": [
+      "G27"
+    ],
+    "compare.rows.2.orch": [
+      "G19",
+      "C21"
+    ],
+    "compare.rows.3.ext": [
+      "G27"
+    ],
+    "compare.rows.3.orch": [
+      "C10",
+      "G20"
+    ],
+    "compare.rows.4.ext": [
+      "G27"
+    ],
+    "compare.rows.4.orch": [
+      "C16",
+      "C13"
+    ],
+    "compare.rows.5.ext": [
+      "G27"
+    ],
+    "compare.rows.5.orch": [
+      "C46",
+      "G21"
+    ],
+    "compare.rows.6.ext": [
+      "G27"
+    ],
+    "compare.rows.6.orch": [
+      "C26"
+    ],
+    "compare.better.0": [
+      "G28",
+      "C09"
+    ],
+    "compare.better.1": [
+      "G28"
+    ],
+    "compare.better.2": [
+      "G28",
+      "G22"
+    ],
+    "compare.better.3": [
+      "G28"
+    ],
+    "compare.issues.0": [
+      "G28",
+      "C07"
+    ],
+    "compare.issues.1": [
+      "G28"
+    ],
+    "compare.issues.2": [
+      "G28"
+    ],
+    "compare.closing": [
+      "G28",
+      "C22",
+      "C27"
+    ],
+    "costs.pros.0": [
+      "C22",
+      "C23",
+      "C43"
+    ],
+    "costs.pros.1": [
+      "C26"
+    ],
+    "costs.pros.2": [
+      "C10",
+      "G01"
+    ],
+    "costs.pros.3": [
+      "C16",
+      "C13"
+    ],
+    "costs.cons.0": [
+      "G28",
+      "C09"
+    ],
+    "costs.cons.1": [
+      "G23",
+      "C13"
+    ],
+    "costs.cons.2": [
+      "G24",
+      "G17"
+    ],
+    "costs.cons.3": [
+      "G28"
+    ],
+    "costs.cons.4": [
+      "C37"
+    ],
+    "costs.cons.5": [
+      "G28"
+    ],
+    "choose.rows": [
+      "G29"
+    ],
+    "footer.facts": [
+      "G32"
+    ],
+    "footer.privacy": [
+      "G30"
+    ],
+    "footer.fontCredit": [
+      "G31"
+    ]
+  },
+  "_nonclaims": [
+    "meta.*",
+    "hero.eyebrow",
+    "hero.h1",
+    "hero.ctaPrimary",
+    "hero.ctaSecondary",
+    "hero.tocTitle",
+    "*.kicker",
+    "*.h2",
+    "why.cards.0.icon",
+    "why.cards.0.title",
+    "why.cards.1.icon",
+    "why.cards.1.title",
+    "why.cards.2.icon",
+    "why.cards.2.title",
+    "why.cards.3.icon",
+    "why.cards.3.title",
+    "roles.steps.0.title",
+    "roles.steps.1.title",
+    "roles.steps.2.title",
+    "roles.steps.3.title",
+    "files.cards.0.icon",
+    "files.cards.0.title",
+    "files.cards.1.icon",
+    "files.cards.1.title",
+    "files.cards.2.icon",
+    "files.cards.2.title",
+    "files.cards.3.icon",
+    "files.cards.3.title",
+    "files.biasTitle",
+    "compare.tableCaption",
+    "compare.cols",
+    "compare.rows.0.label",
+    "compare.rows.1.label",
+    "compare.rows.2.label",
+    "compare.rows.3.label",
+    "compare.rows.4.label",
+    "compare.rows.5.label",
+    "compare.rows.6.label",
+    "compare.betterTitle",
+    "compare.issuesTitle",
+    "costs.prosTitle",
+    "costs.consTitle",
+    "choose.tableCaption",
+    "choose.cols",
+    "choose.ctaHome",
+    "choose.ctaResearch",
+    "footer.linksTitle",
+    "footer.links",
+    "footer.fontLink"
+  ]
+}

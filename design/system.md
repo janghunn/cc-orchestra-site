@@ -89,12 +89,12 @@ Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compar
 
 ## Build contract (template)
 
-`scripts/build.mjs` documents the template tags. The page structure that QA relies on:
+`scripts/build.mjs` documents the template tags. The overview page structure that QA relies on (overview only; the workflow and guide pages have their own contracts below):
 - `main > section[id]` × 10: `hero problem how routing gates providers lifecycle helpers limits faq`.
 - `figure[id]`: `fig-problem fig-arch fig-gates fig-providers fig-lifecycle`.
 - Tables: `tbl-routing tbl-codex tbl-gates`.
 
-Both pages come from the same template, so they have the same DOM.
+Both overview pages (`/`, `/ko/`) come from the same template, so they have the same DOM. The ten-section count, these figures and the "at least one figure with controls" browser check belong to the overview (and, with its own figure list, the workflow page); they are page-specific contracts, not site-wide ones.
 
 ## Documented limits
 
@@ -146,3 +146,15 @@ Figures:
 Motion on this page: Figure 1's hand, card lift and arrival ring, and the kit reveal (including a staggered step reveal in Figures 2–4). Nothing else moves (the old hero glow is gone), and every one of these stops under reduced motion and Pause motion.
 
 Icons are inline SVG symbols in the template's sprite (24 × 24, stroke 2, `currentColor`). Loops pick per-position icons through alias symbols (`i-stage-n`, `i-pipe-n`, `i-rev-n`, `i-shared-n`, `i-remote-n`, `i-manual-n`), each a `<use>` of a base icon.
+
+## Beginners' guide page (`/guide/`, `/ko/guide/`)
+
+A third page pair for newcomers, built from `src/guide.html` and `content/guide.{en,ko}.json` through the page table in `scripts/build.mjs` (page key `guide`). It is text only: no `<figure>` and no interactive figure. It reuses the workflow page's head, top bar, footer and components (section cards with numbered discs, `.wf-tiles`, `.wf-manual`, callout, `.tscroll` + `.tbl` tables with a caption, `.cmp` card pairs, `.btn-row`); any page-specific style is one block at the end of `src/css/workflow.css`, every selector under `body.gd`.
+
+Page structure that QA relies on (the `GUIDE` constant in `scripts/qa.mjs`):
+- `<body class="gd">`; `main > section[id]` × 7 in this order: `hero why roles files compare costs choose`. Sections 01-06 (`why` … `choose`) are `section > .wrap > .card` with a disc.
+- No `figure` element, so the browser check's "at least one figure with controls" minimum does not apply to the guide.
+- Links: home `../` (brand, hero secondary button, closing button) and the research page `../workflow/` (closing button); the language toggle follows the workflow pattern (`../ko/guide/`, `../../guide/?lang=en`).
+- Top-bar section links: `#why #roles #files #compare #choose`. Because those links are hidden below 860 px, the hero carries an "On this page" list with the same five anchors.
+
+Entry points: the overview pages carry the guide link (`guide/`, label `meta.nav.6`, "For beginners" / "입문 안내") as the item right after "For researchers" in both the top-bar `.navlinks` (shown from 860 px) and the footer `.foot-links` list (all widths). On phones the entry is therefore in the footer, beside the research link, exactly where the research link already is; the 390 px top bar gets no new element. The workflow pages do not link to the guide.
