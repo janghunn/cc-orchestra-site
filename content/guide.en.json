@@ -40,7 +40,7 @@
       {
         "icon": "gate",
         "title": "Checks you can rely on",
-        "text": "A model that reviews its own code shares its own blind spots, so the code is normally read by the model family that did not write it: when Codex writes, the Claude lead reads the diff; when a Claude dev writes, the Codex gates check it. A task passes only after every gate for its risk level has passed."
+        "text": "A model that reviews its own code shares its own blind spots, so the code is normally read by the model family that did not write it: when Codex writes, the Claude lead reads the diff; when a Claude dev writes, the Codex gates check it, or a Claude verifier if Codex is unavailable. A task passes only after every gate for its risk level has passed."
       },
       {
         "icon": "doc",
@@ -140,16 +140,6 @@
         "orch": "Done when acceptance checks that reduce to commands, and the gates, have passed; after the round cap it stops and asks you"
       },
       {
-        "label": "Rules",
-        "ext": "Depends on each tool's own memory and chat features; nothing project-wide is written down for you",
-        "orch": "Standing instructions in DIRECTIVES.md and skill files, written down once"
-      },
-      {
-        "label": "Context",
-        "ext": "Depends on each tool's own compaction, memory and chat history; nothing project-wide is written down for you",
-        "orch": "State in files carries over a compaction, and heavy work stays inside each lead"
-      },
-      {
         "label": "Parallel work",
         "ext": "Several windows, with file conflicts managed by you",
         "orch": "Up to four leads at once, with tasks split so that no two leads get the same files"
@@ -180,7 +170,6 @@
     "issuesTitle": "Problems that come up with the extensions alone",
     "issues": [
       "The same model writes and checks, so “tests pass” is easy to take on trust.",
-      "With no rules file, what carries over between sessions depends on each tool's own memory and chat features.",
       "The reasons behind a change live only in the chat and are hard to find weeks later.",
       "An edit to a file nobody asked about is caught only by your own eyes."
     ],
@@ -374,42 +363,27 @@
       "G27"
     ],
     "compare.rows.3.orch": [
-      "G11",
-      "G12"
+      "C10",
+      "G20"
     ],
     "compare.rows.4.ext": [
       "G27"
     ],
     "compare.rows.4.orch": [
-      "G02",
-      "G13",
-      "G14"
+      "C16",
+      "C13"
     ],
     "compare.rows.5.ext": [
       "G27"
     ],
     "compare.rows.5.orch": [
-      "C10",
-      "G20"
+      "C46",
+      "G21"
     ],
     "compare.rows.6.ext": [
       "G27"
     ],
     "compare.rows.6.orch": [
-      "C16",
-      "C13"
-    ],
-    "compare.rows.7.ext": [
-      "G27"
-    ],
-    "compare.rows.7.orch": [
-      "C46",
-      "G21"
-    ],
-    "compare.rows.8.ext": [
-      "G27"
-    ],
-    "compare.rows.8.orch": [
       "C26"
     ],
     "compare.better.0": [
@@ -434,9 +408,6 @@
       "G28"
     ],
     "compare.issues.2": [
-      "G28"
-    ],
-    "compare.issues.3": [
       "G28"
     ],
     "compare.closing": [
@@ -533,8 +504,6 @@
     "compare.rows.4.label",
     "compare.rows.5.label",
     "compare.rows.6.label",
-    "compare.rows.7.label",
-    "compare.rows.8.label",
     "compare.betterTitle",
     "compare.issuesTitle",
     "costs.prosTitle",

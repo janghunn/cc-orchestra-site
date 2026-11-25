@@ -40,7 +40,7 @@
       {
         "icon": "gate",
         "title": "믿고 맡길 수 있는 검증",
-        "text": "자기 코드를 스스로 검토하는 모델은 자기 맹점을 그대로 안고 갑니다. 그래서 코드는 보통 쓰지 않은 쪽 모델 계열이 읽습니다. Codex가 쓰면 Claude lead가 diff를 읽고 Claude dev가 쓰면 Codex gate가 확인합니다. 위험도별 gate를 모두 통과해야 작업이 PASS가 됩니다."
+        "text": "자기 코드를 스스로 검토하는 모델은 자기 맹점을 그대로 안고 갑니다. 그래서 코드는 보통 쓰지 않은 쪽 모델 계열이 읽습니다. Codex가 쓰면 Claude lead가 diff를 읽고 Claude dev가 쓰면 Codex gate가 확인하는데, Codex를 쓸 수 없으면 Claude verifier가 대신합니다. 위험도별 gate를 모두 통과해야 작업이 PASS가 됩니다."
       },
       {
         "icon": "doc",
@@ -140,16 +140,6 @@
         "orch": "명령으로 확인되는 완료 조건과 gate를 통과해야 끝납니다. 회차 한도를 넘기면 멈추고 사용자에게 묻습니다"
       },
       {
-        "label": "규칙 전달",
-        "ext": "도구마다 있는 기억 기능과 대화 기능에 달려 있고 프로젝트 전체에 적용할 내용을 따로 적어 두지는 않습니다",
-        "orch": "상시 지시는 DIRECTIVES.md에, 반복되는 지시는 skill 파일에 한 번 적어 둡니다"
-      },
-      {
-        "label": "맥락",
-        "ext": "도구마다 있는 압축, 기억, 대화 기록 기능에 달려 있고 프로젝트 전체에 적용할 내용을 따로 적어 두지는 않습니다",
-        "orch": "상태가 파일에 있어 압축 뒤에도 이어지고 무거운 작업은 각 lead 안에서 끝납니다"
-      },
-      {
         "label": "병렬 작업",
         "ext": "창을 여러 개 띄우고 파일 충돌은 사람이 챙깁니다",
         "orch": "lead 최대 네 개가 동시에 일하며 두 lead가 같은 파일을 맡지 않게 작업을 나눕니다"
@@ -180,7 +170,6 @@
     "issuesTitle": "extension만 쓸 때 생기기 쉬운 문제",
     "issues": [
       "같은 모델이 쓰고 확인하니 “테스트 통과했습니다”를 그대로 믿기 쉽습니다.",
-      "규칙 파일이 없으면 세션 사이에 무엇이 이어지는지는 도구마다 있는 기억 기능과 대화 기능에 달려 있습니다.",
       "왜 그렇게 고쳤는지가 대화에만 남아 몇 주 뒤에는 찾기 어렵습니다.",
       "요청하지 않은 파일을 고쳐도 막아 주는 것은 사람의 눈뿐입니다."
     ],
@@ -374,42 +363,27 @@
       "G27"
     ],
     "compare.rows.3.orch": [
-      "G11",
-      "G12"
+      "C10",
+      "G20"
     ],
     "compare.rows.4.ext": [
       "G27"
     ],
     "compare.rows.4.orch": [
-      "G02",
-      "G13",
-      "G14"
+      "C16",
+      "C13"
     ],
     "compare.rows.5.ext": [
       "G27"
     ],
     "compare.rows.5.orch": [
-      "C10",
-      "G20"
+      "C46",
+      "G21"
     ],
     "compare.rows.6.ext": [
       "G27"
     ],
     "compare.rows.6.orch": [
-      "C16",
-      "C13"
-    ],
-    "compare.rows.7.ext": [
-      "G27"
-    ],
-    "compare.rows.7.orch": [
-      "C46",
-      "G21"
-    ],
-    "compare.rows.8.ext": [
-      "G27"
-    ],
-    "compare.rows.8.orch": [
       "C26"
     ],
     "compare.better.0": [
@@ -434,9 +408,6 @@
       "G28"
     ],
     "compare.issues.2": [
-      "G28"
-    ],
-    "compare.issues.3": [
       "G28"
     ],
     "compare.closing": [
@@ -533,8 +504,6 @@
     "compare.rows.4.label",
     "compare.rows.5.label",
     "compare.rows.6.label",
-    "compare.rows.7.label",
-    "compare.rows.8.label",
     "compare.betterTitle",
     "compare.issuesTitle",
     "costs.prosTitle",
