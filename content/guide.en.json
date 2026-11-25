@@ -141,12 +141,12 @@
       },
       {
         "label": "Rules",
-        "ext": "Repeated in the chat or kept in Claude Code's own memory",
+        "ext": "Depends on each tool's own memory and chat features; nothing project-wide is written down for you",
         "orch": "Standing instructions in DIRECTIVES.md and skill files, written down once"
       },
       {
         "label": "Context",
-        "ext": "Long chats are compacted into a summary; decisions reach a new session through a resumed or forked chat, Claude Code's memory, or what you restate",
+        "ext": "Depends on each tool's own compaction, memory and chat history; nothing project-wide is written down for you",
         "orch": "State in files carries over a compaction, and heavy work stays inside each lead"
       },
       {
@@ -180,7 +180,7 @@
     "issuesTitle": "Problems that come up with the extensions alone",
     "issues": [
       "The same model writes and checks, so “tests pass” is easy to take on trust.",
-      "With no rules file, project rules live in the chat or in Claude Code's memory, and a rule that is in neither has to be repeated.",
+      "With no rules file, what carries over between sessions depends on each tool's own memory and chat features.",
       "The reasons behind a change live only in the chat and are hard to find weeks later.",
       "An edit to a file nobody asked about is caught only by your own eyes."
     ],
@@ -371,16 +371,14 @@
       "C21"
     ],
     "compare.rows.3.ext": [
-      "G27",
-      "G33"
+      "G27"
     ],
     "compare.rows.3.orch": [
       "G11",
       "G12"
     ],
     "compare.rows.4.ext": [
-      "G27",
-      "G33"
+      "G27"
     ],
     "compare.rows.4.orch": [
       "G02",
@@ -433,8 +431,7 @@
       "C07"
     ],
     "compare.issues.1": [
-      "G28",
-      "G33"
+      "G28"
     ],
     "compare.issues.2": [
       "G28"
