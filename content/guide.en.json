@@ -40,7 +40,7 @@
       {
         "icon": "gate",
         "title": "Checks you can rely on",
-        "text": "A model that reviews its own code shares its own blind spots, so the code is read by the model family that did not write it: when Codex writes, the Claude lead reads the diff; when a Claude dev writes, the Codex gates check it. A task passes only after every gate for its risk level has passed."
+        "text": "A model that reviews its own code shares its own blind spots, so the code is normally read by the model family that did not write it: when Codex writes, the Claude lead reads the diff; when a Claude dev writes, the Codex gates check it. A task passes only after every gate for its risk level has passed."
       },
       {
         "icon": "doc",
@@ -141,12 +141,12 @@
       },
       {
         "label": "Rules",
-        "ext": "Repeated in the chat or kept in the tool's own memory",
+        "ext": "Repeated in the chat or kept in Claude Code's own memory",
         "orch": "Standing instructions in DIRECTIVES.md and skill files, written down once"
       },
       {
         "label": "Context",
-        "ext": "Long chats are compacted into a summary; decisions reach a new session through the tool's memory or what you restate",
+        "ext": "Long chats are compacted into a summary; decisions reach a new session through a resumed or forked chat, Claude Code's memory, or what you restate",
         "orch": "State in files carries over a compaction, and heavy work stays inside each lead"
       },
       {
@@ -180,7 +180,7 @@
     "issuesTitle": "Problems that come up with the extensions alone",
     "issues": [
       "The same model writes and checks, so “tests pass” is easy to take on trust.",
-      "With no rules file, project rules live in the chat or the tool's memory, and a rule that was never saved has to be repeated.",
+      "With no rules file, project rules live in the chat or in Claude Code's memory, and a rule that is in neither has to be repeated.",
       "The reasons behind a change live only in the chat and are hard to find weeks later.",
       "An edit to a file nobody asked about is caught only by your own eyes."
     ],
@@ -191,7 +191,7 @@
     "h2": "What you gain and what it costs",
     "prosTitle": "Gains",
     "pros": [
-      "Code is read by the model family that did not write it, which reduces shared blind spots. It does not guarantee that the errors are independent.",
+      "Code is normally read by the model family that did not write it, which reduces shared blind spots. It does not guarantee that the errors are independent.",
       "Decisions and their reasons are kept in files that you can trace weeks later.",
       "Several tasks run in parallel, and you reach each one by name.",
       "The risk level sets the weight: a light path for small changes, stronger models and more gates for critical work."
@@ -271,7 +271,8 @@
     "why.cards.1.text": [
       "C07",
       "C13",
-      "C22"
+      "C22",
+      "C43"
     ],
     "why.cards.2.text": [
       "G02",
@@ -448,7 +449,8 @@
     ],
     "costs.pros.0": [
       "C22",
-      "C23"
+      "C23",
+      "C43"
     ],
     "costs.pros.1": [
       "C26"
