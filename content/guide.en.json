@@ -40,7 +40,7 @@
       {
         "icon": "gate",
         "title": "Checks you can rely on",
-        "text": "A model that reviews its own code shares its own blind spots, so the code is normally read by the model family that did not write it: when Codex writes, the Claude lead reads the diff; when a Claude dev writes, the Codex gates check it, or a Claude verifier if Codex is unavailable. A task passes only after every gate for its risk level has passed."
+        "text": "A model that reviews its own code shares its own blind spots, so the code is normally read by the model family that did not write it: when Codex writes, the Claude lead reads the diff; when a Claude dev writes, the Codex gates check it. A task passes only after every gate for its risk level has passed."
       },
       {
         "icon": "doc",
