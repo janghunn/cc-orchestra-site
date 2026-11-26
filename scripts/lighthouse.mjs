@@ -1,9 +1,9 @@
 // Lighthouse (pinned devDependency, default mobile config) against the local static server.
 // Usage: node scripts/lighthouse.mjs      Env: DIST (default dist), CHROME_PATH (default
 // /usr/bin/google-chrome), LH_RUNS (runs per page, default 3; the median score per category counts).
-// Thresholds per page (/, /ko/, /workflow/, /ko/workflow/, /guide/, /ko/guide/): Performance >= 95,
-// Accessibility = 100, Best Practices >= 95, SEO >= 95. Reports go to .lighthouse/<page>-<run>.json (git-ignored),
-// one file per page and run. Prints "LIGHTHOUSE <path> PASS|FAIL ...".
+// Thresholds per page (/, /ko/, /workflow/, /ko/workflow/, /guide/, /ko/guide/, /cc-doc/, /ko/cc-doc/):
+// Performance >= 95, Accessibility = 100, Best Practices >= 95, SEO >= 95. Reports go to
+// .lighthouse/<page>-<run>.json (git-ignored), one file per page and run. Prints "LIGHTHOUSE <path> PASS|FAIL ...".
 // Exit 0 all PASS, 1 any FAIL, 77 environment unavailable (no Chrome, or no loopback socket).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,6 +26,8 @@ const PAGES = [
   ['workflow-ko', 'ko/workflow/'],
   ['guide-en', 'guide/'],
   ['guide-ko', 'ko/guide/'],
+  ['doc-en', 'cc-doc/'],
+  ['doc-ko', 'ko/cc-doc/'],
 ];
 
 if (!fs.existsSync(CHROME)) {

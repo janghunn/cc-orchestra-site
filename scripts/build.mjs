@@ -7,6 +7,8 @@
                                                                                  ko/workflow/index.html
      guide     src/guide.html     content/guide.en.json, guide.ko.json        -> guide/index.html,
                                                                                  ko/guide/index.html
+     doc       src/doc.html       content/doc.en.json, doc.ko.json            -> cc-doc/index.html,
+                                                                                 ko/cc-doc/index.html
    plus shared assets/css/tokens.css (the kit token file, copied verbatim so its ACCENT fences stay),
    assets/site.css, assets/site.js, the KO-only assets/ko-font.css and the vendored fonts.
 
@@ -16,21 +18,22 @@
                     Refused (exit 1, nothing deleted): the repo or an ancestor, .git, a source dir, $HOME, /, a
                     symlink, or an existing non-empty dir without the .cc-site-build marker every build writes.
      --content-dir  directory holding every page's copy tables (en.json, ko.json, workflow.en.json,
-                    workflow.ko.json, guide.en.json, guide.ko.json; default: <repo>/content)
+                    workflow.ko.json, guide.en.json, guide.ko.json, doc.en.json,
+                    doc.ko.json; default: <repo>/content)
      --facts        facts file (default: <repo>/facts.json)
    Env: SITE_URL (absolute http(s) URL ending in "/"; default https://example.invalid/cc-orchestra-site/),
         used only for the two <link rel="alternate" hreflang> tags per page.
    Exit 0 on success, 1 on any build error in any page (unknown placeholder, missing content key, leftover
    "{{", a content key present in one language only, an unknown facts path, disallowed markup in copy).
 
-   Template language (src/page.html, src/workflow.html, src/guide.html):
+   Template language (src/page.html, src/workflow.html, src/guide.html, src/doc.html):
      {{t:REF}}    copy as inline HTML (only <em> <strong> <code> <br> allowed; {{f:..}} inside resolved)
      {{a:REF}}    copy as attribute-safe plain text (tags stripped)
      {{cap:REF}}  like t:, with a leading "Figure 1." / "Table 2." label wrapped in <span class="fig-label">
      {{u:REF}}    an absolute https:// URL from the copy
      {{v:REF}}    a plain value (escaped)       {{f:PATH}}  a facts value (a route renders "Model @ effort")
-     {{name}}     a build variable (lang, root, otherLang, otherHref, homeHref, workflowHref, guideHref, hrefEn,
-                  hrefKo, headScript)
+     {{name}}     a build variable (lang, root, otherLang, otherHref, homeHref, workflowHref, guideHref, docHref,
+                  hrefEn, hrefKo, headScript)
      {{#each REF}}..{{/each}}   loop; inside: "." item, ".x" item field, @i (0-based), @n (1-based)
      {{#if REF}}..{{else}}..{{/if}}   "!REF" negates; "REF?" treats a missing key as false
    REF: "a.b.0" = content path, ".x" = loop item, "$x.y" = computed view data, "@i"/"@n"/"@first"/"@last". */
@@ -98,11 +101,25 @@ const PAGES = [
     koTarget: '../ko/guide/',
     unusedOk: ['meta.langName', 'footer.fontLink'],
     view: false
+  },
+  {
+    id: 'doc',
+    template: 'src/doc.html',
+    content: { en: 'doc.en.json', ko: 'doc.ko.json' },
+    out: { en: 'cc-doc/index.html', ko: 'ko/cc-doc/index.html' },
+    root: { en: '../', ko: '../../' },
+    other: { en: '../ko/cc-doc/', ko: '../../cc-doc/?lang=en' },
+    home: { en: '../', ko: '../' },
+    href: { en: 'cc-doc/', ko: 'ko/cc-doc/' },
+    koTarget: '../ko/cc-doc/',
+    unusedOk: ['meta.langName', 'footer.fontLink'],
+    view: false
   }
 ];
-/* the home page's links to the workflow and guide pages (the same relative paths from / and /ko/) */
+/* the home page's links to the workflow, guide and cc-doc pages (the same relative paths from / and /ko/) */
 const WORKFLOW_HREF = 'workflow/';
 const GUIDE_HREF = 'guide/';
+const DOC_HREF = 'cc-doc/';
 
 class BuildError extends Error {}
 function fail(msg) { throw new BuildError(msg); }
@@ -481,6 +498,7 @@ function build(opts, outDir) {
         homeHref: pg.home[l],
         workflowHref: WORKFLOW_HREF,
         guideHref: GUIDE_HREF,
+        docHref: DOC_HREF,
         hrefEn: escHtml(SITE + pg.href.en),
         hrefKo: escHtml(SITE + pg.href.ko),
         headScript: headScript(l, pg.koTarget)

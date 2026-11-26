@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="{{lang}}" data-theme-default="system">
+<head>
+<meta charset="utf-8">
+<script>{{headScript}}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{a:meta.title}}</title>
+<meta name="description" content="{{a:meta.description}}">
+<link rel="alternate" hreflang="en" href="{{hrefEn}}">
+<link rel="alternate" hreflang="ko" href="{{hrefKo}}">
+<link rel="icon" href="{{root}}favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="{{root}}assets/css/tokens.css">
+<link rel="stylesheet" href="{{root}}assets/site.css">
+{{#if $isKo}}<link rel="stylesheet" href="{{root}}assets/ko-font.css">
+{{/if}}<script src="{{root}}assets/site.js" defer></script>
+</head>
+<body id="top" class="gd">
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.2"/></symbol>
+  <!-- tile icons (ids come from the copy: desk.cards[].icon, guard.cards[].icon) -->
+  <symbol id="i-sessions" viewBox="0 0 24 24"><rect x="2.5" y="3.5" width="10" height="8" rx="1.5"/><rect x="11.5" y="12.5" width="10" height="8" rx="1.5"/><path d="M5 6.5l1.8 1.5L5 9.5M14 15.5l1.8 1.5-1.8 1.5M7.5 11.5v3a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-gate" viewBox="0 0 24 24"><path d="M12 2.5l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10v-6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 15.5h6"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M19.5 13a7.5 7.5 0 0 1-13.3 4M4.5 11a7.5 7.5 0 0 1 13.3-4M18 3v4h-4M6 21v-4h4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M13.5 7l3 3"/></symbol>
+  <symbol id="i-review" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 13.5l2 2 4-4"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5.5" r="2.2"/><circle cx="6" cy="18.5" r="2.2"/><circle cx="18" cy="8" r="2.2"/><path d="M6 7.7v8.6M18 10.2c0 4-5 3.5-10.5 6.6"/></symbol>
+</svg>
+<a class="skip-link" href="#main">{{t:meta.skip}}</a>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="{{homeHref}}" aria-label="{{a:meta.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
+    <nav aria-label="{{a:meta.navLabel}}">
+      <ul class="navlinks">
+        <li><a href="#desk">{{t:meta.nav.0}}</a></li>
+        <li><a href="#copies">{{t:meta.nav.1}}</a></li>
+        <li><a href="#guard">{{t:meta.nav.2}}</a></li>
+        <li><a href="#formats">{{t:meta.nav.3}}</a></li>
+        <li><a href="#editions">{{t:meta.nav.4}}</a></li>
+      </ul>
+    </nav>
+    <div class="tools">
+      <a class="btn btn-secondary btn-lang" href="{{otherHref}}" hreflang="{{otherLang}}" lang="{{otherLang}}" data-lang-link="{{otherLang}}"><span>{{t:meta.otherLangName}}</span><span class="vh" lang="en"> ({{t:meta.otherLangLabel}})</span></a>
+      <button type="button" class="btn btn-icon btn-theme" data-theme-toggle aria-label="{{a:meta.themeToDark}}" data-label-to-dark="{{a:meta.themeToDark}}" data-label-to-light="{{a:meta.themeToLight}}">
+        <svg class="ico icon-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+        <svg class="ico icon-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <!-- 1. hero, with an "On this page" list (the top-bar links are hidden on phones) -->
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">{{t:hero.eyebrow}}</p>
+        <h1 id="hero-title">{{t:hero.h1}}</h1>
+        <p class="lede band">{{t:hero.lede}}</p>
+        <div class="btn-row hero-cta">
+          <a class="btn btn-primary" href="#desk">{{t:hero.ctaPrimary}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-secondary" href="{{homeHref}}">{{t:hero.ctaSecondary}}</a>
+        </div>
+      </div>
+      <nav class="gd-toc" aria-labelledby="toc-title">
+        <h2 class="gd-toc-title" id="toc-title">{{t:hero.tocTitle}}</h2>
+        <ol>
+          <li><a href="#desk">{{t:meta.nav.0}}</a></li>
+          <li><a href="#copies">{{t:meta.nav.1}}</a></li>
+          <li><a href="#guard">{{t:meta.nav.2}}</a></li>
+          <li><a href="#formats">{{t:meta.nav.3}}</a></li>
+          <li><a href="#editions">{{t:meta.nav.4}}</a></li>
+        </ol>
+      </nav>
+    </div>
+  </section>
+
+  <!-- 2. what it is: one session, one desk -->
+  <section class="section" id="desk" aria-labelledby="desk-title">
+    <div class="wrap">
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">01</span><span class="kicker-sep"> · </span>{{t:desk.kicker}}</p>
+          <h2 id="desk-title">{{t:desk.h2}}</h2>
+          <p class="sub">{{t:desk.p}}</p>
+        </div>
+        <ul class="wf-tiles">
+          {{#each desk.cards}}<li class="wf-tile rv" style="--i:{{v:@i}}">
+            <span class="wf-tile-ico" aria-hidden="true"><svg class="ico"><use href="#i-{{v:.icon}}"/></svg></span>
+            <h3>{{t:.title}}</h3>
+            <p>{{t:.text}}</p>
+          </li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. copies: how a document moves -->
+  <section class="section" id="copies" aria-labelledby="copies-title">
+    <div class="wrap">
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">02</span><span class="kicker-sep"> · </span>{{t:copies.kicker}}</p>
+          <h2 id="copies-title">{{t:copies.h2}}</h2>
+          <p class="sub">{{t:copies.p}}</p>
+        </div>
+        <ol class="wf-manual gd-steps">
+          {{#each copies.steps}}<li class="rv" style="--i:{{v:@i}}"><span class="gd-step-n" aria-hidden="true">{{v:@n}}</span><h3>{{t:.title}}</h3><p>{{t:.text}}</p></li>
+          {{/each}}
+        </ol>
+        <p class="callout gd-note"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:copies.note}}</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. guard: what it refuses, then its documented limits -->
+  <section class="section" id="guard" aria-labelledby="guard-title">
+    <div class="wrap">
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">03</span><span class="kicker-sep"> · </span>{{t:guard.kicker}}</p>
+          <h2 id="guard-title">{{t:guard.h2}}</h2>
+          <p class="sub">{{t:guard.p}}</p>
+        </div>
+        <ul class="wf-tiles">
+          {{#each guard.cards}}<li class="wf-tile rv" style="--i:{{v:@i}}">
+            <span class="wf-tile-ico" aria-hidden="true"><svg class="ico"><use href="#i-{{v:.icon}}"/></svg></span>
+            <h3>{{t:.title}}</h3>
+            <p>{{t:.text}}</p>
+          </li>
+          {{/each}}
+        </ul>
+        <h3 class="gd-sub-title">{{t:guard.limitsTitle}}</h3>
+        <p class="gd-sub-p">{{t:guard.limitsP}}</p>
+        <ul class="wf-tips gd-tips">
+          {{#each guard.limits}}<li class="rv" style="--i:{{v:@i}}"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>{{t:.}}</span></li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. document types: Table 1, then the steps that stay with the user -->
+  <section class="section" id="formats" aria-labelledby="formats-title">
+    <div class="wrap">
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">04</span><span class="kicker-sep"> · </span>{{t:formats.kicker}}</p>
+          <h2 id="formats-title">{{t:formats.h2}}</h2>
+          <p class="sub">{{t:formats.p}}</p>
+        </div>
+        <div class="tscroll" role="region" tabindex="0" aria-label="{{a:formats.tableCaption}}">
+          <table class="tbl" id="tbl-formats">
+            <caption>{{cap:formats.tableCaption}}</caption>
+            <thead><tr>{{#each formats.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+            <tbody>
+              {{#each formats.rows}}<tr><th scope="row">{{t:.label}}</th><td>{{t:.text}}</td></tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        <h3 class="gd-sub-title">{{t:formats.yoursTitle}}</h3>
+        <ul class="wf-tips gd-tips">
+          {{#each formats.yours}}<li class="rv" style="--i:{{v:@i}}"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>{{t:.}}</span></li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. the two editions: Table 2 -->
+  <section class="section" id="editions" aria-labelledby="editions-title">
+    <div class="wrap">
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">05</span><span class="kicker-sep"> · </span>{{t:editions.kicker}}</p>
+          <h2 id="editions-title">{{t:editions.h2}}</h2>
+          <p class="sub">{{t:editions.p}}</p>
+        </div>
+        <div class="tscroll" role="region" tabindex="0" aria-label="{{a:editions.tableCaption}}">
+          <table class="tbl" id="tbl-editions">
+            <caption>{{cap:editions.tableCaption}}</caption>
+            <thead><tr>{{#each editions.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+            <tbody>
+              {{#each editions.rows}}<tr><th scope="row">{{t:.label}}</th><td>{{t:.orch}}</td><td>{{t:.doc}}</td></tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        <div class="btn-row gd-cta">
+          <a class="btn btn-primary" href="{{homeHref}}">{{t:editions.ctaHome}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-main">
+      <a class="brand" href="{{homeHref}}" aria-label="{{a:meta.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
+      <p>{{t:footer.facts}}</p>
+      <p>{{t:footer.privacy}}</p>
+      {{#if footer.fontCredit}}<p class="foot-credit">{{#if footer.fontLink?}}<a href="{{u:footer.fontLink}}">{{t:footer.fontCredit}}</a>{{else}}{{t:footer.fontCredit}}{{/if}}</p>
+      {{/if}}
+    </div>
+    <div class="foot-side">
+      <h2 class="foot-title">{{t:footer.linksTitle}}</h2>
+      <ul class="foot-links">
+        {{#each footer.links}}<li><a href="{{u:.href}}">{{t:.text}}</a></li>
+        {{/each}}
+      </ul>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

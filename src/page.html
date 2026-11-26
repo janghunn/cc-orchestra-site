@@ -51,6 +51,7 @@
         <li><a href="#faq">{{t:meta.nav.4}}</a></li>
         <li><a href="{{workflowHref}}">{{t:meta.nav.5}}</a></li>
         <li><a href="{{guideHref}}">{{t:meta.nav.6}}</a></li>
+        <li class="ed-navdoc"><a href="{{docHref}}">{{t:meta.nav.7}}</a></li>
       </ul>
     </nav>
     <div class="tools">
@@ -79,6 +80,7 @@
           {{#each hero.stats}}<div class="stat"><dt>{{t:.label}}</dt><dd>{{t:.value}}</dd></div>
           {{/each}}
         </dl>
+        <p class="callout ed-pointer"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:hero.editions}} <a href="{{docHref}}">{{t:hero.editionsLink}}</a></span></p>
       </div>
       <div class="hero-side">
         <div class="board" aria-hidden="true">
@@ -461,7 +463,7 @@
       <a class="brand" href="#top"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
       <p>{{t:footer.facts}}</p>
       <p>{{t:footer.privacy}}</p>
-      <ul class="foot-links"><li><a href="{{workflowHref}}">{{t:meta.nav.5}}</a></li><li><a href="{{guideHref}}">{{t:meta.nav.6}}</a></li></ul>
+      <nav class="ed-footnav" aria-label="{{a:meta.footNavLabel}}"><ul class="foot-links"><li><a href="{{workflowHref}}">{{t:meta.nav.5}}</a></li><li><a href="{{guideHref}}">{{t:meta.nav.6}}</a></li><li><a href="{{docHref}}">{{t:meta.nav.7}}</a></li></ul></nav>
       {{#if footer.fontCredit}}<p class="foot-credit">{{#if footer.fontLink?}}<a href="{{u:footer.fontLink}}">{{t:footer.fontCredit}}</a>{{else}}{{t:footer.fontCredit}}{{/if}}</p>
       {{/if}}
     </div>

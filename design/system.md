@@ -41,7 +41,7 @@ Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compar
 
 ## Korean type
 
-- `ko-font.css` is linked from the three KO pages (`/ko/`, `/ko/workflow/`, `/ko/guide/`) and from no EN page. It is the only stylesheet that names the KO family `SCDream`; the KO pages' inlined head script names it to load the faces, and no EN page, `site.css` or `site.js` does. It holds 400 = `SCDream4.otf` and 700 = `SCDream6.otf`, both unmodified, with `font-display: swap`. The faces use no `local()`, and there is no preload.
+- `ko-font.css` is linked from the four KO pages (`/ko/`, `/ko/workflow/`, `/ko/guide/`, `/ko/cc-doc/`) and from no EN page. It is the only stylesheet that names the KO family `SCDream`; the KO pages' inlined head script names it to load the faces, and no EN page, `site.css` or `site.js` does. It holds 400 = `SCDream4.otf` and 700 = `SCDream6.otf`, both unmodified, with `font-display: swap`. The faces use no `local()`, and there is no preload.
 - Shared CSS carries the kit's fallback stack only (`--font-ko`); `ko-font.css` puts the families first on KO pages.
 - First paint uses `"SCDream Fallback"`, a `local()` Noto Sans CJK KR / Noto Sans KR face with metric overrides (values measured in Chrome):
   - 400: `size-adjust` 104.35%. Hangul advance is .96 em in S-Core Dream and .92 em in Noto.
@@ -89,7 +89,7 @@ Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compar
 
 ## Build contract (template)
 
-`scripts/build.mjs` documents the template tags. The overview page structure that QA relies on (overview only; the workflow and guide pages have their own contracts below):
+`scripts/build.mjs` documents the template tags. The overview page structure that QA relies on (overview only; the workflow, guide and cc-doc pages have their own contracts below):
 - `main > section[id]` × 10: `hero problem how routing gates providers lifecycle helpers limits faq`.
 - `figure[id]`: `fig-problem fig-arch fig-gates fig-providers fig-lifecycle`.
 - Tables: `tbl-routing tbl-codex tbl-gates`.
@@ -158,3 +158,16 @@ Page structure that QA relies on (the `GUIDE` constant in `scripts/qa.mjs`):
 - Top-bar section links: `#why #roles #files #compare #choose`. Because those links are hidden below 860 px, the hero carries an "On this page" list with the same five anchors.
 
 Entry points: the overview pages carry the guide link (`guide/`, label `meta.nav.6`, "For beginners" / "입문 안내") as the item right after "For researchers" in both the top-bar `.navlinks` (shown from 860 px) and the footer `.foot-links` list (all widths). On phones the entry is therefore in the footer, beside the research link, exactly where the research link already is; the 390 px top bar gets no new element. The workflow pages do not link to the guide.
+
+## cc-doc page (`/cc-doc/`, `/ko/cc-doc/`)
+
+A fourth page pair on the cc-doc edition, built from `src/doc.html` and `content/doc.{en,ko}.json` through the page table in `scripts/build.mjs` (page key `doc`). It is text only, like the guide: no `<figure>` and no interactive figure, so the browser check's "at least one figure with controls" minimum does not apply to it. It uses the guide's shell (`<body class="gd">`, head, top bar, footer) and the guide's components: section cards with numbered discs, `.wf-tiles`, numbered steps (`.wf-manual.gd-steps`), the callout (`.callout.gd-note`), the check list (`.wf-tips.gd-tips`), `.tscroll` + `.tbl` tables with a caption, the sub-block title and paragraph (`.gd-sub-title`, `.gd-sub-p`) and the button row (`.gd-cta`).
+
+Page structure that QA relies on (the `DOC` constant in `scripts/qa.mjs`):
+- `main > section[id]` × 6 in this order: `hero desk copies guard formats editions`. Sections 01-05 (`desk` … `editions`) are `section > .wrap > .card` with a disc; the tables are `tbl-formats` and `tbl-editions`.
+- Links: home `../`; the language toggle follows the guide pattern (`../ko/cc-doc/`, `../../cc-doc/?lang=en`). Every URL is relative (no `href="/` or `src="/`), so the page works under the Pages project path.
+- Top-bar section links: the five section anchors; the hero repeats them in an "On this page" list for widths below 860 px.
+
+Entry points on the overview pages (`cc-doc/`): the top-bar `.navlinks` item after the guide entry (shown from 860 px); at every width, the third item of the footer navigation (`<nav class="ed-footnav">` around the `.foot-links` list, a labelled landmark) and a short pointer paragraph with a link in the hero. The workflow and guide pages carry no cc-doc entry; they link back to the overview.
+
+Class prefixes: new classes for the cc-doc page start with `cd-`, overview additions with `ed-`. A rule added for either has a `.cd-` or `.ed-` class in its selector, so it cannot match the workflow or guide pages.
