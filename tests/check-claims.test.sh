@@ -96,10 +96,24 @@ run 1 "a docSourceSha that is not a commit id fails" "facts.json docSourceSha is
 
 # line ranges per commit, against a throwaway source repository with two commits:
 # commit 1: docs/a.md (2 lines), docs/f.md (2 lines); commit 2: docs/f.md grows to 5 lines, docs/d.md and docs/new.md appear
-S="$W/source"
-mkdir -p "$S/docs"
-G() { env GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$S" -c user.name=test -c user.email= "$@"; }
+# git here never sees the caller's repository-selecting variables (GU); to prove it, the fixture is built and the
+# first passing case runs with GIT_DIR exported at a decoy repository X (one commit, in this temp dir), whose HEAD
+# and index must be unchanged afterwards.
+GU=(-u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY
+    -u GIT_ALTERNATE_OBJECT_DIRECTORIES -u GIT_NAMESPACE -u GIT_CEILING_DIRECTORIES -u GIT_PREFIX)
+GX() { local d="$1"; shift; env "${GU[@]}" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$d" -c user.name=test -c user.email= "$@"; }
+S="$W/source" X="$W/decoy"
+mkdir -p "$S/docs" "$X"
+G() { GX "$S" "$@"; }
+GX "$X" init -q && printf 'x\n' >"$X/x.txt" && GX "$X" add -A && GX "$X" commit -qm decoy
+XHEAD="$(GX "$X" rev-parse HEAD)"
+export GIT_DIR="$X/.git"
 G init -q
+gd="$(G rev-parse --absolute-git-dir)"
+case "$gd" in
+  "$(cd "$S" && pwd -P)"/*) ok "fixture git dir is inside the fixture" ;;
+  *) unset GIT_DIR; bad "fixture git dir is $gd, not inside $S: stopping before any add or commit"; echo "# check-claims tests: $pass passed, $fail failed"; exit 1 ;;
+esac
 printf 'a1\na2\n' >"$S/docs/a.md"; printf 'f1\nf2\n' >"$S/docs/f.md"
 G add -A && G commit -qm one
 S1="$(G rev-parse --short=7 HEAD)"
@@ -111,6 +125,11 @@ PIN1="$S1" PIN2="$S2"
 facts "$S1" "$S2"
 claims "docs/f.md:1-2@$S1; docs/f.md:4-5@$S2"
 run 0 "same path at both commits in one run, range valid only at the longer revision" "line ranges checked against the source repo" "$SR"
+run 0 "with GIT_DIR set at a decoy, the checker reads CLAIMS_SOURCE_REPO" "line ranges checked against the source repo" "$SR" "GIT_DIR=$X/.git"
+unset GIT_DIR
+[ "$(GX "$X" rev-parse HEAD)" = "$XHEAD" ] && ok "decoy HEAD unchanged" || bad "decoy HEAD moved"
+xs="$(GX "$X" status --porcelain)"
+[ -z "$xs" ] && ok "decoy index and tree unchanged" || { printf '%s\n' "$xs" >"$W/xs"; bad "decoy status not empty" "$W/xs"; }
 claims "docs/new.md:1@$S2"
 run 0 "a file added at the second commit passes there" "check-claims: PASS" "$SR"
 claims "docs/new.md:1@$S1"

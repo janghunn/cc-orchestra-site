@@ -170,4 +170,6 @@ Page structure that QA relies on (the `DOC` constant in `scripts/qa.mjs`):
 
 Entry points on the overview pages (`cc-doc/`): the top-bar `.navlinks` item after the guide entry (shown from 860 px); at every width, the third item of the footer navigation (`<nav class="ed-footnav">` around the `.foot-links` list, a labelled landmark) and a short pointer paragraph with a link in the hero. The workflow and guide pages carry no cc-doc entry; they link back to the overview.
 
+Saved language: on every EN page the head script (`src/js/head.js`, EN-only block) sends a visitor whose saved language is Korean to that page's KO twin, keeping the `#hash`; `?lang=en` records English and never redirects. So a link on an EN page, followed after the visitor chose Korean (for example in another tab), opens the KO page: this is the site's language memory, and it applies to the overview's links to the workflow, guide and cc-doc pages alike. The link itself points at the same-language page (`cc-doc/` from `/` and from `/ko/`), which is what `browser-qa` asserts.
+
 Class prefixes: new classes for the cc-doc page start with `cd-`, overview additions with `ed-`. A rule added for either has a `.cd-` or `.ed-` class in its selector, so it cannot match the workflow or guide pages.

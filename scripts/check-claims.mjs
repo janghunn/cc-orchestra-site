@@ -137,11 +137,14 @@ const CITE = new RegExp(`^([A-Za-z0-9_./-]+):([0-9]+)(?:-([0-9]+))?@(${PINS.map(
 const repo = process.env.CLAIMS_SOURCE_REPO;
 const lineCount = new Map(); // "sha:file" -> line count, -1 = not at that commit
 const countLines = (body) => body.split('\n').length - (body.endsWith('\n') ? 1 : 0);
+// git runs without the caller's repository-selecting variables, so CLAIMS_SOURCE_REPO alone names the repository read
+const GIT_REPO_VARS = ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR', 'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES', 'GIT_NAMESPACE', 'GIT_CEILING_DIRECTORIES', 'GIT_PREFIX'];
+const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !GIT_REPO_VARS.includes(k)));
 function linesAt(sha, file) {
   const key = `${sha}:${file}`;
   if (!lineCount.has(key)) {
     try {
-      const body = execFileSync('git', ['-C', repo, 'show', key], { encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] });
+      const body = execFileSync('git', ['-C', repo, 'show', key], { env: gitEnv, encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] });
       lineCount.set(key, countLines(body));
     } catch {
       lineCount.set(key, -1);

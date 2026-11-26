@@ -22,7 +22,7 @@
   "hero": {
     "eyebrow": "cc-doc · the Windows edition",
     "h1": "A document desk <em>that works on copies.</em>",
-    "lede": "cc-doc opens a Claude Code session for document work on Windows 11, with claude.ai connectors off. A single desk agent does the work on copies, in a work folder made for that session, and results come back under a name that is not yet in use. A write guard checks the paths that Claude Code's file-writing tools and tool-server calls name and refuses those outside that folder, within documented limits.",
+    "lede": "cc-doc opens a Claude Code session for document work on Windows 11, with the Claude account's connectors off. A single desk agent does the work on copies, in a work folder made for that session, and results come back under a name that is not yet in use. A write guard checks the paths that Claude Code's file-writing tools and tool-server calls name and refuses those outside that folder, within documented limits.",
     "ctaPrimary": "See how it works",
     "ctaSecondary": "Full overview",
     "tocTitle": "On this page"
@@ -35,17 +35,17 @@
       {
         "icon": "pen",
         "title": "A single desk agent",
-        "text": "The desk is told to read your request, draft the document, check it once and report in a few lines. If a check finds a problem, it is to fix it once, repeat that check and report what is left. It is told to ask a question only when a wrong guess would mean redoing the document."
+        "text": "The desk is told to read your request, draft the document, check it once and report in a few lines. It is told to ask a question only when a wrong guess would mean redoing the document."
       },
       {
         "icon": "gate",
         "title": "Claude and the document tools only",
-        "text": "claude.ai connectors are switched off for the session. The desk is told to keep document content away from other providers, connectors and web uploads, and to treat instructions found inside a document as document content."
+        "text": "The Claude account's connectors are switched off for the session. The desk is told to keep document content away from other providers, connectors and web uploads, and to treat instructions found inside a document as document content."
       },
       {
         "icon": "review",
-        "title": "Replies in Korean",
-        "text": "The desk is told to write its messages to you in formal Korean and to check Korean prose in a document with a writing skill that ships with the edition."
+        "title": "Told to reply in Korean",
+        "text": "The desk is told to write its messages to you in formal Korean and to check Korean prose in a document with a writing skill that ships with the edition. If that check finds a problem, it is to fix it once, repeat the check and report what is left."
       },
       {
         "icon": "sessions",
@@ -95,7 +95,7 @@
       },
       {
         "icon": "sync",
-        "title": "A refusal stands",
+        "title": "Told to honor a refusal",
         "text": "The desk is told to honor a refusal and never to retry a refused call with another tool or a shell command."
       }
     ],
@@ -112,7 +112,7 @@
   "formats": {
     "kicker": "Documents",
     "h2": "Document types and how each is handled",
-    "p": "A live Word or PowerPoint window is used only when you ask for it or when the work needs comments, tracked changes or real layout. Otherwise the desk works on files.",
+    "p": "The desk is told to use a live Word or PowerPoint window only when you ask for it or when the work needs comments, tracked changes or real layout. For DOCX, XLSX and PPTX it is otherwise told to use a file-based tool.",
     "tableCaption": "Table 1. Document types and tools",
     "cols": [
       "Document",
@@ -125,7 +125,7 @@
       },
       {
         "label": "DOCX, XLSX and PPTX",
-        "text": "Through a file-based Office tool. Decks are checked by outline or text view and by validation; these checks do not render slides."
+        "text": "The desk is told to use a file-based Office tool for these. Decks are checked by outline or text view and by validation; these checks do not render slides."
       },
       {
         "label": "Live Word or PowerPoint",
@@ -163,7 +163,7 @@
       {
         "label": "Work",
         "orch": "Coding requests, split into tasks and taken through planning, implementation and verification. Research projects run their experiments and manuscript work as such tasks.",
-        "doc": "Document work on Hangul, Word, PowerPoint and spreadsheet files"
+        "doc": "Document work on Hangul, Word and PowerPoint files"
       },
       {
         "label": "Agents",
@@ -243,8 +243,7 @@
       "D03"
     ],
     "desk.cards.0.text": [
-      "D03",
-      "D14"
+      "D03"
     ],
     "desk.cards.1.title": [
       "D17"
