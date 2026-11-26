@@ -580,6 +580,9 @@ function build(opts, outDir) {
   for (const l of LANGS) {
     siteCopy[l] = readJson(path.join(opts.contentDir, `site.${l}.json`));
     if (!isObj(siteCopy[l].site)) fail(`content/site.${l}.json: expected a top-level "site" object`);
+    /* only site.* is rendered (and checked for use below), so nothing else may sit next to it */
+    const extra = Object.keys(siteCopy[l]).filter((k) => !['site', '_claims', '_nonclaims'].includes(k));
+    if (extra.length) fail(`content/site.${l}.json: top-level keys other than site, _claims, _nonclaims: ${extra.join(', ')}`);
   }
   const siteDiffs = [];
   compareShape(siteCopy.en, siteCopy.ko, '', siteDiffs);

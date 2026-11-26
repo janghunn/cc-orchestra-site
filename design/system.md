@@ -111,7 +111,7 @@ Both overview pages (`/cc-orch/`, `/ko/cc-orch/`, the site root until the projec
 4. The sub-bar's section links (`nav.sn-toc`) are hidden below 860 px, as before (no kit menu sheet), and on the cc-orch pages also from 860 to 1023 px, where the tabs take the row; the edition links, the tabs and the footer sitemap are shown at every width. The guide, cc-doc and project pages carry their sections in the page itself.
 5. Visual taste is advisory (kit limit (d)); the gates cover contrast, targets, overflow and behaviour.
 6. Redirect pages: GitHub Pages cannot send HTTP redirects, so `/workflow/`, `/guide/`, `/ko/workflow/` and `/ko/guide/` are small pages (`noindex`, in their language, no hreflang pair, linked from no page, not in Lighthouse) that leave by script with the query and fragment kept, with a meta refresh and a visible link as fallbacks; without JavaScript the refresh drops the query and the fragment.
-7. Old overview fragments (`/#how` and the like) are forwarded to `/cc-orch/` by an inline script on the two project pages, from a list the build derives (every `id` of the rendered overview that the project page does not use); without JavaScript they open the project page at its top. Fragments the project page owns (`#main`, `#editions`, `#compare`, `#tbl-editions`, ...) are never forwarded.
+7. Old overview fragments (`/#how` and the like) are forwarded to `/cc-orch/` by an inline script on the two project pages, on load and when the hash changes on the open page, from a list the build derives (every `id` of the rendered overview that the project page does not use); without JavaScript they open the project page at its top. Fragments the project page owns (`#main`, `#editions`, `#compare`, `#tbl-editions`, ...) are never forwarded.
 
 ## Project page (`/`, `/ko/`)
 
@@ -123,7 +123,7 @@ Page structure that QA relies on (the `PROJECT` constant in `scripts/qa.mjs`):
 - `editions` (01): two edition cards of the same component and weight, side by side from 760 px and stacked below: platform tag, name (`h3`), title, text, a check list "A good fit when", and the edition's pages, each a link with one line, then one button to the edition's overview.
 - `compare` (02): the comparison of the two editions, `.tscroll > table.tbl#tbl-editions` (caption, three columns, six rows, row label as row header), moved from the cc-doc page.
 - No sub-bar tabs or section links (`nav.sn-pages`, `nav.sn-toc`); the edition links and the footer sitemap as on every page.
-- The inline old-fragment forwarder (limit 7) runs on these two pages only.
+- The inline old-fragment forwarder (limit 7) runs on these two pages only, on load and on a hash change.
 
 ## Workflow page (`/cc-orch/workflow/`, `/ko/cc-orch/workflow/`)
 

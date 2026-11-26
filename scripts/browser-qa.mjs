@@ -1,12 +1,13 @@
 // Browser QA over the local static server (scripts/serve.mjs) with Playwright and the system Chrome.
-// Usage: node scripts/browser-qa.mjs [--only layout,shell,targets,axe,motion,keyboard,loop-motion,font,clearance,editions,redirects,fragments,saved-lang,requests]
+// Usage: node scripts/browser-qa.mjs [--only layout,shell,targets,axe,motion,keyboard,loop-motion,font,clearance,editions,redirects,fragments,focus-ring,saved-lang,requests]
 // Env: DIST (default dist), CHROME_PATH (default /usr/bin/google-chrome).
 // Content pages: /, /ko/ (project), /cc-orch/, /ko/cc-orch/ (overview), /cc-orch/workflow/, /ko/cc-orch/workflow/,
 // /cc-orch/guide/, /ko/cc-orch/guide/, /cc-doc/, /ko/cc-doc/. Redirect pages: /workflow/, /guide/, /ko/workflow/,
 // /ko/guide/ (only opened by the redirects check). Checks (light + dark, every content page, 390 + 1280 px unless noted):
 //   layout    no horizontal scroll (before and after scrolling through the page); the theme applied;
-//             guide pages: a[href="../"] and a[href="../workflow/"] visible (non-zero box) and focusable; cc-doc
-//             pages: a[href="../"]; at 390 px the top bar (header.topbar) is at most 64 px high
+//             inside <main>: workflow pages a[href="../"], guide pages a[href="../"] and a[href="../workflow/"], cc-doc
+//             pages a[href="../"] and a[href="../#compare"], visible (non-zero box) and focusable; at 390 px the top bar
+//             (header.topbar) is at most 64 px high
 //   shell     the brand link (header.topbar a.brand) to the same-language project page and, inside nav.sn-eds, a link
 //             to each edition overview, visible and focusable; cc-orch pages: the three nav.sn-pages tabs too
 //   targets   (light only) every displayed link in .topbar, .sn-sub and .sn-foot is at least 44 px high
@@ -30,7 +31,12 @@
 //             /workflow/?lang=en#tips -> /cc-orch/workflow/?lang=en#tips)
 //   fragments /#how -> /cc-orch/#how, /#how-title -> /cc-orch/#how-title, /ko/#faq -> /ko/cc-orch/#faq; /#compare and
 //             /#main stay on /; /cc-doc/#tbl-editions shows that element in the viewport below the sticky block
-//             (390 + 1280 px)
+//             (390 + 1280 px); on the open project page (EN, KO) setting location.hash to #how in the same tab ends
+//             on the same-language cc-orch/#how, and #compare stays
+//   focus-ring  a link reached with Tab shows its focus ring (:focus-visible, an outline) and the ring (its box grown
+//             by outline-offset + outline-width) lies inside the padding box of every ancestor up to .sn-sub or
+//             header.topbar whose overflow is not visible: the nav.sn-pages tabs at 390 px on the cc-orch pages,
+//             the displayed nav.sn-eds links at 390 and 1280 px on every page
 //   saved-lang with Korean saved by the EN project page's language link, each EN content URL ends on its KO twin and
 //             /#how on /ko/cc-orch/#how; each EN content URL with ?lang=en stays EN
 //   requests  every request the browser makes stays on the server origin
@@ -88,8 +94,9 @@ const LINKS = {
   doc: { project: '../', overview: '../cc-orch/', workflow: '../cc-orch/workflow/', guide: '../cc-orch/guide/', doc: './' },
 };
 const ORCH_KINDS = new Set(['overview', 'workflow', 'guide']);
-// in-page links each page kind must offer visible and focusable at every width (the shell links are checked by "shell")
-const NAV_LINKS = { project: [], overview: [], workflow: [], guide: ['../', '../workflow/'], doc: ['../'] };
+// links inside <main> each page kind must offer visible and focusable at every width (inside <main> only: the shared
+// tabs and sitemap carry the same hrefs; the shell links are checked by "shell")
+const NAV_LINKS = { project: [], overview: [], workflow: ['../'], guide: ['../', '../workflow/'], doc: ['../', '../#compare'] };
 // page kinds that must have at least one figure with controls
 const FIGURE_KINDS = new Set(['overview', 'workflow']);
 // fig-loop button labels, from the workflow content (the template prints them verbatim)
@@ -178,9 +185,9 @@ try {
                   (errors.length ? `; page errors: ${errors.slice(0, 3).join(' | ')}` : ''),
               );
               for (const href of NAV_LINKS[kind]) {
-                // guide pages link to the cc-orch overview and the workflow page, cc-doc pages to the project page: visible and focusable at every width
+                // workflow and guide pages link to the cc-orch overview (guide also to the workflow page), cc-doc pages to the project page and its comparison
                 const link = await page.evaluate((href) => {
-                  const all = [...document.querySelectorAll(`a[href="${href}"]`)];
+                  const all = [...document.querySelectorAll(`main a[href="${href}"]`)];
                   const ok = all.filter((a) => {
                     const r = a.getBoundingClientRect();
                     if (!a.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || !(r.width > 0 && r.height > 0)) return false;
@@ -191,7 +198,7 @@ try {
                   });
                   return { total: all.length, ok: ok.length };
                 }, href);
-                report('layout', link.ok > 0, `${tag}: ${link.ok} of ${link.total} a[href="${href}"] visible and focusable`);
+                report('layout', link.ok > 0, `${tag}: ${link.ok} of ${link.total} main a[href="${href}"] visible and focusable`);
               }
               if (width === 390) {
                 const h = await page.evaluate(() => document.querySelector('header.topbar')?.getBoundingClientRect().height ?? null);
@@ -653,6 +660,131 @@ try {
         report('fragments', false, `${tag}: ${String(e.message || e).split('\n')[0]}`);
       } finally {
         await ctx.close();
+      }
+    }
+  }
+
+  if (want('fragments')) {
+    // the open project page: a hash set in the same tab (no reload) is forwarded too, unless the page owns it
+    for (const [base, cases] of [
+      ['', [['#how', 'cc-orch/#how'], ['#compare', '#compare']]],
+      ['ko/', [['#how', 'ko/cc-orch/#how'], ['#compare', 'ko/#compare']]],
+    ]) {
+      for (const [hash, to] of cases) {
+        const tag = `/${base} then location.hash = '${hash}' (same tab)`;
+        const { ctx, page } = await newPage({ colorScheme: 'light', reducedMotion: 'reduce' });
+        try {
+          await page.goto(server.url + base, { waitUntil: 'load' });
+          await settle(page, 300);
+          await page.evaluate((h) => {
+            location.hash = h;
+          }, hash);
+          const want = '/' + to;
+          const at = () => {
+            const u = new URL(page.url());
+            return u.pathname + u.search + u.hash;
+          };
+          try {
+            await page.waitForURL(() => at() === want, { waitUntil: 'load', timeout: 10000 });
+          } catch {
+            // reported from the end URL
+          }
+          await settle(page, 1000);
+          report('fragments', at() === want, `${tag} ends on ${at()} (want ${want})`);
+        } catch (e) {
+          report('fragments', false, `${tag}: ${String(e.message || e).split('\n')[0]}`);
+        } finally {
+          await ctx.close();
+        }
+      }
+    }
+  }
+
+  // ---- focus ring not clipped (cc-orch tabs at 390 px; edition links at 390 and 1280 px) ---------
+  if (want('focus-ring')) {
+    for (const [name, , url, kind] of PAGES) {
+      for (const width of WIDTHS) {
+        const sels = [...(width === 390 && ORCH_KINDS.has(kind) ? ['nav.sn-pages a'] : []), 'nav.sn-eds a'];
+        const { ctx, page } = await newPage({ viewport: { width, height: 844 }, colorScheme: 'light', reducedMotion: 'reduce' });
+        try {
+          await page.goto(url, { waitUntil: 'load' });
+          const targets = await page.evaluate((sels) => {
+            const shown = (a) => {
+              const r = a.getBoundingClientRect();
+              return a.checkVisibility({ visibilityProperty: true, opacityProperty: true }) && r.width > 0 && r.height > 0;
+            };
+            const out = [];
+            for (const sel of sels) {
+              [...document.querySelectorAll(sel)].filter(shown).forEach((a, i) => {
+                a.setAttribute('data-qa-ring', `${sel}#${i}`);
+                out.push({ id: `${sel}#${i}`, sel, label: a.textContent.trim().slice(0, 24) });
+              });
+            }
+            return out;
+          }, sels);
+          for (const sel of sels) if (!targets.some((t) => t.sel === sel)) report('focus-ring', false, `${name} ${width}: no displayed ${sel}`);
+          for (const t of targets) {
+            const tag = `${name} ${width}: ${t.sel} "${t.label}"`;
+            // reach the link with Tab from the top of the page (keyboard focus, so :focus-visible applies)
+            await page.evaluate(() => {
+              document.activeElement?.blur();
+              scrollTo(0, 0);
+            });
+            let reached = false;
+            for (let i = 0; i < 80 && !reached; i++) {
+              await page.keyboard.press('Tab');
+              reached = await page.evaluate((id) => document.activeElement?.getAttribute('data-qa-ring') === id, t.id);
+            }
+            if (!reached) {
+              report('focus-ring', false, `${tag}: not reached with Tab`);
+              continue;
+            }
+            const r = await page.evaluate(() => {
+              const a = document.activeElement;
+              const cs = getComputedStyle(a);
+              const width = parseFloat(cs.outlineWidth) || 0;
+              const grow = (parseFloat(cs.outlineOffset) || 0) + width;
+              const b = a.getBoundingClientRect();
+              const ring = { l: b.left - grow, t: b.top - grow, r: b.right + grow, b: b.bottom + grow };
+              const stop = a.closest('.sn-sub, header.topbar');
+              const clips = [];
+              for (let e = a.parentElement; e; e = e === stop ? null : e.parentElement) {
+                const s = getComputedStyle(e);
+                if (s.overflowX === 'visible' && s.overflowY === 'visible') continue;
+                const eb = e.getBoundingClientRect();
+                const pad = { l: eb.left + e.clientLeft, t: eb.top + e.clientTop };
+                pad.r = pad.l + e.clientWidth;
+                pad.b = pad.t + e.clientHeight;
+                const inside = ring.l >= pad.l - 0.5 && ring.t >= pad.t - 0.5 && ring.r <= pad.r + 0.5 && ring.b <= pad.b + 0.5;
+                const where = `${e.tagName.toLowerCase()}${e.className ? '.' + String(e.className).trim().split(/\s+/).join('.') : ''}`;
+                clips.push({ where, inside, overflow: `${s.overflowX}/${s.overflowY}`, pad: [pad.l, pad.t, pad.r, pad.b].map((x) => Math.round(x * 10) / 10) });
+              }
+              return {
+                focusVisible: a.matches(':focus-visible'),
+                style: cs.outlineStyle,
+                width,
+                grow,
+                ring: [ring.l, ring.t, ring.r, ring.b].map((x) => Math.round(x * 10) / 10),
+                stop: !!stop,
+                clips,
+              };
+            });
+            const bad = r.clips.filter((c) => !c.inside);
+            // the ring may sit inside the link (negative offset); it must exist and nothing may clip it
+            const ok = r.focusVisible && r.style !== 'none' && r.width > 0 && r.stop && !bad.length;
+            report(
+              'focus-ring',
+              ok,
+              `${tag}: :focus-visible ${r.focusVisible}, outline ${r.style} ${r.width} px (offset + width ${r.grow} px), ring box [${r.ring.join(', ')}]; ` +
+                (r.clips.length ? r.clips.map((c) => `${c.where} (${c.overflow}) padding box [${c.pad.join(', ')}] ${c.inside ? 'contains it' : 'CLIPS it'}`).join('; ') : 'no clipping ancestor') +
+                (r.stop ? '' : '; not inside .sn-sub or header.topbar'),
+            );
+          }
+        } catch (e) {
+          report('focus-ring', false, `${name} ${width}: ${String(e.message || e).split('\n')[0]}`);
+        } finally {
+          await ctx.close();
+        }
       }
     }
   }

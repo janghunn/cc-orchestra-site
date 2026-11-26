@@ -211,6 +211,9 @@ html[lang="ko"] .brand { font-weight: 700; letter-spacing: 0; }
 /* link text lines up with the gutter (each link has its own side padding) */
 .sn-sub :is(.sn-eds, .sn-pages) { margin-left: calc(-1 * var(--s2)); }
 .sn-sub .sn-pages { overflow-x: auto; border-top: 1px solid var(--line); }
+/* the tab row scrolls inside its own box and the phone edition row sits under the sticky top bar, either of which
+   would clip an outer focus ring: in the sub-bar the ring sits inside the link */
+.sn-sub :is(.sn-eds, .sn-pages) a:focus-visible { outline-offset: -3px; }
 .sn-toc { display: none; align-items: center; gap: var(--s2); margin-left: auto; min-width: 0; }
 .sn-toc-title { padding-right: var(--s3); border-right: 1px solid var(--line); color: var(--muted); font-size: var(--fs-xs); white-space: nowrap; }
 .sn-toc .navlinks { display: flex; gap: 0; font-size: .85rem; }

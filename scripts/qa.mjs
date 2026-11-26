@@ -327,10 +327,11 @@ const checks = {
       // page contracts
       const sections = [...html.matchAll(/<section\b[^>]*\bid=["']([^"']+)["']/gi)].map((m) => m[1]);
       const figures = [...html.matchAll(/<figure\b[^>]*\bid=["']([^"']+)["']/gi)].map((m) => m[1]);
-      const hrefs = anchors.map((a) => attr(a, 'href'));
+      // the page's own links are counted inside <main> only: the shared tabs and sitemap carry the same hrefs
+      const mainHrefs = mainAt >= 0 && mainEnd > mainAt ? anchorsOf(html.slice(mainAt, mainEnd)).map((a) => attr(a.tag, 'href')) : [];
       const contract = { project: PROJECT, overview: OVERVIEW, workflow: WORKFLOW, guide: GUIDE, doc: DOC }[p.page];
       if (sections.join() !== contract.sections.join()) problems.push(`${tag}: section ids [${sections}], want [${contract.sections}]`);
-      for (const h of contract.links || []) if (!hrefs.includes(h)) problems.push(`${tag}: no link href="${h}"`);
+      for (const h of contract.links || []) if (!mainHrefs.includes(h)) problems.push(`${tag}: no link href="${h}" inside <main>`);
       if (p.page === 'project') {
         if (/<figure\b/i.test(html)) problems.push(`${tag}: has a <figure>, the project page has none`);
         if (!new RegExp(`<table\\b[^>]*\\sid=["']${PROJECT.table}["']`, 'i').test(html)) problems.push(`${tag}: no table#${PROJECT.table}`);
@@ -443,8 +444,8 @@ const checks = {
         ? problems.join('; ')
         : `${PAGES.length} content pages; lang en/ko; 2 absolute hreflang links per page from ${SITE_URL}; toggle links; EN saved-language target = toggle href; no root-relative href or src; ` +
             `shell on every page: a.brand -> project page, nav.sn-eds with the two edition links, .sn-sub after the header, nav.sn-pages (3 links, one aria-current="page") on the ${ORCH_KINDS.length * 2} cc-orch pages only, nav.sn-toc on the old page kinds, nav.sn-foot with the five same-language pages; ` +
-            `project sections [${PROJECT.sections.join(', ')}], no figure, table#${PROJECT.table}; overview sections [${OVERVIEW.sections.join(', ')}]; workflow figures have [data-twin] and Illustrative chips, link ${WORKFLOW.links.join(' and ')}; ` +
-            `guide sections [${GUIDE.sections.join(', ')}], no figure, links ${GUIDE.links.join(' and ')}; doc sections [${DOC.sections.join(', ')}], no figure, no table#${DOC.alias} (id kept as alias), links ${DOC.links.join(' and ')}; ` +
+            `project sections [${PROJECT.sections.join(', ')}], no figure, table#${PROJECT.table}; overview sections [${OVERVIEW.sections.join(', ')}]; workflow figures have [data-twin] and Illustrative chips, link ${WORKFLOW.links.join(' and ')} in <main>; ` +
+            `guide sections [${GUIDE.sections.join(', ')}], no figure, links ${GUIDE.links.join(' and ')} in <main>; doc sections [${DOC.sections.join(', ')}], no figure, no table#${DOC.alias} (id kept as alias), links ${DOC.links.join(' and ')} in <main>; ` +
             `old fragments: both project pages forward the ${forwardCount} overview ids they do not use, and no other page forwards; ` +
             `${REDIRECTS.length} redirect pages (${REDIRECTS.map((r) => r.file).join(', ')}): refresh, script and fallback link to their target, lang, noindex, no hreflang, no SITE_URL, target in the build; ${summary.join('; ')}`,
     );

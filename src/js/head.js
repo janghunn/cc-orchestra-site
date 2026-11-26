@@ -11,7 +11,7 @@
       (html.ko-font, see ko-font.css); later visits switch before first paint.
    5. Project pages only (the build drops the marked block elsewhere): the overview used to be the site root, so
       an old address such as /#how or /ko/#faq is forwarded to the overview (cc-orch/ next to this page),
-      keeping ?query and #hash. The build writes the ids to forward over the [] after the @old-ids marker:
+      keeping ?query and #hash, at load and on a later hash change. The build writes the ids to forward over the [] after the @old-ids marker:
       every id of the rendered overview that the project page does not use itself, so #main, #editions,
       #compare and the project page's other ids are never forwarded. */
 (function (d, w) {
@@ -27,9 +27,15 @@
 }(document, window));
 /* @project-only */
 (function (w) {
-  var ids = /* @old-ids */[], h = w.location.hash.slice(1);
-  try { h = decodeURIComponent(h); } catch (e) {}
-  if (h && ids.indexOf(h) > -1) w.location.replace("cc-orch/" + w.location.search + w.location.hash);
+  var ids = /* @old-ids */[];
+  function forward() {
+    var h = w.location.hash.slice(1);
+    try { h = decodeURIComponent(h); } catch (e) {}
+    if (h && ids.indexOf(h) > -1) w.location.replace("cc-orch/" + w.location.search + w.location.hash);
+  }
+  forward();
+  /* an old address typed into the open project page changes only the hash: forward it too */
+  w.addEventListener("hashchange", forward);
 }(window));
 /* @end-project-only */
 /* @en-only */
