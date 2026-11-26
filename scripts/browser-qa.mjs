@@ -35,8 +35,9 @@
 //             on the same-language cc-orch/#how, and #compare stays
 //   focus-ring  a link reached with Tab shows its focus ring (:focus-visible, an outline) and the ring (its box grown
 //             by outline-offset + outline-width) lies inside the padding box of every ancestor up to .sn-sub or
-//             header.topbar whose overflow is not visible: the nav.sn-pages tabs at 390 px on the cc-orch pages,
-//             the displayed nav.sn-eds links at 390 and 1280 px on every page
+//             header.topbar whose overflow is not visible, and no sticky or fixed box that is not its ancestor paints
+//             over it (document.elementsFromPoint at points on the outline stroke): the nav.sn-pages tabs at 390 px on
+//             the cc-orch pages, the displayed nav.sn-eds links at 390 and 1280 px on every page
 //   saved-lang with Korean saved by the EN project page's language link, each EN content URL ends on its KO twin and
 //             /#how on /ko/cc-orch/#how; each EN content URL with ?lang=en stays EN
 //   requests  every request the browser makes stays on the server origin
@@ -759,9 +760,35 @@ try {
                 const where = `${e.tagName.toLowerCase()}${e.className ? '.' + String(e.className).trim().split(/\s+/).join('.') : ''}`;
                 clips.push({ where, inside, overflow: `${s.overflowX}/${s.overflowY}`, pad: [pad.l, pad.t, pad.r, pad.b].map((x) => Math.round(x * 10) / 10) });
               }
+              // paint order: at points on the middle of the outline stroke, what document.elementsFromPoint lists above the
+              // link and its ancestors; a hit inside a sticky or fixed box that is not an ancestor of the link covers the ring
+              const fixedOf = (e) => {
+                for (; e && e !== document.documentElement; e = e.parentElement) if (/^(sticky|fixed)$/.test(getComputedStyle(e).position)) return e;
+                return null;
+              };
+              const mid = width / 2;
+              const pts = [];
+              for (const f of [0.1, 0.3, 0.5, 0.7, 0.9]) {
+                const x = ring.l + (ring.r - ring.l) * f;
+                const y = ring.t + (ring.b - ring.t) * f;
+                pts.push([x, ring.t + mid], [x, ring.b - mid], [ring.l + mid, y], [ring.r - mid, y]);
+              }
+              const covers = new Set(); let sampled = 0;
+              for (const [x, y] of pts) {
+                if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) continue; else sampled++;
+                for (const e of document.elementsFromPoint(x, y)) {
+                  if (e === a || e.contains(a) || a.contains(e)) break;
+                  const f = fixedOf(e);
+                  if (f && !f.contains(a)) {
+                    covers.add(`${f.tagName.toLowerCase()}${f.className ? '.' + String(f.className).trim().split(/\s+/).join('.') : ''}`);
+                    break;
+                  }
+                }
+              }
               return {
                 focusVisible: a.matches(':focus-visible'),
                 style: cs.outlineStyle,
+                covered: [...covers], sampled,
                 width,
                 grow,
                 ring: [ring.l, ring.t, ring.r, ring.b].map((x) => Math.round(x * 10) / 10),
@@ -771,12 +798,13 @@ try {
             });
             const bad = r.clips.filter((c) => !c.inside);
             // the ring may sit inside the link (negative offset); it must exist and nothing may clip it
-            const ok = r.focusVisible && r.style !== 'none' && r.width > 0 && r.stop && !bad.length;
+            const ok = r.focusVisible && r.style !== 'none' && r.width > 0 && r.stop && !bad.length && !r.covered.length && r.sampled > 0;
             report(
               'focus-ring',
               ok,
               `${tag}: :focus-visible ${r.focusVisible}, outline ${r.style} ${r.width} px (offset + width ${r.grow} px), ring box [${r.ring.join(', ')}]; ` +
                 (r.clips.length ? r.clips.map((c) => `${c.where} (${c.overflow}) padding box [${c.pad.join(', ')}] ${c.inside ? 'contains it' : 'CLIPS it'}`).join('; ') : 'no clipping ancestor') +
+                (r.covered.length ? `; COVERED by ${r.covered.join(', ')} (sticky/fixed, paints above it)` : '; no sticky or fixed box over it') + `; ${r.sampled} point(s) sampled` +
                 (r.stop ? '' : '; not inside .sn-sub or header.topbar'),
             );
           }
