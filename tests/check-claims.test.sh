@@ -48,7 +48,7 @@ EOF
 # run: expected-exit, name, expected-output-fragment, env assignments...
 run() {
   local want="$1" name="$2" frag="$3"; shift 3
-  (cd "$R" && env -u CLAIMS_SOURCE_REPO -u CLAIMS_WORKSPACE_ROOTS -u NODE_OPTIONS "$@" node scripts/check-claims.mjs) >"$W/out" 2>&1; local got=$?
+  (cd "$R" && env -u CLAIMS_SOURCE_REPO -u CLAIMS_WORKSPACE_ROOTS "$@" node scripts/check-claims.mjs) >"$W/out" 2>&1; local got=$?
   if [ "$got" -ne "$want" ]; then bad "$name: exit $got, want $want" "$W/out"
   elif ! grep -qF -- "$frag" "$W/out"; then bad "$name: missing '$frag'" "$W/out"
   else ok "$name (exit $got)"; fi
