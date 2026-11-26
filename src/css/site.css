@@ -972,3 +972,10 @@ html[lang="ko"] .hero h1 { max-width: 18ch; font-weight: 700; line-height: 1.25;
   .motion-btn { display: none; }
   .js #fig-lifecycle.rv .tree li { opacity: 1; transform: none; }
 }
+
+/* ---------- overview top bar: eight entries (cc-doc added) ---------- */
+/* below 1060 px the overview's links get half the side padding, so the brand keeps its width (no other page has .ed-navdoc) */
+@media (min-width: 860px) and (max-width: 1059px) { .navlinks:has(.ed-navdoc) a { padding: 0 var(--s1); } }
+/* the hero pointer's link to the cc-doc page stays in one piece (no break inside the name); the padding, cancelled by the
+   negative margin, makes the target at least 24 px tall without moving the text */
+.ed-pointer a { display: inline-block; padding: 5px 0; margin: -5px 0; white-space: nowrap; }

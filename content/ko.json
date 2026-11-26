@@ -8,6 +8,7 @@
     "skip": "본문으로 건너뛰기",
     "brand": "cc-orchestra",
     "navLabel": "주 메뉴",
+    "footNavLabel": "다른 페이지",
     "nav": [
       "작동 방식",
       "라우팅",
@@ -15,7 +16,8 @@
       "보조 도구",
       "FAQ",
       "연구자용 사례",
-      "입문 안내"
+      "입문 안내",
+      "cc-doc"
     ],
     "themeToDark": "어두운 테마로 전환",
     "themeToLight": "밝은 테마로 전환",
@@ -43,7 +45,9 @@
         "value": "{{f:counts.riskLevels}}",
         "label": "위험도 단계"
       }
-    ]
+    ],
+    "editions": "cc-orchestra에는 두 가지 판이 있습니다. 이 개요와 연구자용 사례, 입문 안내는 Linux 서버에서 코드·연구 작업을 진행하는 cc-orch를 다룹니다. Windows 11에서 문서 작업을 맡는 판은 cc-doc입니다.",
+    "editionsLink": "cc-doc 알아보기"
   },
   "problem": {
     "kicker": "문제",
@@ -476,6 +480,13 @@
       "C05",
       "C06"
     ],
+    "hero.editions": [
+      "D19",
+      "D01",
+      "C02",
+      "C37",
+      "W01"
+    ],
     "problem.p": [
       "X01",
       "C07"
@@ -650,6 +661,7 @@
     "meta.*",
     "hero.ctaPrimary",
     "hero.ctaSecondary",
+    "hero.editionsLink",
     "*.kicker",
     "*.h2",
     "arch.riskLabel",

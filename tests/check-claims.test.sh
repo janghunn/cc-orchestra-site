@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests for scripts/check-claims.mjs. Run from anywhere: bash tests/check-claims.test.sh
 # Builds a throwaway repository with synthetic content sets, claims rows and workspaces (aliases Q and Z),
-# copies the checker into it and runs it there. Nothing here names a real workspace.
+# copies the checker into it and runs it there; the two-pin cases also build a throwaway source repository
+# with two commits. Nothing here names a real workspace.
 set -u
 umask 077
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -14,7 +15,9 @@ bad() { fail=$((fail + 1)); echo "FAIL - $1"; [ -n "${2:-}" ] && sed 's/^/      
 R="$W/repo"
 mkdir -p "$R/scripts" "$R/content" "$R/design" "$W/ws/q/docs" "$W/ws/z"
 cp "$ROOT/scripts/check-claims.mjs" "$R/scripts/"
-printf '{ "sourceSha": "abc1234" }\n' >"$R/facts.json"
+PIN1=abc1234 PIN2=def5678
+facts() { printf '{ "sourceSha": "%s", "docSourceSha": "%s" }\n' "$1" "$2" >"$R/facts.json"; }
+facts "$PIN1" "$PIN2"
 printf 'line one\nline two\nline three\n' >"$R/design/notes.md"
 printf 'a\nb\nc\nd\ne\n' >"$W/ws/q/docs/guide.md"
 printf 'only\n' >"$W/ws/z/one.txt"
@@ -23,17 +26,20 @@ printf '# synthetic roots\nQ\t%s\nZ\tws/z\n' "$W/ws/q" >"$W/roots.tsv"   # Z is 
 home='{ "hero": { "title": "T", "lede": "L" }, "_claims": { "hero.lede": ["H01"] }, "_nonclaims": ["hero.title"] }'
 flow='{ "intro": { "p": ["one", "two"] }, "label": "x", "_claims": { "intro.p": ["W01", "W02"] }, "_nonclaims": ["label"] }'
 guide='{ "why": { "p": "P", "cards": ["a", "b"] }, "kicker": "k", "_claims": { "why": ["G01"] }, "_nonclaims": ["kicker"] }'
+doc='{ "desk": { "title": "D", "p": "P" }, "_claims": { "desk.p": ["D01"] }, "_nonclaims": ["desk.title"] }'
 write_content() {
   printf '%s\n' "$1" >"$R/content/en.json";          printf '%s\n' "$1" >"$R/content/ko.json"
   printf '%s\n' "$2" >"$R/content/workflow.en.json"; printf '%s\n' "$2" >"$R/content/workflow.ko.json"
   printf '%s\n' "$guide" >"$R/content/guide.en.json"; printf '%s\n' "$guide" >"$R/content/guide.ko.json"
+  printf '%s\n' "$doc" >"$R/content/doc.en.json";     printf '%s\n' "$doc" >"$R/content/doc.ko.json"
 }
 claims() { # $1 = source cell of W02
   cat >"$R/content/claims.md" <<EOF
 | id | EN claim | source | note |
 |---|---|---|---|
-| H01 | Home claim. | docs/a.md:1-2@abc1234 | |
+| H01 | Home claim. | docs/a.md:1-2@$PIN1 | |
 | G01 | Guide claim. | framing | |
+| D01 | Doc claim. | docs/d.md:1@$PIN2 | |
 | W01 | Workflow claim one. | ws:Q/docs/guide.md:2-4@2026-01-02; ws:site/design/notes.md:3@2026-01-02 | |
 | W02 | Workflow claim two. | $1 | |
 EOF
@@ -52,7 +58,7 @@ RT="CLAIMS_WORKSPACE_ROOTS=$W/roots.tsv"
 write_content "$home" "$flow"
 claims 'ws:Z/one.txt:1@2026-01-02'
 run 0 "format only without CLAIMS_WORKSPACE_ROOTS" "workspace ranges not checked: CLAIMS_WORKSPACE_ROOTS unset" NOOP=1
-run 0 "all three content sets counted" "content sets: home 2, workflow 3, guide 4" NOOP=1
+run 0 "all four content sets counted, both pins listed" "content sets: home 2, workflow 3, guide 4, doc 2; pins: abc1234, def5678" NOOP=1
 run 0 "ranges checked with roots (relative dir resolves from the TSV)" "workspace ranges checked (3 of 3, 2 alias(es) + site)" "$RT"
 
 claims 'ws:Y/one.txt:1@2026-01-02'
@@ -69,13 +75,90 @@ run 1 "a .. segment fails" 'without ".."' NOOP=1
 claims 'ws:Q/docs/guide.md:1@2026-02-30'
 run 1 "an impossible date fails" "bad date" NOOP=1
 claims 'ws:Q/docs/guide.md:1'
-run 1 "a missing date fails" "is not path:line[-line]@abc1234, ws:" NOOP=1
+run 1 "a missing date fails" "is not path:line[-line]@abc1234, path:line[-line]@def5678, ws:" NOOP=1
 claims 'docs/b.md:3@abc1234; observation: not allowed inside a list'
 run 1 "observation is whole-cell only" "is not path:line" NOOP=1
 claims 'observation: 2026-01-02, a synthetic first-hand note'
 run 0 "whole-cell observation passes" "1 observation(s)" NOOP=1
 claims 'framing'
 run 0 "framing passes" "check-claims: PASS" NOOP=1
+
+# second pin (facts.json docSourceSha) ------------------------------------------------------------
+claims 'docs/b.md:3@def5678'
+run 0 "a citation at the second pin is accepted" "check-claims: PASS" NOOP=1
+claims 'docs/b.md:3@0123abc'
+run 1 "a citation at an unlisted sha is rejected" 'source "docs/b.md:3@0123abc" is not path:line[-line]@abc1234, path:line[-line]@def5678' NOOP=1
+printf '{ "sourceSha": "abc1234" }\n' >"$R/facts.json"
+claims 'framing'
+run 1 "without docSourceSha a second-pin citation is rejected" 'source "docs/d.md:1@def5678" is not path:line[-line]@abc1234, ws:' NOOP=1
+printf '{ "sourceSha": "abc1234", "docSourceSha": "main" }\n' >"$R/facts.json"
+run 1 "a docSourceSha that is not a commit id fails" "facts.json docSourceSha is not a commit id: main" NOOP=1
+
+# line ranges per commit, against a throwaway source repository with two commits:
+# commit 1: docs/a.md (2 lines), docs/f.md (2 lines); commit 2: docs/f.md grows to 5 lines, docs/d.md and docs/new.md appear
+# Every git command for the fixture (S) and the decoy (X) goes through GX, which starts from an emptied environment
+# (env -i: PATH, a HOME inside this temp dir, no global or system config), disables hooks and signing, and inits with
+# an empty template; nothing the caller exports can select a repository, config, hooks directory or signing program.
+# To prove it, the decoy and the fixture are built with GIT_DIR exported at the decoy and a command-scoped
+# core.hooksPath exported at hooks that write a marker; no marker may appear, and the decoy's HEAD and index must be
+# unchanged after the first passing case, which also hands GIT_DIR=<decoy> to the checker.
+GH="$W/git-home" HK="$W/caller-hooks" MK="$W/hook-ran"
+mkdir -p "$GH" "$HK"
+for h in pre-commit post-commit; do printf '#!/bin/sh\necho %s >>"%s"\n' "$h" "$MK" >"$HK/$h"; chmod +x "$HK/$h"; done
+GX() {
+  local d="$1"; shift
+  env -i PATH="$PATH" HOME="$GH" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
+    git -C "$d" -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=test -c user.email= "$@"
+}
+S="$W/source" X="$W/decoy"
+mkdir -p "$S/docs" "$X"
+G() { GX "$S" "$@"; }
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0="$HK"
+export GIT_DIR="$X/.git"
+GX "$X" init -q --template= && printf 'x\n' >"$X/x.txt" && GX "$X" add -A && GX "$X" commit -qm decoy \
+  || { unset GIT_DIR GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0; bad "decoy repository could not be built"; echo "# check-claims tests: $pass passed, $fail failed"; exit 1; }
+XHEAD="$(GX "$X" rev-parse HEAD)" && [ -n "$XHEAD" ] \
+  || { unset GIT_DIR GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0; bad "decoy HEAD cannot be read"; echo "# check-claims tests: $pass passed, $fail failed"; exit 1; }
+G init -q --template=
+gd="$(G rev-parse --absolute-git-dir)"
+case "$gd" in
+  "$(cd "$S" && pwd -P)"/*) ok "fixture git dir is inside the fixture" ;;
+  *) unset GIT_DIR; bad "fixture git dir is $gd, not inside $S: stopping before any add or commit"; echo "# check-claims tests: $pass passed, $fail failed"; exit 1 ;;
+esac
+printf 'a1\na2\n' >"$S/docs/a.md"; printf 'f1\nf2\n' >"$S/docs/f.md"
+G add -A && G commit -qm one
+S1="$(G rev-parse --short=7 HEAD)"
+printf 'f1\nf2\nf3\nf4\nf5\n' >"$S/docs/f.md"; printf 'd1\n' >"$S/docs/d.md"; printf 'n1\n' >"$S/docs/new.md"
+G add -A && G commit -qm two
+S2="$(G rev-parse --short=7 HEAD)"
+unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0
+[ ! -e "$MK" ] && ok "no caller hook ran while the decoy and the fixture were built" \
+  || bad "a caller hook ran (marker $MK written)" "$MK"
+SR="CLAIMS_SOURCE_REPO=$S"
+PIN1="$S1" PIN2="$S2"
+facts "$S1" "$S2"
+claims "docs/f.md:1-2@$S1; docs/f.md:4-5@$S2"
+run 0 "same path at both commits in one run, range valid only at the longer revision" "line ranges checked against the source repo" "$SR"
+run 0 "with GIT_DIR set at a decoy, the checker reads CLAIMS_SOURCE_REPO" "line ranges checked against the source repo" "$SR" "GIT_DIR=$X/.git"
+unset GIT_DIR
+xh="$(GX "$X" rev-parse HEAD)"; xr=$?
+if [ "$xr" -ne 0 ]; then bad "decoy rev-parse HEAD failed (exit $xr)"
+elif [ "$xh" = "$XHEAD" ]; then ok "decoy HEAD unchanged"
+else bad "decoy HEAD moved ($XHEAD -> $xh)"; fi
+xs="$(GX "$X" status --porcelain 2>&1)"; xr=$?
+if [ "$xr" -ne 0 ]; then printf '%s\n' "$xs" >"$W/xs"; bad "decoy status failed (exit $xr)" "$W/xs"
+elif [ -z "$xs" ]; then ok "decoy index and tree unchanged"
+else printf '%s\n' "$xs" >"$W/xs"; bad "decoy status not empty" "$W/xs"; fi
+claims "docs/new.md:1@$S2"
+run 0 "a file added at the second commit passes there" "check-claims: PASS" "$SR"
+claims "docs/new.md:1@$S1"
+run 1 "a file that exists only at the second commit fails at the first" "docs/new.md does not exist at $S1" "$SR"
+claims "docs/f.md:2-3@$S1"
+run 1 "a range past the end at the cited commit fails" "docs/f.md:2-3@$S1 is past the end of docs/f.md (2 lines)" "$SR"
+claims "docs/f.md:4-5@$S2; docs/f.md:4-5@$S1"
+run 1 "the shorter revision is checked after the longer one was read" "docs/f.md:4-5@$S1 is past the end of docs/f.md (2 lines)" "$SR"
+PIN1=abc1234 PIN2=def5678
+facts "$PIN1" "$PIN2"
 
 printf 'Q\t/nowhere\nsite\t/nowhere\n' >"$W/bad-roots.tsv"
 run 1 "alias site is reserved in the roots file" 'alias "site" is reserved' "CLAIMS_WORKSPACE_ROOTS=$W/bad-roots.tsv"
@@ -95,6 +178,9 @@ run 1 "a missing workflow file fails" "workflow: content file(s) missing: conten
 write_content "$home" "$flow"
 rm "$R/content/guide.ko.json"
 run 1 "a missing guide file fails" "guide: content file(s) missing: content/guide.ko.json" NOOP=1
+write_content "$home" "$flow"
+rm "$R/content/doc.ko.json"
+run 1 "a missing doc file fails" "doc: content file(s) missing: content/doc.ko.json" NOOP=1
 
 echo "# check-claims tests: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

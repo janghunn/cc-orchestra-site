@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "sourceSha": "7ba8a77",
   "sourceDate": "2026-11-11",
+  "docSourceSha": "50eb979",
+  "docSourceDate": "2026-11-26",
   "claude": {
     "orchestrator": {
       "model": "Opus 5.5",

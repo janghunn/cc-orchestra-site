@@ -1,6 +1,6 @@
 // Claim coverage check for the content sets and content/claims.md.
-// Content sets (each an EN + KO pair): content/{en,ko}.json (home), content/workflow.{en,ko}.json (workflow) and
-// content/guide.{en,ko}.json (guide).
+// Content sets (each an EN + KO pair): content/{en,ko}.json (home), content/workflow.{en,ko}.json (workflow),
+// content/guide.{en,ko}.json (guide) and content/doc.{en,ko}.json (doc, the cc-doc page).
 // Per set:
 // - every leaf string key of both content files is covered by _claims or _nonclaims
 //   (pattern = exact key (covers its subtree), "prefix.*" (below prefix), "*.leaf" (that name in any section));
@@ -10,9 +10,10 @@
 // Every claims.md source cell is "framing", a URL, "observation: <text>" (the whole cell, not split),
 // or "; "-separated tokens, each one of
 //   path:line[-line]@<sourceSha>                     a file of the cc-orchestra repository at facts.sourceSha
+//   path:line[-line]@<docSourceSha>                  the same at facts.docSourceSha (optional second pin)
 //   ws:<alias>/<path>:line[-line]@<YYYY-MM-DD>       a file inside a research workspace, read on that date
 // Optional: CLAIMS_SOURCE_REPO=<git checkout of the source repo> also checks that each cited file
-// exists at <sourceSha> and the cited lines are within it.
+// exists at the token's commit and the cited lines are within it.
 // Optional: CLAIMS_WORKSPACE_ROOTS=<TSV file, "alias<TAB>dir" per line, # comments> also checks every
 // ws: citation: unknown alias, missing file or a range past the end of the file fails. Alias "site" is
 // this repository and is always checked; without the variable the other aliases are checked for format only.
@@ -26,15 +27,22 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const errors = [];
 const fail = (m) => errors.push(m);
 const readJson = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8'));
+const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const SETS = [
   { name: 'home', en: 'content/en.json', ko: 'content/ko.json' },
   { name: 'workflow', en: 'content/workflow.en.json', ko: 'content/workflow.ko.json' },
   { name: 'guide', en: 'content/guide.en.json', ko: 'content/guide.ko.json' },
+  { name: 'doc', en: 'content/doc.en.json', ko: 'content/doc.ko.json' },
 ];
 const facts = readJson('facts.json');
 const SHA = facts.sourceSha;
 if (!/^[0-9a-f]{7,40}$/.test(String(SHA))) fail(`facts.json sourceSha is not a commit id: ${SHA}`);
+// optional second pin: citations may name either commit
+const DOC_SHA = facts.docSourceSha;
+if (DOC_SHA !== undefined && !/^[0-9a-f]{7,40}$/.test(String(DOC_SHA))) fail(`facts.json docSourceSha is not a commit id: ${DOC_SHA}`);
+const PINS = DOC_SHA === undefined ? [SHA] : [SHA, DOC_SHA];
+const PIN_FORMS = PINS.map((p) => `path:line[-line]@${p}`).join(', ');
 
 // leaf keys, arrays indexed with ".N"
 function leaves(obj, prefix = '', out = new Map()) {
@@ -125,20 +133,24 @@ for (const set of SETS) {
 for (const id of rows.keys()) if (!used.has(id)) fail(`claims.md id ${id} is not used in _claims of any content set`);
 
 // cc-orchestra citations
-const CITE = new RegExp(`^([A-Za-z0-9_./-]+):([0-9]+)(?:-([0-9]+))?@${SHA}$`);
+const CITE = new RegExp(`^([A-Za-z0-9_./-]+):([0-9]+)(?:-([0-9]+))?@(${PINS.map(escRe).join('|')})$`);
 const repo = process.env.CLAIMS_SOURCE_REPO;
-const lineCount = new Map();
+const lineCount = new Map(); // "sha:file" -> line count, -1 = not at that commit
 const countLines = (body) => body.split('\n').length - (body.endsWith('\n') ? 1 : 0);
-function linesAt(file) {
-  if (!lineCount.has(file)) {
+// git runs without the caller's repository-selecting variables, so CLAIMS_SOURCE_REPO alone names the repository read
+const GIT_REPO_VARS = ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR', 'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES', 'GIT_NAMESPACE', 'GIT_CEILING_DIRECTORIES', 'GIT_PREFIX'];
+const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !GIT_REPO_VARS.includes(k)));
+function linesAt(sha, file) {
+  const key = `${sha}:${file}`;
+  if (!lineCount.has(key)) {
     try {
-      const body = execFileSync('git', ['-C', repo, 'show', `${SHA}:${file}`], { encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] });
-      lineCount.set(file, countLines(body));
+      const body = execFileSync('git', ['-C', repo, 'show', key], { env: gitEnv, encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] });
+      lineCount.set(key, countLines(body));
     } catch {
-      lineCount.set(file, -1);
+      lineCount.set(key, -1);
     }
   }
-  return lineCount.get(file);
+  return lineCount.get(key);
 }
 
 // workspace citations
@@ -227,17 +239,17 @@ for (const [id, { text, source }] of rows) {
     }
     const m = CITE.exec(tok);
     if (!m) {
-      if (!/^https?:\/\/\S+$/.test(tok)) fail(`claims.md ${id}: source "${tok}" is not path:line[-line]@${SHA}, ws:<alias>/<path>:line[-line]@<YYYY-MM-DD>, framing, observation: or a URL`);
+      if (!/^https?:\/\/\S+$/.test(tok)) fail(`claims.md ${id}: source "${tok}" is not ${PIN_FORMS}, ws:<alias>/<path>:line[-line]@<YYYY-MM-DD>, framing, observation: or a URL`);
       continue;
     }
     cites++;
-    const [, file, a, b] = m;
+    const [, file, a, b, sha] = m;
     const from = Number(a);
     const to = b ? Number(b) : from;
     if (from < 1 || to < from) fail(`claims.md ${id}: bad line range in ${tok}`);
     if (repo) {
-      const n = linesAt(file);
-      if (n < 0) fail(`claims.md ${id}: ${file} does not exist at ${SHA}`);
+      const n = linesAt(sha, file);
+      if (n < 0) fail(`claims.md ${id}: ${file} does not exist at ${sha}`);
       else if (to > n) fail(`claims.md ${id}: ${tok} is past the end of ${file} (${n} lines)`);
     }
   }
@@ -250,7 +262,7 @@ if (errors.length) {
 }
 console.log(
   `check-claims: PASS (${totalKeys} leaf keys covered, ${rows.size} claims, ${cites} citations, ${wsCites} workspace citation(s), ${observations} observation(s); ` +
-    `content sets: ${perSet.join(', ')}; ` +
+    `content sets: ${perSet.join(', ')}; pins: ${PINS.join(', ')}; ` +
     `${repo ? 'line ranges checked against the source repo' : 'line ranges not checked: CLAIMS_SOURCE_REPO unset'}; ` +
     `${rootsFile ? `workspace ranges checked (${wsChecked} of ${wsCites}, ${wsRoots.size} alias(es) + site)` : `workspace ranges not checked: CLAIMS_WORKSPACE_ROOTS unset (format only; ${wsChecked} site citation(s) checked)`})`,
 );

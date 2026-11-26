@@ -33,6 +33,8 @@ const WORKFLOW = {
 };
 // The beginners' guide contract: section ids in order; no <figure>; links home (../) and to the research page (../workflow/).
 const GUIDE = { sections: ['hero', 'why', 'roles', 'files', 'compare', 'costs', 'choose'], links: ['../', '../workflow/'] };
+// The cc-doc page contract: section ids in order; no <figure>; links home (../).
+const DOC = { sections: ['hero', 'desk', 'copies', 'guard', 'formats', 'editions'], links: ['../'] };
 // The built pages. hreflang: the absolute URLs of the page pair; toggle: the language link's hreflang and href.
 const PAGES = [
   { page: 'home', lang: 'en', file: 'index.html', hreflang: ['', 'ko/'], toggle: ['ko', 'ko/'] },
@@ -41,8 +43,10 @@ const PAGES = [
   { page: 'workflow', lang: 'ko', file: 'ko/workflow/index.html', hreflang: ['workflow/', 'ko/workflow/'], toggle: ['en', '../../workflow/?lang=en'] },
   { page: 'guide', lang: 'en', file: 'guide/index.html', hreflang: ['guide/', 'ko/guide/'], toggle: ['ko', '../ko/guide/'] },
   { page: 'guide', lang: 'ko', file: 'ko/guide/index.html', hreflang: ['guide/', 'ko/guide/'], toggle: ['en', '../../guide/?lang=en'] },
+  { page: 'doc', lang: 'en', file: 'cc-doc/index.html', hreflang: ['cc-doc/', 'ko/cc-doc/'], toggle: ['ko', '../ko/cc-doc/'] },
+  { page: 'doc', lang: 'ko', file: 'ko/cc-doc/index.html', hreflang: ['cc-doc/', 'ko/cc-doc/'], toggle: ['en', '../../cc-doc/?lang=en'] },
 ];
-const CONTENT = { home: 'content/{lang}.json', workflow: 'content/workflow.{lang}.json', guide: 'content/guide.{lang}.json' };
+const CONTENT = { home: 'content/{lang}.json', workflow: 'content/workflow.{lang}.json', guide: 'content/guide.{lang}.json', doc: 'content/doc.{lang}.json' };
 // A real SITE_URL appears exactly in the two hreflang alternates of every page in PAGES (never counted from the output).
 const ALLOW_COUNT = 2 * PAGES.length;
 const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -149,7 +153,13 @@ const checks = {
       const [tLang, tHref] = p.toggle;
       const toggle = anchors.find((a) => attr(a, 'hreflang') === tLang && attr(a, 'href') === tHref);
       if (!toggle) problems.push(`${tag}: language toggle link missing (hreflang="${tLang}" href="${tHref}")`);
-      if (p.page === 'home') for (const h of ['workflow/', 'guide/']) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no nav link href="${h}"`);
+      if (p.page === 'home') for (const h of ['workflow/', 'guide/', 'cc-doc/']) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no nav link href="${h}"`);
+      if (p.page === 'home') {
+        // the cc-doc link must also sit in a navigation landmark other than the top-bar list (hidden below 860 px)
+        const navs = [...html.matchAll(/<nav\b([^>]*)>([\s\S]*?)<\/nav>/gi)].filter((m) => !/\bclass=["'][^"']*\bnavlinks\b/i.test(m[1]) && !/<[a-z]+\b[^>]*\bclass=["'][^"']*\bnavlinks\b/i.test(m[2]));
+        if (!navs.some((m) => [...m[2].matchAll(/<a\b[^>]*>/gi)].some((a) => attr(a[0], 'href') === 'cc-doc/'))) problems.push(`${tag}: no a href="cc-doc/" inside a <nav> other than the top-bar list`);
+      }
+      for (const m of html.matchAll(/\s(href|src)=["']\//gi)) problems.push(`${tag}: root-relative ${m[1]}="/..." (breaks under the Pages project path)`);
       if (p.page === 'workflow' && !anchors.some((a) => attr(a, 'href') === '../')) problems.push(`${tag}: no home link href="../"`);
       const sections = [...html.matchAll(/<section\b[^>]*\bid=["']([^"']+)["']/gi)].map((m) => m[1]);
       const figures = [...html.matchAll(/<figure\b[^>]*\bid=["']([^"']+)["']/gi)].map((m) => m[1]);
@@ -173,6 +183,11 @@ const checks = {
         if (sections.join() !== GUIDE.sections.join()) problems.push(`${tag}: section ids [${sections}], want [${GUIDE.sections}]`);
         if (/<figure\b/i.test(html)) problems.push(`${tag}: has a <figure>, the guide has none`);
         for (const h of GUIDE.links) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no link href="${h}"`);
+      }
+      if (p.page === 'doc') {
+        if (sections.join() !== DOC.sections.join()) problems.push(`${tag}: section ids [${sections}], want [${DOC.sections}]`);
+        if (/<figure\b/i.test(html)) problems.push(`${tag}: has a <figure>, the cc-doc page has none`);
+        for (const h of DOC.links) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no link href="${h}"`);
       }
       const main = /<main\b[\s\S]*<\/main>/i.exec(html)?.[0] || html;
       const skeleton = [...main.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*)>/gi)]
@@ -202,8 +217,8 @@ const checks = {
       problems.length ? 'FAIL' : 'PASS',
       problems.length
         ? problems.join('; ')
-        : `${PAGES.length} pages; lang en/ko; 2 absolute hreflang links per page from ${SITE_URL}; toggle links; home nav links workflow/ and guide/, workflow home link ../; ` +
-            `guide sections [${GUIDE.sections.join(', ')}], no figure, links ${GUIDE.links.join(' and ')}; workflow figures have [data-twin] and Illustrative chips; ${summary.join('; ')}`,
+        : `${PAGES.length} pages; lang en/ko; 2 absolute hreflang links per page from ${SITE_URL}; toggle links; no root-relative href or src; home nav links workflow/, guide/ and cc-doc/, cc-doc/ also inside a <nav> other than the top bar; workflow home link ../; ` +
+            `guide sections [${GUIDE.sections.join(', ')}], no figure, links ${GUIDE.links.join(' and ')}; doc sections [${DOC.sections.join(', ')}], no figure, link ${DOC.links.join(' and ')}; workflow figures have [data-twin] and Illustrative chips; ${summary.join('; ')}`,
     );
   },
 

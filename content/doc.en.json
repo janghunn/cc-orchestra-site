@@ -1,0 +1,477 @@
+{
+  "meta": {
+    "title": "cc-doc: a document desk on Windows that works on copies",
+    "description": "cc-doc is the Windows edition of cc-orchestra: one Claude Code session for work on Hangul, Word and PowerPoint documents. It works on copies in a session work folder and returns results under names not yet in use. This page explains how it works and where its guard stops.",
+    "langName": "English",
+    "otherLangName": "한국어",
+    "otherLangLabel": "Read this page in Korean",
+    "skip": "Skip to content",
+    "brand": "cc-orchestra",
+    "homeLabel": "cc-orchestra overview",
+    "navLabel": "Primary",
+    "nav": [
+      "What it is",
+      "Copies",
+      "Guard",
+      "Documents",
+      "Editions"
+    ],
+    "themeToDark": "Switch to dark theme",
+    "themeToLight": "Switch to light theme"
+  },
+  "hero": {
+    "eyebrow": "cc-doc · the Windows edition",
+    "h1": "A document desk <em>that works on copies.</em>",
+    "lede": "cc-doc opens a Claude Code session for document work on Windows 11, with the Claude account's connectors off. A single desk agent does the work on copies, in a work folder made for that session, and results come back under a name that is not yet in use. A write guard checks the paths that Claude Code's file-writing tools and tool-server calls name and refuses those outside that folder, within documented limits.",
+    "ctaPrimary": "See how it works",
+    "ctaSecondary": "Full overview",
+    "tocTitle": "On this page"
+  },
+  "desk": {
+    "kicker": "What it is",
+    "h2": "One session, one desk",
+    "p": "cc-doc is a launcher. Started in the folder that holds your documents, it opens one Claude Code session there with a desk agent, a write guard and a work folder for that session.",
+    "cards": [
+      {
+        "icon": "pen",
+        "title": "A single desk agent",
+        "text": "The desk is told to read your request, draft the document, check it once and report in a few lines. It is told to ask a question only when a wrong guess would mean redoing the document."
+      },
+      {
+        "icon": "gate",
+        "title": "Told to use Claude and the document tools only",
+        "text": "The Claude account's connectors are switched off for the session. The desk is told to keep document content away from other providers, connectors and web uploads, and to treat instructions found inside a document as document content."
+      },
+      {
+        "icon": "review",
+        "title": "Told to reply in Korean",
+        "text": "The desk is told to write its messages to you in formal Korean and to check Korean prose in a document with a writing skill that ships with the edition. If that check finds a problem, it is to fix it once, repeat the check and report what is left."
+      },
+      {
+        "icon": "sessions",
+        "title": "Where it runs",
+        "text": "The edition supports Windows 11 with Windows PowerShell 5.1 and Claude Code 2.1.295 or later. It is started from a folder on a local or mapped drive that has a drive letter, and it uses four document tool servers registered for the user."
+      }
+    ]
+  },
+  "copies": {
+    "kicker": "Copies",
+    "h2": "How a document moves",
+    "p": "Your original stays where it is. The desk is told to keep originals untouched and to work only on copies inside the session's work folder.",
+    "steps": [
+      {
+        "title": "Start in the folder",
+        "text": "Run cc-doc in the folder that holds the documents. It creates a work folder for the new session under that folder and prints the session ID."
+      },
+      {
+        "title": "Take a copy",
+        "text": "The desk brings each input in with the take command, which makes a uniquely named copy in the work folder."
+      },
+      {
+        "title": "Work on the copy",
+        "text": "Drafting and editing happen on files inside the work folder. The desk is told to run writing calls on a file one after another."
+      },
+      {
+        "title": "Deliver under a new name",
+        "text": "The deliver command copies a result from the work folder back to the folder where you started. It never overwrites: if a file of that name exists, it stops and asks for another name. Asked to replace an original, the desk is told to deliver under a new name and say so."
+      }
+    ],
+    "note": "A session is reopened through cc-doc with its session ID, from the folder where it was started. Reopened with plain Claude Code or from VS Code, it runs without the guard; clearing the conversation or resuming from inside the session ends the guarded session."
+  },
+  "guard": {
+    "kicker": "Guard",
+    "h2": "What the write guard refuses",
+    "p": "The guard is a hook that runs before Claude Code's file-writing tools and before every call to a connected tool server. It decides before the call runs; if the guard itself fails, the call is refused.",
+    "cards": [
+      {
+        "icon": "gate",
+        "title": "Paths outside the work folder",
+        "text": "The guard reads the paths a call names and refuses the call when one of them is outside the session's work folder. The refusal says to name full paths inside the work folder and to use take and deliver. The guard does not see every path; its limits are listed below."
+      },
+      {
+        "icon": "doc",
+        "title": "Closing, quitting and exporting through Office",
+        "text": "Document-tool calls that close, quit or export through Word or PowerPoint are refused, because the application may be your own with unsaved work open."
+      },
+      {
+        "icon": "sync",
+        "title": "Told to honor a refusal",
+        "text": "The desk is told to honor a refusal and never to retry a refused call with another tool or a shell command."
+      }
+    ],
+    "limitsTitle": "What it does not cover",
+    "limitsP": "The edition documents the guard's limits.",
+    "limits": [
+      "The guard does not check shell commands. The desk is told to use the shell only for take, deliver, listing files and opening its own working copy.",
+      "It does not check files a tool server writes without naming them in the call, such as temp files, caches and scratch files.",
+      "The file-based Office tool reads a relative, read-only property source, such as a picture, from the folder where the session was started without a guard check.",
+      "Tool servers other than the four document servers get a generic path check only.",
+      "It refuses text that starts with a Windows path outside the work folder, even when that text is document content."
+    ]
+  },
+  "formats": {
+    "kicker": "Documents",
+    "h2": "Document types and how each is handled",
+    "p": "The desk is told to use a live Word or PowerPoint window only when you ask for it or when the work needs comments, tracked changes or real layout. For DOCX, XLSX and PPTX it is otherwise told to use a file-based tool.",
+    "tableCaption": "Table 1. Document types and tools",
+    "cols": [
+      "Document",
+      "How the desk handles it"
+    ],
+    "rows": [
+      {
+        "label": "HWP and HWPX",
+        "text": "Through a dedicated tool server, without automating the Hangul desktop application. The desk is told to write HWPX only and, before delivering an HWPX, to export a PDF and look at the first page at least."
+      },
+      {
+        "label": "DOCX, XLSX and PPTX",
+        "text": "The desk is told to use a file-based Office tool for these. Decks are checked by outline or text view and by validation; these checks do not render slides."
+      },
+      {
+        "label": "Live Word or PowerPoint",
+        "text": "The desk is told to say that a window will open, to open only its own working copy, and when done to save that copy in place and ask you to close the window."
+      },
+      {
+        "label": "PDF from a DOCX",
+        "text": "No tool here converts DOCX to PDF without Word. The desk can make a Word-free PDF copy through HWPX; its layout can differ and its tables appear as lines of text. Saving as PDF in Word gives the exact Word layout."
+      }
+    ],
+    "yoursTitle": "Steps that stay with you",
+    "yours": [
+      "Saving a DOCX as PDF in Word, and exporting a PDF or pictures from PowerPoint.",
+      "Closing the Word or PowerPoint window after live work.",
+      "Turning text rows into a real table in Hangul. This version has no reliable way to add a table to an HWPX, so table rows arrive as lines of text.",
+      "Checking live Word and PowerPoint work by hand. The edition ships an attended checklist for it."
+    ]
+  },
+  "editions": {
+    "kicker": "Editions",
+    "h2": "Two editions of cc-orchestra",
+    "p": "cc-orchestra comes in two editions, each named after its command. cc-orch runs on a Linux server and is what the rest of this site describes. cc-doc runs on Windows 11 and is described on this page.",
+    "tableCaption": "Table 2. cc-orch and cc-doc side by side",
+    "cols": [
+      "Item",
+      "cc-orch",
+      "cc-doc"
+    ],
+    "rows": [
+      {
+        "label": "Runs on",
+        "orch": "Linux, with bash and tmux",
+        "doc": "Windows 11"
+      },
+      {
+        "label": "Work",
+        "orch": "Coding requests, split into tasks and taken through planning, implementation and verification. Research projects run their experiments and manuscript work as such tasks.",
+        "doc": "Document work on Hangul, Word and PowerPoint files"
+      },
+      {
+        "label": "Agents",
+        "orch": "Four tiers: an orchestrator, a lead for each task, builders and verifiers",
+        "doc": "One desk agent"
+      },
+      {
+        "label": "Models",
+        "orch": "Two model families: Claude Code and Codex CLI",
+        "doc": "Claude: the launcher starts one Claude Code session, and the desk is told to use no other provider"
+      },
+      {
+        "label": "How your files are protected",
+        "orch": "Each task has its own git branch, and the lead never commits to your branches",
+        "doc": "Work on copies, a write guard with documented limits, and delivery that never overwrites"
+      },
+      {
+        "label": "Checks before it reports",
+        "orch": "Gates set by the task's risk level",
+        "doc": "The desk is told to check its own draft and to name what it did not check"
+      }
+    ],
+    "ctaHome": "cc-orchestra overview"
+  },
+  "footer": {
+    "facts": "cc-doc facts as of {{f:docSourceDate}} ({{f:docSourceSha}}).",
+    "privacy": "No third-party requests.",
+    "linksTitle": "Built on",
+    "links": [
+      {
+        "text": "Claude Code",
+        "href": "https://github.com/anthropics/claude-code"
+      }
+    ],
+    "fontCredit": "",
+    "fontLink": ""
+  },
+  "_claims": {
+    "meta.title": [
+      "D01",
+      "D04"
+    ],
+    "meta.description": [
+      "D01",
+      "D02",
+      "D04",
+      "D05",
+      "D10",
+      "D11",
+      "D20"
+    ],
+    "hero.eyebrow": [
+      "D01"
+    ],
+    "hero.h1": [
+      "D04"
+    ],
+    "hero.lede": [
+      "D01",
+      "D02",
+      "D03",
+      "D04",
+      "D05",
+      "D06",
+      "D07"
+    ],
+    "desk.h2": [
+      "D02",
+      "D03"
+    ],
+    "desk.p": [
+      "D02",
+      "D04",
+      "D06"
+    ],
+    "desk.cards.0.title": [
+      "D03"
+    ],
+    "desk.cards.0.text": [
+      "D03"
+    ],
+    "desk.cards.1.title": [
+      "D17"
+    ],
+    "desk.cards.1.text": [
+      "D02",
+      "D17"
+    ],
+    "desk.cards.2.title": [
+      "D03"
+    ],
+    "desk.cards.2.text": [
+      "D03",
+      "D14"
+    ],
+    "desk.cards.3.text": [
+      "D15"
+    ],
+    "copies.p": [
+      "D04",
+      "D05"
+    ],
+    "copies.steps.0.title": [
+      "D04"
+    ],
+    "copies.steps.0.text": [
+      "D04",
+      "D09"
+    ],
+    "copies.steps.1.title": [
+      "D05"
+    ],
+    "copies.steps.1.text": [
+      "D05"
+    ],
+    "copies.steps.2.title": [
+      "D04"
+    ],
+    "copies.steps.2.text": [
+      "D04"
+    ],
+    "copies.steps.3.title": [
+      "D05"
+    ],
+    "copies.steps.3.text": [
+      "D05"
+    ],
+    "copies.note": [
+      "D09"
+    ],
+    "guard.h2": [
+      "D06"
+    ],
+    "guard.p": [
+      "D06"
+    ],
+    "guard.cards.0.title": [
+      "D06"
+    ],
+    "guard.cards.0.text": [
+      "D06",
+      "D07"
+    ],
+    "guard.cards.1.title": [
+      "D08"
+    ],
+    "guard.cards.1.text": [
+      "D08"
+    ],
+    "guard.cards.2.title": [
+      "D16"
+    ],
+    "guard.cards.2.text": [
+      "D16"
+    ],
+    "guard.limitsTitle": [
+      "D07"
+    ],
+    "guard.limitsP": [
+      "D07"
+    ],
+    "guard.limits.0": [
+      "D07"
+    ],
+    "guard.limits.1": [
+      "D07"
+    ],
+    "guard.limits.2": [
+      "D07"
+    ],
+    "guard.limits.3": [
+      "D07"
+    ],
+    "guard.limits.4": [
+      "D07"
+    ],
+    "formats.p": [
+      "D11",
+      "D12"
+    ],
+    "formats.rows.0.text": [
+      "D10",
+      "D14"
+    ],
+    "formats.rows.1.text": [
+      "D11",
+      "D14"
+    ],
+    "formats.rows.2.text": [
+      "D12",
+      "D08"
+    ],
+    "formats.rows.3.text": [
+      "D13"
+    ],
+    "formats.yoursTitle": [
+      "D08",
+      "D13",
+      "D18"
+    ],
+    "formats.yours.0": [
+      "D08"
+    ],
+    "formats.yours.1": [
+      "D08"
+    ],
+    "formats.yours.2": [
+      "D13"
+    ],
+    "formats.yours.3": [
+      "D18"
+    ],
+    "editions.h2": [
+      "D19"
+    ],
+    "editions.p": [
+      "D19",
+      "D01",
+      "C37"
+    ],
+    "editions.rows.0.orch": [
+      "C37"
+    ],
+    "editions.rows.0.doc": [
+      "D01"
+    ],
+    "editions.rows.1.orch": [
+      "C02",
+      "W01"
+    ],
+    "editions.rows.1.doc": [
+      "D02",
+      "D10",
+      "D11"
+    ],
+    "editions.rows.2.orch": [
+      "C04"
+    ],
+    "editions.rows.2.doc": [
+      "D03"
+    ],
+    "editions.rows.3.orch": [
+      "C02",
+      "C05"
+    ],
+    "editions.rows.3.doc": [
+      "D02",
+      "D17"
+    ],
+    "editions.rows.4.orch": [
+      "C24",
+      "C25"
+    ],
+    "editions.rows.4.doc": [
+      "D04",
+      "D05",
+      "D06",
+      "D07"
+    ],
+    "editions.rows.5.orch": [
+      "C13"
+    ],
+    "editions.rows.5.doc": [
+      "D14"
+    ],
+    "footer.facts": [
+      "D21"
+    ],
+    "footer.privacy": [
+      "G30"
+    ],
+    "footer.fontCredit": [
+      "G31"
+    ]
+  },
+  "_nonclaims": [
+    "meta.*",
+    "hero.ctaPrimary",
+    "hero.ctaSecondary",
+    "hero.tocTitle",
+    "*.kicker",
+    "desk.cards.0.icon",
+    "desk.cards.1.icon",
+    "desk.cards.2.icon",
+    "desk.cards.3.icon",
+    "desk.cards.3.title",
+    "copies.h2",
+    "guard.cards.0.icon",
+    "guard.cards.1.icon",
+    "guard.cards.2.icon",
+    "formats.h2",
+    "formats.tableCaption",
+    "formats.cols",
+    "formats.rows.0.label",
+    "formats.rows.1.label",
+    "formats.rows.2.label",
+    "formats.rows.3.label",
+    "editions.tableCaption",
+    "editions.cols",
+    "editions.rows.0.label",
+    "editions.rows.1.label",
+    "editions.rows.2.label",
+    "editions.rows.3.label",
+    "editions.rows.4.label",
+    "editions.rows.5.label",
+    "editions.ctaHome",
+    "footer.linksTitle",
+    "footer.links",
+    "footer.fontLink"
+  ]
+}

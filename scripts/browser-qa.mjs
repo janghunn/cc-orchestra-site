@@ -1,17 +1,20 @@
 // Browser QA over the local static server (scripts/serve.mjs) with Playwright and the system Chrome.
 // Usage: node scripts/browser-qa.mjs [--only layout,axe,motion,keyboard,loop-motion,font,requests]
 // Env: DIST (default dist), CHROME_PATH (default /usr/bin/google-chrome).
-// Pages: /, /ko/, /workflow/, /ko/workflow/, /guide/, /ko/guide/. Checks (light + dark, every page, 390 + 1280 px
-// unless noted):
+// Pages: /, /ko/, /workflow/, /ko/workflow/, /guide/, /ko/guide/, /cc-doc/, /ko/cc-doc/. Checks (light + dark,
+// every page, 390 + 1280 px unless noted):
 //   layout    no horizontal scroll (before and after scrolling through the page); the theme applied;
-//             home pages: at least one a[href="workflow/"] and one a[href="guide/"] visible (non-zero box) and
-//             focusable; guide pages: the same for a[href="../"] and a[href="../workflow/"]
+//             home pages: at least one a[href="workflow/"], a[href="guide/"] and a[href="cc-doc/"] visible (non-zero
+//             box) and focusable, and one a[href="cc-doc/"] inside a <nav> visible and focusable that resolves to the
+//             same-language cc-doc page; guide pages: the same for a[href="../"] and a[href="../workflow/"];
+//             cc-doc pages: a[href="../"]
 //   axe       axe-core: 0 violations
 //   motion    prefers-reduced-motion: reduce -> document.getAnimations().length === 0 after load,
 //             after scrolling, and after a runtime switch to reduce
 //   keyboard  every control inside a figure is reached with Tab and changes the figure when operated
 //             with the keyboard alone; every interactive figure has a text twin; home and workflow pages
-//             have at least one figure with controls (the guide has no figure); the workflow pages have fig-loop
+//             have at least one figure with controls (the guide and cc-doc pages have no figure); the workflow
+//             pages have fig-loop
 //   loop-motion  workflow pages, motion enabled: fig-loop Run (keyboard) autoplays (>= 2 stage changes
 //             within 2 x data-interval) and reads Pause; Pause, the global "Pause motion" button and a
 //             runtime switch to prefers-reduced-motion: reduce each stop it for 2 intervals
@@ -56,7 +59,7 @@ try {
   throw e;
 }
 const ORIGIN = new URL(server.url).origin;
-// [tag, lang, url, page kind: home | workflow | guide]
+// [tag, lang, url, page kind: home | workflow | guide | doc]
 const PAGES = [
   ['/', 'en', server.url, 'home'],
   ['/ko/', 'ko', server.url + 'ko/', 'home'],
@@ -64,9 +67,11 @@ const PAGES = [
   ['/ko/workflow/', 'ko', server.url + 'ko/workflow/', 'workflow'],
   ['/guide/', 'en', server.url + 'guide/', 'guide'],
   ['/ko/guide/', 'ko', server.url + 'ko/guide/', 'guide'],
+  ['/cc-doc/', 'en', server.url + 'cc-doc/', 'doc'],
+  ['/ko/cc-doc/', 'ko', server.url + 'ko/cc-doc/', 'doc'],
 ];
 // links each page kind must offer visible and focusable at every width
-const NAV_LINKS = { home: ['workflow/', 'guide/'], workflow: [], guide: ['../', '../workflow/'] };
+const NAV_LINKS = { home: ['workflow/', 'guide/', 'cc-doc/'], workflow: [], guide: ['../', '../workflow/'], doc: ['../'] };
 // page kinds that must have at least one figure with controls
 const FIGURE_KINDS = new Set(['home', 'workflow']);
 // fig-loop button labels, from the workflow content (the template prints them verbatim)
@@ -169,6 +174,23 @@ try {
                   return { total: all.length, ok: ok.length };
                 }, href);
                 report('layout', link.ok > 0, `${tag}: ${link.ok} of ${link.total} a[href="${href}"] visible and focusable`);
+              }
+              if (kind === 'home') {
+                // the cc-doc entry inside a navigation landmark (the top-bar list is hidden below 860 px), same language
+                const want = new URL('cc-doc/', url).href;
+                const nav = await page.evaluate((want) => {
+                  const all = [...document.querySelectorAll('nav a[href="cc-doc/"]')];
+                  const ok = all.filter((a) => {
+                    const r = a.getBoundingClientRect();
+                    if (!a.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || !(r.width > 0 && r.height > 0)) return false;
+                    a.focus();
+                    const focused = document.activeElement === a && a.tabIndex >= 0;
+                    a.blur();
+                    return focused && a.href === want;
+                  });
+                  return { total: all.length, ok: ok.length };
+                }, want);
+                report('layout', nav.ok > 0, `${tag}: ${nav.ok} of ${nav.total} nav a[href="cc-doc/"] visible, focusable and resolving to ${new URL(want).pathname}`);
               }
             }
             if (want('axe')) {
