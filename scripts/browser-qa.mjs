@@ -33,11 +33,11 @@
 //             /#main stay on /; /cc-doc/#tbl-editions shows that element in the viewport below the sticky block
 //             (390 + 1280 px); on the open project page (EN, KO) setting location.hash to #how in the same tab ends
 //             on the same-language cc-orch/#how, and #compare stays
-//   focus-ring  a link reached with Tab shows its focus ring (:focus-visible, an outline) and the ring (its box grown
-//             by outline-offset + outline-width) lies inside the padding box of every ancestor up to .sn-sub or
-//             header.topbar whose overflow is not visible, and no sticky or fixed box that is not its ancestor paints
-//             over it (document.elementsFromPoint at points on the outline stroke): the nav.sn-pages tabs at 390 px on
-//             the cc-orch pages, the displayed nav.sn-eds links at 390 and 1280 px on every page
+//   focus-ring  a link reached with Tab is :focus-visible with an outline; its ring box (box + outline-offset + width)
+//             lies inside the padding box of each ancestor up to .sn-sub or header.topbar with overflow not visible; at
+//             20 points on the stroke's middle (5 per edge; off-viewport points skipped, 0 sampled = FAIL) elementsFromPoint
+//             lists nothing above the link (or an ancestor or descendant of it) in a sticky/fixed non-ancestor box;
+//             scope: nav.sn-pages tabs at 390 px on the cc-orch pages, displayed nav.sn-eds links at 390 + 1280 px
 //   saved-lang with Korean saved by the EN project page's language link, each EN content URL ends on its KO twin and
 //             /#how on /ko/cc-orch/#how; each EN content URL with ?lang=en stays EN
 //   requests  every request the browser makes stays on the server origin
