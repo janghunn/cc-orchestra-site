@@ -1,0 +1,25 @@
+{
+  "site": {
+    "homeLabel": "cc-orchestra home",
+    "edsLabel": "Editions",
+    "orch": "cc-orch",
+    "doc": "cc-doc",
+    "orchPagesLabel": "cc-orch pages",
+    "orchPages": [
+      "Overview",
+      "For researchers",
+      "For beginners"
+    ],
+    "orchOverviewLabel": "cc-orch overview",
+    "docPages": [
+      "Overview"
+    ],
+    "docOverviewLabel": "cc-doc overview",
+    "tocLabel": "Page sections",
+    "footLabel": "Site map"
+  },
+  "_claims": {},
+  "_nonclaims": [
+    "site"
+  ]
+}

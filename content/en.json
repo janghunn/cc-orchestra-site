@@ -1,15 +1,13 @@
 {
   "meta": {
-    "title": "cc-orchestra: build with one model family, check with another",
-    "description": "cc-orchestra splits a coding request into tasks and connects Claude Code and Codex CLI across planning, implementation and verification. An overview of its architecture.",
+    "title": "cc-orch: build with one model family, check with another",
+    "description": "cc-orch splits a coding request into tasks and connects Claude Code and Codex CLI across planning, implementation and verification. An overview of its architecture.",
     "langName": "English",
     "otherLangName": "한국어",
     "otherLangLabel": "Read this page in Korean",
     "skip": "Skip to content",
     "brand": "cc-orchestra",
-    "navLabel": "Primary",
-    "nav": ["How it works", "Routing", "Gates", "Helpers", "FAQ", "For researchers", "For beginners", "cc-doc"],
-    "footNavLabel": "Other pages",
+    "nav": ["How it works", "Routing", "Gates", "Helpers", "FAQ"],
     "themeToDark": "Switch to dark theme",
     "themeToLight": "Switch to light theme",
     "motionPause": "Pause motion",
@@ -20,29 +18,27 @@
   "hero": {
     "eyebrow": "A multi-agent harness for coding work",
     "h1": "Two model families. <em>Built by one, read by the other.</em>",
-    "lede": "cc-orchestra splits a coding request into tasks and connects Claude Code and Codex CLI across planning, implementation and verification. In the default mode, Codex writes the code, the Claude lead reads the real diff, and separate Codex gates verify and review the result.",
+    "lede": "cc-orch splits a coding request into tasks and connects Claude Code and Codex CLI across planning, implementation and verification. In the default mode, Codex writes the code, the Claude lead reads the real diff, and separate Codex gates verify and review the result.",
     "ctaPrimary": "See how it works",
     "ctaSecondary": "Why two providers",
     "stats": [
       {"value": "{{f:counts.tiers}}", "label": "tiers"},
       {"value": "{{f:counts.modelFamilies}}", "label": "model families"},
       {"value": "{{f:counts.riskLevels}}", "label": "risk levels"}
-    ],
-    "editions": "cc-orchestra has two editions. The overview, the research case study and the beginners' guide describe cc-orch, the edition for coding and research work on a Linux server. cc-doc is the edition for document work on Windows 11.",
-    "editionsLink": "About cc-doc"
+    ]
   },
   "problem": {
     "kicker": "The problem",
     "h2": "More agents, the same blind spots",
     "p": [
       "Coding agents have multiplied. Coordinating several of them on one codebase, and trusting what they ship, has not become easier.",
-      "A model that reviews its own work shares its own blind spots. cc-orchestra puts a second model family into the loop on purpose."
+      "A model that reviews its own work shares its own blind spots. cc-orch puts a second model family into the loop on purpose."
     ],
     "fig": {
       "caption": "Figure 1. Self-review compared with a cross-family check.",
       "leftTitle": "One agent",
       "left": ["writes the code", "reviews its own code"],
-      "rightTitle": "cc-orchestra (default mode)",
+      "rightTitle": "cc-orch (default mode)",
       "right": ["Codex writes the code", "the Claude lead reads the diff", "Codex gates verify and review"]
     }
   },
@@ -231,7 +227,7 @@
     "fontLink": ""
   },
   "_claims": {
-    "meta.title": ["C01"], "meta.description": ["C02", "C03"], "hero.eyebrow": ["C02"], "hero.h1": ["C01"], "hero.lede": ["C02", "C03"], "hero.stats": ["C04", "C05", "C06"], "hero.editions": ["D19", "D01", "C02", "C37", "W01"],
+    "meta.title": ["C01"], "meta.description": ["C02", "C03"], "hero.eyebrow": ["C02"], "hero.h1": ["C01"], "hero.lede": ["C02", "C03"], "hero.stats": ["C04", "C05", "C06"],
     "problem.p": ["X01", "C07"], "problem.fig.*": ["C03"],
     "arch.h2": ["C04"], "arch.p": ["C04"], "arch.caption": ["C13", "C16"], "arch.nodes.t1.*": ["C08"], "arch.nodes.t2.*": ["C09", "C10"], "arch.nodes.t3.*": ["C11", "C12"], "arch.nodes.t4.*": ["C13", "C18"],
     "arch.leadByRisk": ["C16"], "arch.captions": ["C08", "C09", "C11", "C14", "C13"], "arch.gateCaption.*": ["C13", "C15", "C18"], "arch.twin": ["C08", "C09", "C11", "C12", "C13", "C16", "C45"],
@@ -244,7 +240,7 @@
     "faq.items": ["C38", "C40", "C41", "C42", "C43", "C17", "C45"],
     "footer.facts": ["C44"]
   },
-  "_nonclaims": ["meta.*", "hero.ctaPrimary", "hero.ctaSecondary", "hero.editionsLink", "*.kicker", "*.h2", "arch.riskLabel", "arch.risks.*", "arch.tier",
+  "_nonclaims": ["meta.*", "hero.ctaPrimary", "hero.ctaSecondary", "*.kicker", "*.h2", "arch.riskLabel", "arch.risks.*", "arch.tier",
     "arch.run", "arch.pause", "arch.step", "arch.reset", "arch.nodes.t4.on", "arch.nodes.t4.off", "arch.twinTitle", "arch.caption",
     "routing.tableCaption", "routing.cols", "routing.codexCols", "gates.cols", "gates.required", "gates.notRun", "gates.caption", "gates.tableCaption",
     "providers.claudeTitle", "providers.codexTitle", "providers.caption", "lifecycle.caption", "helpers.moreTitle",

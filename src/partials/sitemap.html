@@ -1,0 +1,17 @@
+<nav class="sn-foot" aria-label="{{a:site.footLabel}}">
+    <ul class="sn-foot-cols">
+      <li><a href="{{siteHref}}"{{#if $nav.isProject}} aria-current="page"{{/if}}>{{t:meta.brand}}</a></li>
+      <li><span class="sn-foot-group">{{t:site.orch}}</span>
+        <ul>
+          <li><a href="{{orchHref}}" aria-label="{{a:site.orchOverviewLabel}}"{{#if $nav.isOverview}} aria-current="page"{{/if}}>{{t:site.orchPages.0}}</a></li>
+          <li><a href="{{workflowHref}}"{{#if $nav.isWorkflow}} aria-current="page"{{/if}}>{{t:site.orchPages.1}}</a></li>
+          <li><a href="{{guideHref}}"{{#if $nav.isGuide}} aria-current="page"{{/if}}>{{t:site.orchPages.2}}</a></li>
+        </ul>
+      </li>
+      <li><span class="sn-foot-group">{{t:site.doc}}</span>
+        <ul>
+          <li><a href="{{docHref}}" aria-label="{{a:site.docOverviewLabel}}"{{#if $nav.isDoc}} aria-current="page"{{/if}}>{{t:site.docPages.0}}</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>

@@ -1,25 +1,38 @@
 // Browser QA over the local static server (scripts/serve.mjs) with Playwright and the system Chrome.
-// Usage: node scripts/browser-qa.mjs [--only layout,axe,motion,keyboard,loop-motion,font,requests]
+// Usage: node scripts/browser-qa.mjs [--only layout,shell,targets,axe,motion,keyboard,loop-motion,font,clearance,editions,redirects,fragments,saved-lang,requests]
 // Env: DIST (default dist), CHROME_PATH (default /usr/bin/google-chrome).
-// Pages: /, /ko/, /workflow/, /ko/workflow/, /guide/, /ko/guide/, /cc-doc/, /ko/cc-doc/. Checks (light + dark,
-// every page, 390 + 1280 px unless noted):
+// Content pages: /, /ko/ (project), /cc-orch/, /ko/cc-orch/ (overview), /cc-orch/workflow/, /ko/cc-orch/workflow/,
+// /cc-orch/guide/, /ko/cc-orch/guide/, /cc-doc/, /ko/cc-doc/. Redirect pages: /workflow/, /guide/, /ko/workflow/,
+// /ko/guide/ (only opened by the redirects check). Checks (light + dark, every content page, 390 + 1280 px unless noted):
 //   layout    no horizontal scroll (before and after scrolling through the page); the theme applied;
-//             home pages: at least one a[href="workflow/"], a[href="guide/"] and a[href="cc-doc/"] visible (non-zero
-//             box) and focusable, and one a[href="cc-doc/"] inside a <nav> visible and focusable that resolves to the
-//             same-language cc-doc page; guide pages: the same for a[href="../"] and a[href="../workflow/"];
-//             cc-doc pages: a[href="../"]
+//             guide pages: a[href="../"] and a[href="../workflow/"] visible (non-zero box) and focusable; cc-doc
+//             pages: a[href="../"]; at 390 px the top bar (header.topbar) is at most 64 px high
+//   shell     the brand link (header.topbar a.brand) to the same-language project page and, inside nav.sn-eds, a link
+//             to each edition overview, visible and focusable; cc-orch pages: the three nav.sn-pages tabs too
+//   targets   (light only) every displayed link in .topbar, .sn-sub and .sn-foot is at least 44 px high
 //   axe       axe-core: 0 violations
 //   motion    prefers-reduced-motion: reduce -> document.getAnimations().length === 0 after load,
 //             after scrolling, and after a runtime switch to reduce
 //   keyboard  every control inside a figure is reached with Tab and changes the figure when operated
-//             with the keyboard alone; every interactive figure has a text twin; home and workflow pages
-//             have at least one figure with controls (the guide and cc-doc pages have no figure); the workflow
-//             pages have fig-loop
+//             with the keyboard alone; every interactive figure has a text twin; overview and workflow pages
+//             have at least one figure with controls (the project, guide and cc-doc pages have no figure); the
+//             workflow pages have fig-loop
 //   loop-motion  workflow pages, motion enabled: fig-loop Run (keyboard) autoplays (>= 2 stage changes
 //             within 2 x data-interval) and reads Pause; Pause, the global "Pause motion" button and a
 //             runtime switch to prefers-reduced-motion: reduce each stop it for 2 intervals
 //   font      KO pages: document.fonts.check('400 16px SCDream') and a loaded FontFace SCDream 400;
 //             KO font transfer bytes; EN pages request no font
+//   clearance overview EN and KO, 1280 px: top bar and sub-bar are sticky, and after opening #gates the section's
+//             heading top is at or below the bottom of the sticky block
+//   editions  project pages, 390 + 1280 px: the cc-orch and cc-doc edition links (keyboard) land on the same-language
+//             edition overview
+//   redirects each old address ends on its new one (/workflow/ -> /cc-orch/workflow/, ... and
+//             /workflow/?lang=en#tips -> /cc-orch/workflow/?lang=en#tips)
+//   fragments /#how -> /cc-orch/#how, /#how-title -> /cc-orch/#how-title, /ko/#faq -> /ko/cc-orch/#faq; /#compare and
+//             /#main stay on /; /cc-doc/#tbl-editions shows that element in the viewport below the sticky block
+//             (390 + 1280 px)
+//   saved-lang with Korean saved by the EN project page's language link, each EN content URL ends on its KO twin and
+//             /#how on /ko/cc-orch/#how; each EN content URL with ?lang=en stays EN
 //   requests  every request the browser makes stays on the server origin
 // Prints "BROWSER <check> PASS|FAIL <detail>". Exit 0 all PASS, 1 any FAIL, 77 environment
 // unavailable (no Chrome, or no loopback socket).
@@ -59,21 +72,26 @@ try {
   throw e;
 }
 const ORIGIN = new URL(server.url).origin;
-// [tag, lang, url, page kind: home | workflow | guide | doc]
-const PAGES = [
-  ['/', 'en', server.url, 'home'],
-  ['/ko/', 'ko', server.url + 'ko/', 'home'],
-  ['/workflow/', 'en', server.url + 'workflow/', 'workflow'],
-  ['/ko/workflow/', 'ko', server.url + 'ko/workflow/', 'workflow'],
-  ['/guide/', 'en', server.url + 'guide/', 'guide'],
-  ['/ko/guide/', 'ko', server.url + 'ko/guide/', 'guide'],
-  ['/cc-doc/', 'en', server.url + 'cc-doc/', 'doc'],
-  ['/ko/cc-doc/', 'ko', server.url + 'ko/cc-doc/', 'doc'],
-];
-// links each page kind must offer visible and focusable at every width
-const NAV_LINKS = { home: ['workflow/', 'guide/', 'cc-doc/'], workflow: [], guide: ['../', '../workflow/'], doc: ['../'] };
+// the EN route of each page kind below the server root (the KO twin is ko/<route>)
+const ROUTES = { project: '', overview: 'cc-orch/', workflow: 'cc-orch/workflow/', guide: 'cc-orch/guide/', doc: 'cc-doc/' };
+// [tag, lang, url, page kind: project | overview | workflow | guide | doc]
+const PAGES = Object.entries(ROUTES).flatMap(([kind, r]) => [
+  ['/' + r, 'en', server.url + r, kind],
+  ['/ko/' + r, 'ko', server.url + 'ko/' + r, kind],
+]);
+// same-language link targets on each page kind (KO pages use the same values inside /ko/)
+const LINKS = {
+  project: { project: './', overview: 'cc-orch/', workflow: 'cc-orch/workflow/', guide: 'cc-orch/guide/', doc: 'cc-doc/' },
+  overview: { project: '../', overview: './', workflow: 'workflow/', guide: 'guide/', doc: '../cc-doc/' },
+  workflow: { project: '../../', overview: '../', workflow: './', guide: '../guide/', doc: '../../cc-doc/' },
+  guide: { project: '../../', overview: '../', workflow: '../workflow/', guide: './', doc: '../../cc-doc/' },
+  doc: { project: '../', overview: '../cc-orch/', workflow: '../cc-orch/workflow/', guide: '../cc-orch/guide/', doc: './' },
+};
+const ORCH_KINDS = new Set(['overview', 'workflow', 'guide']);
+// in-page links each page kind must offer visible and focusable at every width (the shell links are checked by "shell")
+const NAV_LINKS = { project: [], overview: [], workflow: [], guide: ['../', '../workflow/'], doc: ['../'] };
 // page kinds that must have at least one figure with controls
-const FIGURE_KINDS = new Set(['home', 'workflow']);
+const FIGURE_KINDS = new Set(['overview', 'workflow']);
 // fig-loop button labels, from the workflow content (the template prints them verbatim)
 const LOOP_LABELS = Object.fromEntries(
   ['en', 'ko'].map((l) => {
@@ -128,8 +146,8 @@ try {
     args: ['--headless=new', '--no-sandbox', '--disable-gpu'],
   });
 
-  // ---- layout + axe --------------------------------------------------------------------------
-  if (want('layout') || want('axe')) {
+  // ---- layout + shell + targets + axe -------------------------------------------------------
+  if (want('layout') || want('shell') || want('targets') || want('axe')) {
     for (const [name, , url, kind] of PAGES) {
       for (const theme of THEMES) {
         for (const width of WIDTHS) {
@@ -160,7 +178,7 @@ try {
                   (errors.length ? `; page errors: ${errors.slice(0, 3).join(' | ')}` : ''),
               );
               for (const href of NAV_LINKS[kind]) {
-                // home pages link to the workflow and guide pages, guide pages to home and workflow: visible and focusable at every width
+                // guide pages link to the cc-orch overview and the workflow page, cc-doc pages to the project page: visible and focusable at every width
                 const link = await page.evaluate((href) => {
                   const all = [...document.querySelectorAll(`a[href="${href}"]`)];
                   const ok = all.filter((a) => {
@@ -175,23 +193,63 @@ try {
                 }, href);
                 report('layout', link.ok > 0, `${tag}: ${link.ok} of ${link.total} a[href="${href}"] visible and focusable`);
               }
-              if (kind === 'home') {
-                // the cc-doc entry inside a navigation landmark (the top-bar list is hidden below 860 px), same language
-                const want = new URL('cc-doc/', url).href;
-                const nav = await page.evaluate((want) => {
-                  const all = [...document.querySelectorAll('nav a[href="cc-doc/"]')];
-                  const ok = all.filter((a) => {
-                    const r = a.getBoundingClientRect();
-                    if (!a.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || !(r.width > 0 && r.height > 0)) return false;
-                    a.focus();
-                    const focused = document.activeElement === a && a.tabIndex >= 0;
-                    a.blur();
-                    return focused && a.href === want;
-                  });
-                  return { total: all.length, ok: ok.length };
-                }, want);
-                report('layout', nav.ok > 0, `${tag}: ${nav.ok} of ${nav.total} nav a[href="cc-doc/"] visible, focusable and resolving to ${new URL(want).pathname}`);
+              if (width === 390) {
+                const h = await page.evaluate(() => document.querySelector('header.topbar')?.getBoundingClientRect().height ?? null);
+                report('layout', h !== null && h <= 64, `${tag}: top bar ${h === null ? 'MISSING (header.topbar)' : `${Math.round(h * 10) / 10} px high`} (max 64)`);
               }
+            }
+            if (want('shell')) {
+              const L = LINKS[kind];
+              const abs = (h) => new URL(h, url).href;
+              const wantLinks = {
+                brand: abs(L.project),
+                eds: [abs(L.overview), abs(L.doc)],
+                tabs: ORCH_KINDS.has(kind) ? [abs(L.overview), abs(L.workflow), abs(L.guide)] : [],
+              };
+              const got = await page.evaluate((w) => {
+                const usable = (a) => {
+                  const r = a.getBoundingClientRect();
+                  if (!a.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || !(r.width > 0 && r.height > 0)) return false;
+                  a.focus();
+                  const focused = document.activeElement === a && a.tabIndex >= 0;
+                  a.blur();
+                  return focused;
+                };
+                const count = (sel, href) => [...document.querySelectorAll(sel)].filter((a) => a.href === href && usable(a)).length;
+                return {
+                  brand: count('header.topbar a.brand', w.brand),
+                  eds: w.eds.map((h) => count('nav.sn-eds a', h)),
+                  tabs: w.tabs.map((h) => count('nav.sn-pages a', h)),
+                };
+              }, wantLinks);
+              const path_ = (h) => new URL(h).pathname;
+              report('shell', got.brand > 0, `${tag}: brand link to ${path_(wantLinks.brand)} visible and focusable (${got.brand})`);
+              wantLinks.eds.forEach((h, i) => report('shell', got.eds[i] > 0, `${tag}: nav.sn-eds link to ${path_(h)} visible and focusable (${got.eds[i]})`));
+              wantLinks.tabs.forEach((h, i) => report('shell', got.tabs[i] > 0, `${tag}: nav.sn-pages tab to ${path_(h)} visible and focusable (${got.tabs[i]})`));
+            }
+            if (want('targets') && theme === 'light') {
+              const t = await page.evaluate(() => {
+                const missing = ['.topbar', '.sn-sub', '.sn-foot'].filter((sel) => !document.querySelector(sel));
+                const shown = { '.topbar': 0, '.sn-sub': 0, '.sn-foot': 0 };
+                const small = [];
+                for (const sel of Object.keys(shown)) {
+                  for (const a of document.querySelectorAll(`${sel} a[href]`)) {
+                    const r = a.getBoundingClientRect();
+                    if (!a.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || !(r.width > 0 && r.height > 0)) continue;
+                    shown[sel]++;
+                    if (Math.round(r.height * 100) / 100 < 44) small.push(`${sel} "${a.textContent.trim().slice(0, 24)}" ${Math.round(r.height * 10) / 10} px`);
+                  }
+                }
+                return { missing, shown, small };
+              });
+              const ok = !t.missing.length && t.shown['.topbar'] > 0 && t.shown['.sn-foot'] > 0 && !t.small.length;
+              report(
+                'targets',
+                ok,
+                `${tag}: displayed links ${Object.entries(t.shown).map(([k, v]) => `${k} ${v}`).join(', ')}; ${t.small.length} below 44 px` +
+                  (t.small.length ? `: ${t.small.slice(0, 5).join('; ')}` : '') +
+                  (t.missing.length ? `; MISSING ${t.missing.join(', ')}` : ''),
+              );
             }
             if (want('axe')) {
               const res = await new AxeBuilder({ page }).analyze();
@@ -487,6 +545,159 @@ try {
       }
     }
   }
+  // ---- fragment clearance under the sticky block (overview, 1280 px) --------------------------
+  if (want('clearance')) {
+    for (const [name, , url, kind] of PAGES) {
+      if (kind !== 'overview') continue;
+      const tag = `${name}#gates 1280`;
+      const { ctx, page } = await newPage({ viewport: { width: 1280, height: 844 }, colorScheme: 'light', reducedMotion: 'reduce' });
+      try {
+        await page.goto(url + '#gates', { waitUntil: 'load' });
+        await settle(page);
+        const c = await page.evaluate(stickyClearance, '#gates h2');
+        const ok = !c.error && c.stuck.topbar && c.stuck.sub && c.scrollY > 0 && c.top >= c.bottom - 0.5;
+        report(
+          'clearance',
+          ok,
+          `${tag}: ${c.error || `top bar sticky ${c.stuck.topbar}, sub-bar sticky ${c.stuck.sub}; scrollY ${c.scrollY}; heading top ${c.top} px, sticky block bottom ${c.bottom} px`}`,
+        );
+      } catch (e) {
+        report('clearance', false, `${tag}: ${String(e.message || e).split('\n')[0]}`);
+      } finally {
+        await ctx.close();
+      }
+    }
+  }
+
+  // ---- edition links on the project pages ------------------------------------------------------
+  if (want('editions')) {
+    for (const [name, lang, url, kind] of PAGES) {
+      if (kind !== 'project') continue;
+      for (const width of WIDTHS) {
+        for (const ed of ['overview', 'doc']) {
+          const target = new URL(LINKS.project[ed], url).href;
+          const tag = `${name} ${width}: edition link to ${new URL(target).pathname}`;
+          const { ctx, page } = await newPage({ viewport: { width, height: 844 }, colorScheme: 'light', reducedMotion: 'reduce' });
+          try {
+            await page.goto(url, { waitUntil: 'load' });
+            const marked = await page.evaluate((target) => {
+              const a = [...document.querySelectorAll('nav.sn-eds a')].find((x) => {
+                const r = x.getBoundingClientRect();
+                return x.href === target && x.checkVisibility({ visibilityProperty: true, opacityProperty: true }) && r.width > 0 && r.height > 0;
+              });
+              if (a) a.setAttribute('data-qa-ed', '');
+              return !!a;
+            }, target);
+            if (!marked) {
+              report('editions', false, `${tag}: no displayed nav.sn-eds link`);
+              continue;
+            }
+            await page.focus('[data-qa-ed]');
+            await Promise.all([page.waitForURL((u) => u.href !== url, { waitUntil: 'load', timeout: 10000 }), page.keyboard.press('Enter')]);
+            const got = await page.evaluate(() => ({ href: location.href, lang: document.documentElement.lang }));
+            report('editions', got.href === target && got.lang === lang, `${tag} (Enter) lands on ${new URL(got.href).pathname}, lang ${got.lang} (want ${new URL(target).pathname}, ${lang})`);
+          } catch (e) {
+            report('editions', false, `${tag}: ${String(e.message || e).split('\n')[0]}`);
+          } finally {
+            await ctx.close();
+          }
+        }
+      }
+    }
+  }
+
+  // ---- redirect pages and old overview fragments --------------------------------------------
+  const REDIRECT_CASES = [
+    ['workflow/', 'cc-orch/workflow/'],
+    ['guide/', 'cc-orch/guide/'],
+    ['ko/workflow/', 'ko/cc-orch/workflow/'],
+    ['ko/guide/', 'ko/cc-orch/guide/'],
+    ['workflow/?lang=en#tips', 'cc-orch/workflow/?lang=en#tips'],
+  ];
+  const FRAGMENT_CASES = [
+    ['#how', 'cc-orch/#how'],
+    ['#how-title', 'cc-orch/#how-title'],
+    ['ko/#faq', 'ko/cc-orch/#faq'],
+    ['#compare', '#compare'],
+    ['#main', '#main'],
+  ];
+  if (want('redirects') || want('fragments')) {
+    const cases = [...(want('redirects') ? REDIRECT_CASES.map((c) => ['redirects', ...c]) : []), ...(want('fragments') ? FRAGMENT_CASES.map((c) => ['fragments', ...c]) : [])];
+    for (const [check, from, to] of cases) {
+      const { ctx, page } = await newPage({ colorScheme: 'light', reducedMotion: 'reduce' });
+      try {
+        const got = await land(page, from, to);
+        report(check, got === '/' + to, `/${from} ends on ${got} (want /${to})`);
+      } catch (e) {
+        report(check, false, `/${from}: ${String(e.message || e).split('\n')[0]}`);
+      } finally {
+        await ctx.close();
+      }
+    }
+  }
+  if (want('fragments')) {
+    for (const width of WIDTHS) {
+      const tag = `/cc-doc/#tbl-editions ${width}`;
+      const { ctx, page } = await newPage({ viewport: { width, height: 844 }, colorScheme: 'light', reducedMotion: 'reduce' });
+      try {
+        await page.goto(server.url + 'cc-doc/#tbl-editions', { waitUntil: 'load' });
+        await settle(page);
+        const c = await page.evaluate(stickyClearance, '#tbl-editions');
+        const ok = !c.error && c.stuck.topbar && c.shown && c.top >= c.bottom - 0.5 && c.top < c.innerHeight;
+        report(
+          'fragments',
+          ok,
+          `${tag}: ${c.error || `element displayed ${c.shown}, top ${c.top} px (sticky block bottom ${c.bottom} px, viewport ${c.innerHeight} px)`}`,
+        );
+      } catch (e) {
+        report('fragments', false, `${tag}: ${String(e.message || e).split('\n')[0]}`);
+      } finally {
+        await ctx.close();
+      }
+    }
+  }
+
+  // ---- saved language ------------------------------------------------------------------------
+  if (want('saved-lang')) {
+    const { ctx, page } = await newPage({ colorScheme: 'light', reducedMotion: 'reduce' });
+    // save Korean the way a visitor does: the EN project page's language link (keyboard)
+    const saveKo = async () => {
+      await page.goto(server.url + '?lang=en', { waitUntil: 'load' });
+      await page.focus('a[data-lang-link="ko"]');
+      await Promise.all([page.waitForURL((u) => new URL(u).pathname === '/ko/', { waitUntil: 'load', timeout: 10000 }), page.keyboard.press('Enter')]);
+      return page.evaluate(() => {
+        try {
+          return localStorage.getItem('ppk-lang');
+        } catch {
+          return null;
+        }
+      });
+    };
+    const cases = [
+      ...Object.values(ROUTES).map((r) => [r, 'ko/' + r]),
+      ['#how', 'ko/cc-orch/#how'],
+      ...Object.values(ROUTES).map((r) => [r + '?lang=en', r + '?lang=en']),
+    ];
+    try {
+      for (const [from, to] of cases) {
+        try {
+          const saved = await saveKo();
+          if (saved !== 'ko') {
+            report('saved-lang', false, `/${from}: saving Korean through the language link left ppk-lang=${saved}`);
+            continue;
+          }
+          const got = await land(page, from, to);
+          const lang = await page.evaluate(() => document.documentElement.lang);
+          const wantLang = to.startsWith('ko/') ? 'ko' : 'en';
+          report('saved-lang', got === '/' + to && lang === wantLang, `Korean saved: /${from} ends on ${got}, lang ${lang} (want /${to}, ${wantLang})`);
+        } catch (e) {
+          report('saved-lang', false, `/${from}: ${String(e.message || e).split('\n')[0]}`);
+        }
+      }
+    } finally {
+      await ctx.close();
+    }
+  }
 } finally {
   if (browser) await browser.close().catch(() => {});
   await server.close();
@@ -494,6 +705,55 @@ try {
 
 if (want('requests')) {
   report('requests', foreign.size === 0, `${requestCount} request(s) observed, ${foreign.size} to another origin${foreign.size ? ': ' + [...foreign].slice(0, 5).join(', ') : ''}`);
+}
+
+// open /<from> below the server root and wait until the URL is /<to> (redirects run by script); then wait for any later
+// redirect and return the final path + query + hash
+async function land(page, from, to) {
+  const want = '/' + to;
+  const at = () => {
+    const u = new URL(page.url());
+    return u.pathname + u.search + u.hash;
+  };
+  try {
+    await page.goto(server.url + from, { waitUntil: 'load' });
+  } catch (e) {
+    if (!/interrupted|ERR_ABORTED/.test(String(e.message || e))) throw e;
+  }
+  try {
+    await page.waitForURL(() => at() === want, { waitUntil: 'load', timeout: 10000 });
+  } catch {
+    // reported by the caller from the final URL
+  }
+  await settle(page, 1000);
+  return at();
+}
+
+// in the page: the bottom of the sticky block (the sticky or fixed self-or-ancestors of header.topbar and .sn-sub) and the
+// top of the element `sel`
+function stickyClearance(sel) {
+  const stickyOf = (q) => {
+    for (let e = document.querySelector(q); e && e !== document.documentElement; e = e.parentElement) {
+      const p = getComputedStyle(e).position;
+      if (p === 'sticky' || p === 'fixed') return e;
+    }
+    return null;
+  };
+  const el = document.querySelector(sel);
+  if (!el) return { error: `no ${sel}` };
+  if (!document.querySelector('header.topbar')) return { error: 'no header.topbar' };
+  const s = { topbar: stickyOf('header.topbar'), sub: document.querySelector('.sn-sub') ? stickyOf('.sn-sub') : null };
+  const blocks = [s.topbar, s.sub].filter(Boolean);
+  const r = el.getBoundingClientRect();
+  const round = (x) => Math.round(x * 10) / 10;
+  return {
+    stuck: { topbar: !!s.topbar, sub: !!s.sub },
+    bottom: blocks.length ? round(Math.max(...blocks.map((b) => b.getBoundingClientRect().bottom))) : 0,
+    top: round(r.top),
+    shown: el.checkVisibility({ visibilityProperty: true, opacityProperty: true }) && r.width > 0 && r.height > 0,
+    scrollY: Math.round(scrollY),
+    innerHeight,
+  };
 }
 
 async function focusChanges(page, fi, id) {

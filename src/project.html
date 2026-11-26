@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="{{lang}}" data-theme-default="system">
+<head>
+<meta charset="utf-8">
+<script>{{headScript}}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{a:meta.title}}</title>
+<meta name="description" content="{{a:meta.description}}">
+<link rel="alternate" hreflang="en" href="{{hrefEn}}">
+<link rel="alternate" hreflang="ko" href="{{hrefKo}}">
+<link rel="icon" href="{{root}}favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="{{root}}assets/css/tokens.css">
+<link rel="stylesheet" href="{{root}}assets/site.css">
+{{#if $isKo}}<link rel="stylesheet" href="{{root}}assets/ko-font.css">
+{{/if}}<script src="{{root}}assets/site.js" defer></script>
+</head>
+<body id="top" class="gd pj">
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+</svg>
+<a class="skip-link" href="#main">{{t:meta.skip}}</a>
+{{> header}}
+<div class="sn-sub">
+  <div class="wrap">
+    {{> sub}}
+  </div>
+</div>
+
+<main id="main">
+  <!-- 1. hero: the project and its two editions, one button each -->
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div class="hero-copy pj-hero">
+        <p class="eyebrow">{{t:hero.eyebrow}}</p>
+        <h1 id="hero-title">{{t:hero.h1}}</h1>
+        <p class="lede band">{{t:hero.lede}}</p>
+        <div class="btn-row hero-cta">
+          <a class="btn btn-primary" href="{{orchHref}}">{{t:hero.ctaOrch}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-primary" href="{{docHref}}">{{t:hero.ctaDoc}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. which edition fits: two cards of the same shape -->
+  <section class="section" id="editions" aria-labelledby="editions-title">
+    <div class="wrap">
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">01</span><span class="kicker-sep"> · </span>{{t:editions.kicker}}</p>
+          <h2 id="editions-title">{{t:editions.h2}}</h2>
+          <p class="sub">{{t:editions.p}}</p>
+        </div>
+        <div class="pj-eds">
+          <article class="cmp-card pj-ed rv" aria-labelledby="pj-ed-orch">
+            <p class="tag">{{t:editions.cards.0.tag}}</p>
+            <h3 id="pj-ed-orch">{{t:editions.cards.0.name}}</h3>
+            <p class="pj-ed-title">{{t:editions.cards.0.title}}</p>
+            <p class="pj-ed-text">{{t:editions.cards.0.text}}</p>
+            <h4 class="pj-ed-sub">{{t:editions.fitsTitle}}</h4>
+            <ul class="wf-tips gd-tips pj-fits">
+              {{#each editions.cards.0.fits}}<li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>{{t:.}}</span></li>
+              {{/each}}
+            </ul>
+            <h4 class="pj-ed-sub">{{t:editions.pagesTitle}}</h4>
+            <ul class="pj-pages">
+              <li><a href="{{orchHref}}" aria-label="{{a:site.orchOverviewLabel}}">{{t:site.orchPages.0}}</a><span>{{t:editions.cards.0.pages.0.text}}</span></li>
+              <li><a href="{{workflowHref}}">{{t:site.orchPages.1}}</a><span>{{t:editions.cards.0.pages.1.text}}</span></li>
+              <li><a href="{{guideHref}}">{{t:site.orchPages.2}}</a><span>{{t:editions.cards.0.pages.2.text}}</span></li>
+            </ul>
+            <div class="btn-row pj-ed-cta">
+              <a class="btn btn-secondary" href="{{orchHref}}">{{t:editions.cards.0.cta}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            </div>
+          </article>
+          <article class="cmp-card pj-ed rv" aria-labelledby="pj-ed-doc">
+            <p class="tag">{{t:editions.cards.1.tag}}</p>
+            <h3 id="pj-ed-doc">{{t:editions.cards.1.name}}</h3>
+            <p class="pj-ed-title">{{t:editions.cards.1.title}}</p>
+            <p class="pj-ed-text">{{t:editions.cards.1.text}}</p>
+            <h4 class="pj-ed-sub">{{t:editions.fitsTitle}}</h4>
+            <ul class="wf-tips gd-tips pj-fits">
+              {{#each editions.cards.1.fits}}<li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>{{t:.}}</span></li>
+              {{/each}}
+            </ul>
+            <h4 class="pj-ed-sub">{{t:editions.pagesTitle}}</h4>
+            <ul class="pj-pages">
+              <li><a href="{{docHref}}" aria-label="{{a:site.docOverviewLabel}}">{{t:site.docPages.0}}</a><span>{{t:editions.cards.1.pages.0.text}}</span></li>
+            </ul>
+            <div class="btn-row pj-ed-cta">
+              <a class="btn btn-secondary" href="{{docHref}}">{{t:editions.cards.1.cta}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. the two editions side by side: Table 1 -->
+  <section class="section" id="compare" aria-labelledby="compare-title">
+    <div class="wrap">
+      <div class="card">
+        <div class="section-head rv">
+          <p class="kicker"><span class="disc">02</span><span class="kicker-sep"> · </span>{{t:compare.kicker}}</p>
+          <h2 id="compare-title">{{t:compare.h2}}</h2>
+        </div>
+        <div class="tscroll" role="region" tabindex="0" aria-label="{{a:compare.tableCaption}}">
+          <table class="tbl" id="tbl-editions">
+            <caption>{{cap:compare.tableCaption}}</caption>
+            <thead><tr>{{#each compare.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
+            <tbody>
+              {{#each compare.rows}}<tr><th scope="row">{{t:.label}}</th><td>{{t:.orch}}</td><td>{{t:.doc}}</td></tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    {{> sitemap}}
+  </div>
+  <div class="wrap foot-grid">
+    <div class="foot-main">
+      <a class="brand" href="{{siteHref}}" aria-label="{{a:site.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
+      <p>{{t:footer.facts}}</p>
+      <p>{{t:footer.privacy}}</p>
+      {{#if footer.fontCredit}}<p class="foot-credit">{{#if footer.fontLink?}}<a href="{{u:footer.fontLink}}">{{t:footer.fontCredit}}</a>{{else}}{{t:footer.fontCredit}}{{/if}}</p>
+      {{/if}}
+    </div>
+    <div class="foot-side">
+      <h2 class="foot-title">{{t:footer.linksTitle}}</h2>
+      <ul class="foot-links">
+        {{#each footer.links}}<li><a href="{{u:.href}}">{{t:.text}}</a></li>
+        {{/each}}
+      </ul>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

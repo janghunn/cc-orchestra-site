@@ -1,0 +1,314 @@
+{
+  "meta": {
+    "title": "cc-orchestra: 한 프로젝트, 두 가지 판",
+    "description": "cc-orchestra에는 두 가지 판이 있습니다. cc-orch는 Linux 서버에서 Claude Code와 Codex CLI로 코드·연구 작업을 진행하고 cc-doc은 Windows 11에서 문서 작업을 맡습니다. 이 페이지는 두 판을 소개하고 각 판의 페이지로 안내합니다.",
+    "langName": "한국어",
+    "otherLangName": "English",
+    "otherLangLabel": "Read this page in English",
+    "skip": "본문으로 건너뛰기",
+    "brand": "cc-orchestra",
+    "themeToDark": "어두운 테마로 전환",
+    "themeToLight": "밝은 테마로 전환"
+  },
+  "hero": {
+    "eyebrow": "한 프로젝트, 두 가지 판",
+    "h1": "코드 작업은 harness로, <em>문서 작업은 desk로.</em>",
+    "lede": "cc-orchestra에는 두 가지 판이 있고 각 판의 이름은 그 판의 명령에서 따왔습니다. <strong>cc-orch</strong>는 Linux 서버에서 코드 작업 요청을 작업 단위로 나누고 계획·구현·검증에 Claude Code와 Codex CLI를 연결합니다. <strong>cc-doc</strong>은 Windows 11에서 문서 작업용 Claude Code 세션 하나를 열고 desk 에이전트 하나가 사본으로 작업합니다.",
+    "ctaOrch": "코드·연구 작업용 cc-orch",
+    "ctaDoc": "문서 작업용 cc-doc"
+  },
+  "editions": {
+    "kicker": "두 가지 판",
+    "h2": "내 작업에 맞는 판",
+    "p": "두 판은 실행 환경과 작업 방식이 다르고 이 사이트에서도 각자의 페이지에서 설명합니다.",
+    "fitsTitle": "이런 경우에 맞습니다",
+    "pagesTitle": "페이지",
+    "cards": [
+      {
+        "name": "cc-orch",
+        "tag": "Linux 서버",
+        "title": "코드·연구 작업용",
+        "text": "orchestrator가 요청을 작업 단위로 나누고 작업마다 lead 하나가 맡습니다. 기본 모드에서는 Codex가 코드를 작성하고, Claude lead가 실제 diff를 읽으며, 별도의 Codex gate가 결과를 verify하고 review합니다.",
+        "fits": [
+          "Linux 서버에서 코드를 다루거나 연구 프로젝트를 진행합니다.",
+          "여러 작업을 동시에 굴리거나, 검증을 믿고 맡기고 싶거나, 몇 주씩 이어지는 일을 합니다."
+        ],
+        "pages": [
+          {
+            "text": "아키텍처, 라우팅, gate, 보조 도구."
+          },
+          {
+            "text": "한 연구자가 논문 작업을 작업 단위로 진행하는 방식."
+          },
+          {
+            "text": "무엇이고 언제 쓸 만한지."
+          }
+        ],
+        "cta": "cc-orch 보기"
+      },
+      {
+        "name": "cc-doc",
+        "tag": "Windows 11",
+        "title": "문서 작업용",
+        "text": "Claude Code 세션 하나에서 desk 에이전트 하나가 한글, Word, PowerPoint 문서를 다룹니다. 그 세션만의 작업 폴더에 사본을 만들어 작업하고 결과는 아직 쓰이지 않은 이름으로 돌려줍니다. write guard는 Claude Code의 파일 쓰기 도구와 도구 서버 호출이 지정한 경로를 확인해 작업 폴더 밖이면 거부합니다. 이 guard에는 문서로 밝혀 둔 한계가 있습니다.",
+        "fits": [
+          "Windows 11에서 한글, Word, PowerPoint 문서를 작성합니다.",
+          "원본은 제자리에 두고 작업은 사본에서 하기를 원합니다."
+        ],
+        "pages": [
+          {
+            "text": "desk, 사본 작업, write guard, 문서 종류별 처리."
+          }
+        ],
+        "cta": "cc-doc 보기"
+      }
+    ]
+  },
+  "compare": {
+    "kicker": "나란히 보기",
+    "h2": "두 판 비교",
+    "tableCaption": "표 1. cc-orch와 cc-doc 비교",
+    "cols": [
+      "항목",
+      "cc-orch",
+      "cc-doc"
+    ],
+    "rows": [
+      {
+        "label": "실행 환경",
+        "orch": "Linux, bash와 tmux",
+        "doc": "Windows 11"
+      },
+      {
+        "label": "하는 일",
+        "orch": "코드 작업 요청을 작업 단위로 나눠 계획·구현·검증까지 진행합니다. 연구 프로젝트의 실험과 원고 작업도 이런 작업으로 진행합니다.",
+        "doc": "한글, Word, PowerPoint 파일을 다루는 문서 작업"
+      },
+      {
+        "label": "에이전트",
+        "orch": "네 tier: orchestrator, 작업별 lead, 구현 담당, 검증 담당",
+        "doc": "desk 에이전트 하나"
+      },
+      {
+        "label": "모델",
+        "orch": "두 모델 계열: Claude Code와 Codex CLI",
+        "doc": "Claude: 실행 명령은 Claude Code 세션 하나를 시작하고 desk는 다른 provider를 쓰지 않도록 지시받습니다"
+      },
+      {
+        "label": "파일을 지키는 방식",
+        "orch": "작업마다 별도 git branch를 쓰고 lead는 사용자의 branch에 commit하지 않음",
+        "doc": "사본 작업, 한계가 문서화된 write guard, 덮어쓰지 않는 돌려주기"
+      },
+      {
+        "label": "보고 전 확인",
+        "orch": "작업 위험도에 따라 정해지는 gate",
+        "doc": "desk가 초안을 점검하고 확인하지 못한 것을 밝히도록 지시받음"
+      }
+    ]
+  },
+  "footer": {
+    "facts": "cc-orch 관련 내용은 {{f:sourceDate}} ({{f:sourceSha}}) 기준이고 cc-doc 관련 내용은 {{f:docSourceDate}} ({{f:docSourceSha}}) 기준입니다.",
+    "privacy": "제삼자 요청이 없습니다.",
+    "linksTitle": "기반 도구",
+    "links": [
+      {
+        "text": "Claude Code",
+        "href": "https://github.com/anthropics/claude-code"
+      },
+      {
+        "text": "Codex CLI",
+        "href": "https://github.com/openai/codex"
+      }
+    ],
+    "fontCredit": "이 페이지에는 에스코어가 제공한 에스코어 드림 폰트가 적용되어 있습니다.",
+    "fontLink": "https://s-core.co.kr/company/font2/"
+  },
+  "moved": {
+    "title": "페이지가 옮겨졌습니다",
+    "text": "이 페이지는 cc-orch 아래로 옮겼습니다.",
+    "link": "새 주소로 이동"
+  },
+  "_claims": {
+    "meta.title": [
+      "D19"
+    ],
+    "meta.description": [
+      "D19",
+      "C02",
+      "C37",
+      "W01",
+      "D01",
+      "D02",
+      "D03",
+      "P01"
+    ],
+    "hero.eyebrow": [
+      "D19"
+    ],
+    "hero.h1": [
+      "C02",
+      "D03",
+      "D19"
+    ],
+    "hero.lede": [
+      "D19",
+      "C02",
+      "C37",
+      "D01",
+      "D02",
+      "D03",
+      "D04"
+    ],
+    "editions.p": [
+      "D19",
+      "P01"
+    ],
+    "editions.cards.0.tag": [
+      "C37",
+      "D19"
+    ],
+    "editions.cards.0.title": [
+      "C02",
+      "W01",
+      "D19"
+    ],
+    "editions.cards.0.text": [
+      "C03",
+      "C08",
+      "C09"
+    ],
+    "editions.cards.0.fits.0": [
+      "C02",
+      "C37",
+      "W01"
+    ],
+    "editions.cards.0.fits.1": [
+      "G26"
+    ],
+    "editions.cards.0.pages.0.text": [
+      "P01"
+    ],
+    "editions.cards.0.pages.1.text": [
+      "P01",
+      "W01"
+    ],
+    "editions.cards.0.pages.2.text": [
+      "P01"
+    ],
+    "editions.cards.1.tag": [
+      "D01"
+    ],
+    "editions.cards.1.title": [
+      "D02",
+      "D19"
+    ],
+    "editions.cards.1.text": [
+      "D02",
+      "D03",
+      "D04",
+      "D05",
+      "D06",
+      "D07",
+      "D10",
+      "D11"
+    ],
+    "editions.cards.1.fits.0": [
+      "D01",
+      "D10",
+      "D11"
+    ],
+    "editions.cards.1.fits.1": [
+      "D04"
+    ],
+    "editions.cards.1.pages.0.text": [
+      "P01"
+    ],
+    "compare.rows.0.orch": [
+      "C37"
+    ],
+    "compare.rows.0.doc": [
+      "D01"
+    ],
+    "compare.rows.1.orch": [
+      "C02",
+      "W01"
+    ],
+    "compare.rows.1.doc": [
+      "D02",
+      "D10",
+      "D11"
+    ],
+    "compare.rows.2.orch": [
+      "C04"
+    ],
+    "compare.rows.2.doc": [
+      "D03"
+    ],
+    "compare.rows.3.orch": [
+      "C02",
+      "C05"
+    ],
+    "compare.rows.3.doc": [
+      "D02",
+      "D17"
+    ],
+    "compare.rows.4.orch": [
+      "C24",
+      "C25"
+    ],
+    "compare.rows.4.doc": [
+      "D04",
+      "D05",
+      "D06",
+      "D07"
+    ],
+    "compare.rows.5.orch": [
+      "C13"
+    ],
+    "compare.rows.5.doc": [
+      "D14"
+    ],
+    "footer.facts": [
+      "G32",
+      "D21"
+    ],
+    "footer.privacy": [
+      "G30"
+    ],
+    "footer.fontCredit": [
+      "G31"
+    ],
+    "moved.title": [
+      "P01"
+    ],
+    "moved.text": [
+      "P01"
+    ]
+  },
+  "_nonclaims": [
+    "meta.*",
+    "hero.ctaOrch",
+    "hero.ctaDoc",
+    "*.kicker",
+    "editions.h2",
+    "editions.fitsTitle",
+    "editions.pagesTitle",
+    "editions.cards.0.name",
+    "editions.cards.0.cta",
+    "editions.cards.1.name",
+    "editions.cards.1.cta",
+    "compare.h2",
+    "compare.tableCaption",
+    "compare.cols",
+    "compare.rows.0.label",
+    "compare.rows.1.label",
+    "compare.rows.2.label",
+    "compare.rows.3.label",
+    "compare.rows.4.label",
+    "compare.rows.5.label",
+    "footer.linksTitle",
+    "footer.links",
+    "footer.fontLink",
+    "moved.link"
+  ]
+}

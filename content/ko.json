@@ -1,23 +1,18 @@
 {
   "meta": {
-    "title": "cc-orchestra: 한 모델 계열이 만들고 다른 계열이 확인합니다",
-    "description": "cc-orchestra는 코드 작업 요청을 작업 단위로 나누고, 계획·구현·검증에 Claude Code와 Codex CLI를 연결합니다. 이 페이지는 그 아키텍처를 개관합니다.",
+    "title": "cc-orch: 한 모델 계열이 만들고 다른 계열이 확인합니다",
+    "description": "cc-orch는 코드 작업 요청을 작업 단위로 나누고, 계획·구현·검증에 Claude Code와 Codex CLI를 연결합니다. 이 페이지는 그 아키텍처를 개관합니다.",
     "langName": "한국어",
     "otherLangName": "English",
     "otherLangLabel": "Read this page in English",
     "skip": "본문으로 건너뛰기",
     "brand": "cc-orchestra",
-    "navLabel": "주 메뉴",
-    "footNavLabel": "다른 페이지",
     "nav": [
       "작동 방식",
       "라우팅",
       "Gate",
       "보조 도구",
-      "FAQ",
-      "연구자용 사례",
-      "입문 안내",
-      "cc-doc"
+      "FAQ"
     ],
     "themeToDark": "어두운 테마로 전환",
     "themeToLight": "밝은 테마로 전환",
@@ -29,7 +24,7 @@
   "hero": {
     "eyebrow": "코드 작업을 위한 멀티 에이전트 harness",
     "h1": "두 모델 계열. <em>하나가 만들고, 다른 하나가 읽습니다.</em>",
-    "lede": "cc-orchestra는 코드 작업 요청을 작업 단위로 나누고, 계획·구현·검증에 Claude Code와 Codex CLI를 연결합니다. 기본 모드에서는 Codex가 코드를 작성하고, Claude lead가 실제 diff를 읽으며, 별도의 Codex gate가 결과를 verify하고 review합니다.",
+    "lede": "cc-orch는 코드 작업 요청을 작업 단위로 나누고, 계획·구현·검증에 Claude Code와 Codex CLI를 연결합니다. 기본 모드에서는 Codex가 코드를 작성하고, Claude lead가 실제 diff를 읽으며, 별도의 Codex gate가 결과를 verify하고 review합니다.",
     "ctaPrimary": "작동 방식 보기",
     "ctaSecondary": "두 provider를 쓰는 이유",
     "stats": [
@@ -45,16 +40,14 @@
         "value": "{{f:counts.riskLevels}}",
         "label": "위험도 단계"
       }
-    ],
-    "editions": "cc-orchestra에는 두 가지 판이 있습니다. 이 개요와 연구자용 사례, 입문 안내는 Linux 서버에서 코드·연구 작업을 진행하는 cc-orch를 다룹니다. Windows 11에서 문서 작업을 맡는 판은 cc-doc입니다.",
-    "editionsLink": "cc-doc 알아보기"
+    ]
   },
   "problem": {
     "kicker": "문제",
     "h2": "에이전트는 늘었지만 사각지대는 그대로입니다",
     "p": [
       "코딩 에이전트는 많아졌습니다. 하지만 여러 에이전트를 한 코드베이스에서 조율하고 그 결과를 믿는 일은 쉬워지지 않았습니다.",
-      "자기 작업을 스스로 review하는 모델은 자기 사각지대를 그대로 안고 갑니다. cc-orchestra는 의도적으로 두 번째 모델 계열을 루프에 넣습니다."
+      "자기 작업을 스스로 review하는 모델은 자기 사각지대를 그대로 안고 갑니다. cc-orch는 의도적으로 두 번째 모델 계열을 루프에 넣습니다."
     ],
     "fig": {
       "caption": "그림 1. 자기 review와 다른 계열의 확인 비교.",
@@ -63,7 +56,7 @@
         "코드를 작성합니다",
         "자기 코드를 review합니다"
       ],
-      "rightTitle": "cc-orchestra (기본 모드)",
+      "rightTitle": "cc-orch (기본 모드)",
       "right": [
         "Codex가 코드를 작성합니다",
         "Claude lead가 diff를 읽습니다",
@@ -443,7 +436,7 @@
   "footer": {
     "facts": "이 페이지의 사실 정보는 {{f:sourceDate}} ({{f:sourceSha}}) 기준이며, 프로젝트의 정책 파일에서 가져왔습니다.",
     "privacy": "쿠키, 분석 도구, 제삼자 요청이 없습니다.",
-    "linksTitle": "cc-orchestra가 연결하는 두 CLI",
+    "linksTitle": "cc-orch가 연결하는 두 CLI",
     "links": [
       {
         "text": "Claude Code",
@@ -479,13 +472,6 @@
       "C04",
       "C05",
       "C06"
-    ],
-    "hero.editions": [
-      "D19",
-      "D01",
-      "C02",
-      "C37",
-      "W01"
     ],
     "problem.p": [
       "X01",
@@ -661,7 +647,6 @@
     "meta.*",
     "hero.ctaPrimary",
     "hero.ctaSecondary",
-    "hero.editionsLink",
     "*.kicker",
     "*.h2",
     "arch.riskLabel",

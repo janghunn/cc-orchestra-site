@@ -1,0 +1,25 @@
+{
+  "site": {
+    "homeLabel": "cc-orchestra 홈",
+    "edsLabel": "두 가지 판",
+    "orch": "cc-orch",
+    "doc": "cc-doc",
+    "orchPagesLabel": "cc-orch 페이지",
+    "orchPages": [
+      "개요",
+      "연구자용 사례",
+      "입문 안내"
+    ],
+    "orchOverviewLabel": "cc-orch 개요",
+    "docPages": [
+      "개요"
+    ],
+    "docOverviewLabel": "cc-doc 개요",
+    "tocLabel": "페이지 섹션",
+    "footLabel": "사이트 맵"
+  },
+  "_claims": {},
+  "_nonclaims": [
+    "site"
+  ]
+}

@@ -66,7 +66,7 @@
 .split > .section-head { margin-bottom: 0; }
 @media (min-width: 960px) {
   .split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-7); align-items: start; }
-  .split > .section-head { position: sticky; top: calc(var(--nav-h) + 24px); }
+  .split > .section-head { position: sticky; top: calc(var(--sn-stick) + 24px); }
   .split-gates { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
 }
 .prose p:last-child { margin-bottom: 0; }
@@ -960,6 +960,18 @@ html[lang="ko"] .hero h1 { max-width: 18ch; font-weight: 700; line-height: 1.25;
 .foot-title { margin: 10px 0 var(--sp-2); color: var(--muted); font-size: .9rem; font-weight: 700; }
 .foot-links { display: grid; margin: 0; padding: 0; list-style: none; }
 .foot-links a { display: inline-flex; align-items: center; min-height: 44px; }
+/* footer sitemap (every page): cc-orchestra, then the pages of each edition under its name */
+.sn-foot { margin-bottom: var(--sp-5); padding-bottom: var(--sp-4); border-bottom: 1px solid var(--line); }
+.sn-foot-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--sp-5); }
+.sn-foot-cols > li:first-child { grid-column: 1 / -1; }
+@media (min-width: 760px) {
+  .sn-foot-cols { grid-template-columns: repeat(3, max-content); gap: 0 var(--sp-8); }
+  .sn-foot-cols > li:first-child { grid-column: auto; }
+}
+.sn-foot a { display: inline-flex; align-items: center; min-height: 44px; }
+.sn-foot-cols > li > a, .sn-foot-group { color: var(--ink); font-weight: 700; }
+.sn-foot-group { display: flex; align-items: center; min-height: 44px; }
+.sn-foot a[aria-current="page"] { color: var(--ink); font-weight: 700; text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
 
 /* ---------- motion control ---------- */
 /* "Pause motion" (html.motion-off) = the reduced-motion picture, for this page and the saved choice */
@@ -972,10 +984,3 @@ html[lang="ko"] .hero h1 { max-width: 18ch; font-weight: 700; line-height: 1.25;
   .motion-btn { display: none; }
   .js #fig-lifecycle.rv .tree li { opacity: 1; transform: none; }
 }
-
-/* ---------- overview top bar: eight entries (cc-doc added) ---------- */
-/* below 1060 px the overview's links get half the side padding, so the brand keeps its width (no other page has .ed-navdoc) */
-@media (min-width: 860px) and (max-width: 1059px) { .navlinks:has(.ed-navdoc) a { padding: 0 var(--s1); } }
-/* the hero pointer's link to the cc-doc page stays in one piece (no break inside the name); the padding, cancelled by the
-   negative margin, makes the target at least 24 px tall without moving the text */
-.ed-pointer a { display: inline-block; padding: 5px 0; margin: -5px 0; white-space: nowrap; }

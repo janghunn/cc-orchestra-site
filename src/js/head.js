@@ -3,11 +3,17 @@
    2. Saved "Pause motion" choice, applied before first paint so nothing starts moving.
    3. EN pages only (the build drops the marked block on KO pages): "?lang=en" records English and never
       redirects; otherwise a saved Korean choice sends the visitor to the page's KO twin (keeping the
-      #hash). The build replaces the string after the @ko-target marker with that page's twin URL
-      (ko/ on the home page, ../ko/workflow/ on the workflow page).
+      #hash). The build replaces the string after the @ko-target marker with that page's twin URL, the
+      same relative URL as the page's language toggle (ko/ on the project page, ../../ko/cc-orch/workflow/
+      on the workflow page).
    4. KO pages only (the build drops the marked block on EN pages): first visit renders in the metric-matched
       fallback and fetches both S-Core Dream faces after the load event, then switches in one step
-      (html.ko-font, see ko-font.css); later visits switch before first paint. */
+      (html.ko-font, see ko-font.css); later visits switch before first paint.
+   5. Project pages only (the build drops the marked block elsewhere): the overview used to be the site root, so
+      an old address such as /#how or /ko/#faq is forwarded to the overview (cc-orch/ next to this page),
+      keeping ?query and #hash. The build writes the ids to forward over the [] after the @old-ids marker:
+      every id of the rendered overview that the project page does not use itself, so #main, #editions,
+      #compare and the project page's other ids are never forwarded. */
 (function (d, w) {
   var r = d.documentElement, t = null, m;
   try { t = w.localStorage.getItem("ppk-theme"); } catch (e) {}
@@ -19,6 +25,13 @@
   r.setAttribute("data-theme", t);
   try { if (w.localStorage.getItem("ppk-motion") === "off") r.classList.add("motion-off"); } catch (e) {}
 }(document, window));
+/* @project-only */
+(function (w) {
+  var ids = /* @old-ids */[], h = w.location.hash.slice(1);
+  try { h = decodeURIComponent(h); } catch (e) {}
+  if (h && ids.indexOf(h) > -1) w.location.replace("cc-orch/" + w.location.search + w.location.hash);
+}(window));
+/* @end-project-only */
 /* @en-only */
 (function (w) {
   try {

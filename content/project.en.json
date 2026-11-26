@@ -1,0 +1,314 @@
+{
+  "meta": {
+    "title": "cc-orchestra: one project, two editions",
+    "description": "cc-orchestra comes in two editions. cc-orch runs coding and research work on a Linux server with Claude Code and Codex CLI; cc-doc is a document desk on Windows 11. This page introduces both and links to each.",
+    "langName": "English",
+    "otherLangName": "한국어",
+    "otherLangLabel": "Read this page in Korean",
+    "skip": "Skip to content",
+    "brand": "cc-orchestra",
+    "themeToDark": "Switch to dark theme",
+    "themeToLight": "Switch to light theme"
+  },
+  "hero": {
+    "eyebrow": "One project, two editions",
+    "h1": "One harness for code, <em>one desk for documents.</em>",
+    "lede": "cc-orchestra comes in two editions, each named after its command. <strong>cc-orch</strong> splits a coding request into tasks and connects Claude Code and Codex CLI across planning, implementation and verification, on a Linux server. <strong>cc-doc</strong> opens one Claude Code session for document work on Windows 11, where a single desk agent works on copies.",
+    "ctaOrch": "cc-orch for code and research",
+    "ctaDoc": "cc-doc for documents"
+  },
+  "editions": {
+    "kicker": "Editions",
+    "h2": "Which edition fits your work",
+    "p": "Each edition has its own platform, its own way of working and its own pages on this site.",
+    "fitsTitle": "A good fit when",
+    "pagesTitle": "Pages",
+    "cards": [
+      {
+        "name": "cc-orch",
+        "tag": "Linux server",
+        "title": "For coding and research work",
+        "text": "An orchestrator splits your request into tasks and a lead owns each one. In the default mode, Codex writes the code, the Claude lead reads the real diff, and separate Codex gates verify and review the result.",
+        "fits": [
+          "You work on code or run research projects on a Linux server.",
+          "You run several tasks at once, need checks you can rely on, or work on something that spans weeks."
+        ],
+        "pages": [
+          {
+            "text": "Architecture, routing, gates and helpers."
+          },
+          {
+            "text": "One researcher's paper workflow, run as tasks."
+          },
+          {
+            "text": "What it is and when it is worth using."
+          }
+        ],
+        "cta": "Open cc-orch"
+      },
+      {
+        "name": "cc-doc",
+        "tag": "Windows 11",
+        "title": "For document work",
+        "text": "One Claude Code session with a single desk agent for Hangul, Word and PowerPoint documents. It works on copies in a work folder made for that session and returns results under a name that is not yet in use. A write guard checks the paths that Claude Code's file-writing tools and tool-server calls name and refuses those outside that folder, within documented limits.",
+        "fits": [
+          "You write Hangul, Word or PowerPoint documents on Windows 11.",
+          "You want your originals left where they are while the work happens on copies."
+        ],
+        "pages": [
+          {
+            "text": "The desk, copies, the write guard and document types."
+          }
+        ],
+        "cta": "Open cc-doc"
+      }
+    ]
+  },
+  "compare": {
+    "kicker": "Side by side",
+    "h2": "The two editions compared",
+    "tableCaption": "Table 1. cc-orch and cc-doc side by side",
+    "cols": [
+      "Item",
+      "cc-orch",
+      "cc-doc"
+    ],
+    "rows": [
+      {
+        "label": "Runs on",
+        "orch": "Linux, with bash and tmux",
+        "doc": "Windows 11"
+      },
+      {
+        "label": "Work",
+        "orch": "Coding requests, split into tasks and taken through planning, implementation and verification. Research projects run their experiments and manuscript work as such tasks.",
+        "doc": "Document work on Hangul, Word and PowerPoint files"
+      },
+      {
+        "label": "Agents",
+        "orch": "Four tiers: an orchestrator, a lead for each task, builders and verifiers",
+        "doc": "One desk agent"
+      },
+      {
+        "label": "Models",
+        "orch": "Two model families: Claude Code and Codex CLI",
+        "doc": "Claude: the launcher starts one Claude Code session, and the desk is told to use no other provider"
+      },
+      {
+        "label": "How your files are protected",
+        "orch": "Each task has its own git branch, and the lead never commits to your branches",
+        "doc": "Work on copies, a write guard with documented limits, and delivery that never overwrites"
+      },
+      {
+        "label": "Checks before it reports",
+        "orch": "Gates set by the task's risk level",
+        "doc": "The desk is told to check its own draft and to name what it did not check"
+      }
+    ]
+  },
+  "footer": {
+    "facts": "cc-orch facts as of {{f:sourceDate}} ({{f:sourceSha}}); cc-doc facts as of {{f:docSourceDate}} ({{f:docSourceSha}}).",
+    "privacy": "No third-party requests.",
+    "linksTitle": "Built on",
+    "links": [
+      {
+        "text": "Claude Code",
+        "href": "https://github.com/anthropics/claude-code"
+      },
+      {
+        "text": "Codex CLI",
+        "href": "https://github.com/openai/codex"
+      }
+    ],
+    "fontCredit": "",
+    "fontLink": ""
+  },
+  "moved": {
+    "title": "This page has moved",
+    "text": "This page is now part of the cc-orch section.",
+    "link": "Go to the new address"
+  },
+  "_claims": {
+    "meta.title": [
+      "D19"
+    ],
+    "meta.description": [
+      "D19",
+      "C02",
+      "C37",
+      "W01",
+      "D01",
+      "D02",
+      "D03",
+      "P01"
+    ],
+    "hero.eyebrow": [
+      "D19"
+    ],
+    "hero.h1": [
+      "C02",
+      "D03",
+      "D19"
+    ],
+    "hero.lede": [
+      "D19",
+      "C02",
+      "C37",
+      "D01",
+      "D02",
+      "D03",
+      "D04"
+    ],
+    "editions.p": [
+      "D19",
+      "P01"
+    ],
+    "editions.cards.0.tag": [
+      "C37",
+      "D19"
+    ],
+    "editions.cards.0.title": [
+      "C02",
+      "W01",
+      "D19"
+    ],
+    "editions.cards.0.text": [
+      "C03",
+      "C08",
+      "C09"
+    ],
+    "editions.cards.0.fits.0": [
+      "C02",
+      "C37",
+      "W01"
+    ],
+    "editions.cards.0.fits.1": [
+      "G26"
+    ],
+    "editions.cards.0.pages.0.text": [
+      "P01"
+    ],
+    "editions.cards.0.pages.1.text": [
+      "P01",
+      "W01"
+    ],
+    "editions.cards.0.pages.2.text": [
+      "P01"
+    ],
+    "editions.cards.1.tag": [
+      "D01"
+    ],
+    "editions.cards.1.title": [
+      "D02",
+      "D19"
+    ],
+    "editions.cards.1.text": [
+      "D02",
+      "D03",
+      "D04",
+      "D05",
+      "D06",
+      "D07",
+      "D10",
+      "D11"
+    ],
+    "editions.cards.1.fits.0": [
+      "D01",
+      "D10",
+      "D11"
+    ],
+    "editions.cards.1.fits.1": [
+      "D04"
+    ],
+    "editions.cards.1.pages.0.text": [
+      "P01"
+    ],
+    "compare.rows.0.orch": [
+      "C37"
+    ],
+    "compare.rows.0.doc": [
+      "D01"
+    ],
+    "compare.rows.1.orch": [
+      "C02",
+      "W01"
+    ],
+    "compare.rows.1.doc": [
+      "D02",
+      "D10",
+      "D11"
+    ],
+    "compare.rows.2.orch": [
+      "C04"
+    ],
+    "compare.rows.2.doc": [
+      "D03"
+    ],
+    "compare.rows.3.orch": [
+      "C02",
+      "C05"
+    ],
+    "compare.rows.3.doc": [
+      "D02",
+      "D17"
+    ],
+    "compare.rows.4.orch": [
+      "C24",
+      "C25"
+    ],
+    "compare.rows.4.doc": [
+      "D04",
+      "D05",
+      "D06",
+      "D07"
+    ],
+    "compare.rows.5.orch": [
+      "C13"
+    ],
+    "compare.rows.5.doc": [
+      "D14"
+    ],
+    "footer.facts": [
+      "G32",
+      "D21"
+    ],
+    "footer.privacy": [
+      "G30"
+    ],
+    "footer.fontCredit": [
+      "G31"
+    ],
+    "moved.title": [
+      "P01"
+    ],
+    "moved.text": [
+      "P01"
+    ]
+  },
+  "_nonclaims": [
+    "meta.*",
+    "hero.ctaOrch",
+    "hero.ctaDoc",
+    "*.kicker",
+    "editions.h2",
+    "editions.fitsTitle",
+    "editions.pagesTitle",
+    "editions.cards.0.name",
+    "editions.cards.0.cta",
+    "editions.cards.1.name",
+    "editions.cards.1.cta",
+    "compare.h2",
+    "compare.tableCaption",
+    "compare.cols",
+    "compare.rows.0.label",
+    "compare.rows.1.label",
+    "compare.rows.2.label",
+    "compare.rows.3.label",
+    "compare.rows.4.label",
+    "compare.rows.5.label",
+    "footer.linksTitle",
+    "footer.links",
+    "footer.fontLink",
+    "moved.link"
+  ]
+}

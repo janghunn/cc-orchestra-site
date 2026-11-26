@@ -89,10 +89,12 @@
   <symbol id="i-manual-3" viewBox="0 0 24 24"><use href="#i-merge"/></symbol>
 </svg>
 <a class="skip-link" href="#main">{{t:meta.skip}}</a>
-<header class="topbar">
+{{> header}}
+<div class="sn-sub">
   <div class="wrap">
-    <a class="brand" href="{{homeHref}}" aria-label="{{a:meta.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
-    <nav aria-label="{{a:meta.navLabel}}">
+    {{> sub}}
+    <nav class="sn-toc" aria-labelledby="sn-toc-title">
+      <span class="sn-toc-title" id="sn-toc-title">{{t:site.tocLabel}}</span>
       <ul class="navlinks">
         <li><a href="#loop">{{t:meta.nav.0}}</a></li>
         <li><a href="#methods">{{t:meta.nav.1}}</a></li>
@@ -101,15 +103,8 @@
         <li><a href="#tips">{{t:meta.nav.4}}</a></li>
       </ul>
     </nav>
-    <div class="tools">
-      <a class="btn btn-secondary btn-lang" href="{{otherHref}}" hreflang="{{otherLang}}" lang="{{otherLang}}" data-lang-link="{{otherLang}}"><span>{{t:meta.otherLangName}}</span><span class="vh" lang="en"> ({{t:meta.otherLangLabel}})</span></a>
-      <button type="button" class="btn btn-icon btn-theme" data-theme-toggle aria-label="{{a:meta.themeToDark}}" data-label-to-dark="{{a:meta.themeToDark}}" data-label-to-light="{{a:meta.themeToLight}}">
-        <svg class="ico icon-moon" aria-hidden="true"><use href="#i-moon"/></svg>
-        <svg class="ico icon-sun" aria-hidden="true"><use href="#i-sun"/></svg>
-      </button>
-    </div>
   </div>
-</header>
+</div>
 
 <main id="main">
   <!-- 1. hero -->
@@ -434,9 +429,12 @@
 </main>
 
 <footer class="site-foot">
+  <div class="wrap">
+    {{> sitemap}}
+  </div>
   <div class="wrap foot-grid">
     <div class="foot-main">
-      <a class="brand" href="{{homeHref}}" aria-label="{{a:meta.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
+      <a class="brand" href="{{siteHref}}" aria-label="{{a:site.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
       <p>{{t:footer.facts}}</p>
       <p>{{t:footer.workflow}}</p>
       <p>{{t:footer.privacy}}</p>
