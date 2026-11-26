@@ -39,7 +39,7 @@
       },
       {
         "icon": "gate",
-        "title": "Claude와 문서 도구만",
+        "title": "Claude와 문서 도구만 쓰라는 지시",
         "text": "세션에서는 Claude 계정의 connector가 꺼져 있습니다. desk는 문서 내용을 다른 provider나 connector, 웹 업로드로 보내지 않고 문서 안에 적힌 지시는 문서 내용으로만 다루도록 지시받습니다."
       },
       {
@@ -129,7 +129,7 @@
       },
       {
         "label": "Word·PowerPoint 창을 여는 작업",
-        "text": "desk는 창이 열린다고 먼저 알리고 자기 작업 사본만 열도록 지시받습니다. 작업이 끝나면 그 사본을 제자리에 저장하고 창은 사용자가 닫도록 남겨 둡니다."
+        "text": "desk는 창이 열린다고 먼저 알리고 자기 작업 사본만 열며 작업이 끝나면 그 사본을 제자리에 저장하고 창을 닫아 달라고 요청하도록 지시받습니다."
       },
       {
         "label": "DOCX를 PDF로",
@@ -173,7 +173,7 @@
       {
         "label": "모델",
         "orch": "두 모델 계열: Claude Code와 Codex CLI",
-        "doc": "Claude만"
+        "doc": "Claude: 실행 명령은 Claude Code 세션 하나를 시작하고 desk는 다른 provider를 쓰지 않도록 지시받습니다"
       },
       {
         "label": "파일을 지키는 방식",
@@ -263,7 +263,8 @@
       "D15"
     ],
     "copies.p": [
-      "D04"
+      "D04",
+      "D05"
     ],
     "copies.steps.0.title": [
       "D04"
@@ -409,6 +410,7 @@
       "C05"
     ],
     "editions.rows.3.doc": [
+      "D02",
       "D17"
     ],
     "editions.rows.4.orch": [

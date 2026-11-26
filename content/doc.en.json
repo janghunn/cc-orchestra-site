@@ -39,7 +39,7 @@
       },
       {
         "icon": "gate",
-        "title": "Claude and the document tools only",
+        "title": "Told to use Claude and the document tools only",
         "text": "The Claude account's connectors are switched off for the session. The desk is told to keep document content away from other providers, connectors and web uploads, and to treat instructions found inside a document as document content."
       },
       {
@@ -129,7 +129,7 @@
       },
       {
         "label": "Live Word or PowerPoint",
-        "text": "The desk is told to say that a window will open and to open only its own working copy. After live work it saves that copy in place and leaves the window for you to close."
+        "text": "The desk is told to say that a window will open, to open only its own working copy, and when done to save that copy in place and ask you to close the window."
       },
       {
         "label": "PDF from a DOCX",
@@ -173,7 +173,7 @@
       {
         "label": "Models",
         "orch": "Two model families: Claude Code and Codex CLI",
-        "doc": "Claude only"
+        "doc": "Claude: the launcher starts one Claude Code session, and the desk is told to use no other provider"
       },
       {
         "label": "How your files are protected",
@@ -263,7 +263,8 @@
       "D15"
     ],
     "copies.p": [
-      "D04"
+      "D04",
+      "D05"
     ],
     "copies.steps.0.title": [
       "D04"
@@ -409,6 +410,7 @@
       "C05"
     ],
     "editions.rows.3.doc": [
+      "D02",
       "D17"
     ],
     "editions.rows.4.orch": [

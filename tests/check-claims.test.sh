@@ -48,7 +48,7 @@ EOF
 # run: expected-exit, name, expected-output-fragment, env assignments...
 run() {
   local want="$1" name="$2" frag="$3"; shift 3
-  (cd "$R" && env -u CLAIMS_SOURCE_REPO -u CLAIMS_WORKSPACE_ROOTS "$@" node scripts/check-claims.mjs) >"$W/out" 2>&1; local got=$?
+  (cd "$R" && env -u CLAIMS_SOURCE_REPO -u CLAIMS_WORKSPACE_ROOTS -u NODE_OPTIONS "$@" node scripts/check-claims.mjs) >"$W/out" 2>&1; local got=$?
   if [ "$got" -ne "$want" ]; then bad "$name: exit $got, want $want" "$W/out"
   elif ! grep -qF -- "$frag" "$W/out"; then bad "$name: missing '$frag'" "$W/out"
   else ok "$name (exit $got)"; fi
@@ -96,19 +96,30 @@ run 1 "a docSourceSha that is not a commit id fails" "facts.json docSourceSha is
 
 # line ranges per commit, against a throwaway source repository with two commits:
 # commit 1: docs/a.md (2 lines), docs/f.md (2 lines); commit 2: docs/f.md grows to 5 lines, docs/d.md and docs/new.md appear
-# git here never sees the caller's repository-selecting variables (GU); to prove it, the fixture is built and the
-# first passing case runs with GIT_DIR exported at a decoy repository X (one commit, in this temp dir), whose HEAD
-# and index must be unchanged afterwards.
-GU=(-u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY
-    -u GIT_ALTERNATE_OBJECT_DIRECTORIES -u GIT_NAMESPACE -u GIT_CEILING_DIRECTORIES -u GIT_PREFIX)
-GX() { local d="$1"; shift; env "${GU[@]}" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$d" -c user.name=test -c user.email= "$@"; }
+# Every git command for the fixture (S) and the decoy (X) goes through GX, which starts from an emptied environment
+# (env -i: PATH, a HOME inside this temp dir, no global or system config), disables hooks and signing, and inits with
+# an empty template; nothing the caller exports can select a repository, config, hooks directory or signing program.
+# To prove it, the decoy and the fixture are built with GIT_DIR exported at the decoy and a command-scoped
+# core.hooksPath exported at hooks that write a marker; no marker may appear, and the decoy's HEAD and index must be
+# unchanged after the first passing case, which also hands GIT_DIR=<decoy> to the checker.
+GH="$W/git-home" HK="$W/caller-hooks" MK="$W/hook-ran"
+mkdir -p "$GH" "$HK"
+for h in pre-commit post-commit; do printf '#!/bin/sh\necho %s >>"%s"\n' "$h" "$MK" >"$HK/$h"; chmod +x "$HK/$h"; done
+GX() {
+  local d="$1"; shift
+  env -i PATH="$PATH" HOME="$GH" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
+    git -C "$d" -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=test -c user.email= "$@"
+}
 S="$W/source" X="$W/decoy"
 mkdir -p "$S/docs" "$X"
 G() { GX "$S" "$@"; }
-GX "$X" init -q && printf 'x\n' >"$X/x.txt" && GX "$X" add -A && GX "$X" commit -qm decoy
-XHEAD="$(GX "$X" rev-parse HEAD)"
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0="$HK"
 export GIT_DIR="$X/.git"
-G init -q
+GX "$X" init -q --template= && printf 'x\n' >"$X/x.txt" && GX "$X" add -A && GX "$X" commit -qm decoy \
+  || { unset GIT_DIR GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0; bad "decoy repository could not be built"; echo "# check-claims tests: $pass passed, $fail failed"; exit 1; }
+XHEAD="$(GX "$X" rev-parse HEAD)" && [ -n "$XHEAD" ] \
+  || { unset GIT_DIR GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0; bad "decoy HEAD cannot be read"; echo "# check-claims tests: $pass passed, $fail failed"; exit 1; }
+G init -q --template=
 gd="$(G rev-parse --absolute-git-dir)"
 case "$gd" in
   "$(cd "$S" && pwd -P)"/*) ok "fixture git dir is inside the fixture" ;;
@@ -120,6 +131,9 @@ S1="$(G rev-parse --short=7 HEAD)"
 printf 'f1\nf2\nf3\nf4\nf5\n' >"$S/docs/f.md"; printf 'd1\n' >"$S/docs/d.md"; printf 'n1\n' >"$S/docs/new.md"
 G add -A && G commit -qm two
 S2="$(G rev-parse --short=7 HEAD)"
+unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0
+[ ! -e "$MK" ] && ok "no caller hook ran while the decoy and the fixture were built" \
+  || bad "a caller hook ran (marker $MK written)" "$MK"
 SR="CLAIMS_SOURCE_REPO=$S"
 PIN1="$S1" PIN2="$S2"
 facts "$S1" "$S2"
@@ -127,9 +141,14 @@ claims "docs/f.md:1-2@$S1; docs/f.md:4-5@$S2"
 run 0 "same path at both commits in one run, range valid only at the longer revision" "line ranges checked against the source repo" "$SR"
 run 0 "with GIT_DIR set at a decoy, the checker reads CLAIMS_SOURCE_REPO" "line ranges checked against the source repo" "$SR" "GIT_DIR=$X/.git"
 unset GIT_DIR
-[ "$(GX "$X" rev-parse HEAD)" = "$XHEAD" ] && ok "decoy HEAD unchanged" || bad "decoy HEAD moved"
-xs="$(GX "$X" status --porcelain)"
-[ -z "$xs" ] && ok "decoy index and tree unchanged" || { printf '%s\n' "$xs" >"$W/xs"; bad "decoy status not empty" "$W/xs"; }
+xh="$(GX "$X" rev-parse HEAD)"; xr=$?
+if [ "$xr" -ne 0 ]; then bad "decoy rev-parse HEAD failed (exit $xr)"
+elif [ "$xh" = "$XHEAD" ]; then ok "decoy HEAD unchanged"
+else bad "decoy HEAD moved ($XHEAD -> $xh)"; fi
+xs="$(GX "$X" status --porcelain 2>&1)"; xr=$?
+if [ "$xr" -ne 0 ]; then printf '%s\n' "$xs" >"$W/xs"; bad "decoy status failed (exit $xr)" "$W/xs"
+elif [ -z "$xs" ]; then ok "decoy index and tree unchanged"
+else printf '%s\n' "$xs" >"$W/xs"; bad "decoy status not empty" "$W/xs"; fi
 claims "docs/new.md:1@$S2"
 run 0 "a file added at the second commit passes there" "check-claims: PASS" "$SR"
 claims "docs/new.md:1@$S1"
