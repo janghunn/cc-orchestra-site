@@ -7,8 +7,6 @@
     "otherLangLabel": "Read this page in Korean",
     "skip": "Skip to content",
     "brand": "cc-orchestra",
-    "homeLabel": "cc-orchestra overview",
-    "navLabel": "Primary",
     "nav": [
       "What it is",
       "Copies",
@@ -24,7 +22,7 @@
     "h1": "A document desk <em>that works on copies.</em>",
     "lede": "cc-doc opens a Claude Code session for document work on Windows 11, with the Claude account's connectors off. A single desk agent does the work on copies, in a work folder made for that session, and results come back under a name that is not yet in use. A write guard checks the paths that Claude Code's file-writing tools and tool-server calls name and refuses those outside that folder, within documented limits.",
     "ctaPrimary": "See how it works",
-    "ctaSecondary": "Full overview",
+    "ctaSecondary": "Both editions",
     "tocTitle": "On this page"
   },
   "desk": {
@@ -147,46 +145,8 @@
   "editions": {
     "kicker": "Editions",
     "h2": "Two editions of cc-orchestra",
-    "p": "cc-orchestra comes in two editions, each named after its command. cc-orch runs on a Linux server and is what the rest of this site describes. cc-doc runs on Windows 11 and is described on this page.",
-    "tableCaption": "Table 2. cc-orch and cc-doc side by side",
-    "cols": [
-      "Item",
-      "cc-orch",
-      "cc-doc"
-    ],
-    "rows": [
-      {
-        "label": "Runs on",
-        "orch": "Linux, with bash and tmux",
-        "doc": "Windows 11"
-      },
-      {
-        "label": "Work",
-        "orch": "Coding requests, split into tasks and taken through planning, implementation and verification. Research projects run their experiments and manuscript work as such tasks.",
-        "doc": "Document work on Hangul, Word and PowerPoint files"
-      },
-      {
-        "label": "Agents",
-        "orch": "Four tiers: an orchestrator, a lead for each task, builders and verifiers",
-        "doc": "One desk agent"
-      },
-      {
-        "label": "Models",
-        "orch": "Two model families: Claude Code and Codex CLI",
-        "doc": "Claude: the launcher starts one Claude Code session, and the desk is told to use no other provider"
-      },
-      {
-        "label": "How your files are protected",
-        "orch": "Each task has its own git branch, and the lead never commits to your branches",
-        "doc": "Work on copies, a write guard with documented limits, and delivery that never overwrites"
-      },
-      {
-        "label": "Checks before it reports",
-        "orch": "Gates set by the task's risk level",
-        "doc": "The desk is told to check its own draft and to name what it did not check"
-      }
-    ],
-    "ctaHome": "cc-orchestra overview"
+    "p": "cc-orchestra comes in two editions, each named after its command. cc-orch runs on a Linux server. cc-doc runs on Windows 11 and is described on this page. The project page sets the two side by side.",
+    "ctaHome": "Compare the two editions"
   },
   "footer": {
     "facts": "cc-doc facts as of {{f:docSourceDate}} ({{f:docSourceSha}}).",
@@ -382,52 +342,8 @@
     "editions.p": [
       "D19",
       "D01",
-      "C37"
-    ],
-    "editions.rows.0.orch": [
-      "C37"
-    ],
-    "editions.rows.0.doc": [
-      "D01"
-    ],
-    "editions.rows.1.orch": [
-      "C02",
-      "W01"
-    ],
-    "editions.rows.1.doc": [
-      "D02",
-      "D10",
-      "D11"
-    ],
-    "editions.rows.2.orch": [
-      "C04"
-    ],
-    "editions.rows.2.doc": [
-      "D03"
-    ],
-    "editions.rows.3.orch": [
-      "C02",
-      "C05"
-    ],
-    "editions.rows.3.doc": [
-      "D02",
-      "D17"
-    ],
-    "editions.rows.4.orch": [
-      "C24",
-      "C25"
-    ],
-    "editions.rows.4.doc": [
-      "D04",
-      "D05",
-      "D06",
-      "D07"
-    ],
-    "editions.rows.5.orch": [
-      "C13"
-    ],
-    "editions.rows.5.doc": [
-      "D14"
+      "C37",
+      "P01"
     ],
     "footer.facts": [
       "D21"
@@ -461,14 +377,6 @@
     "formats.rows.1.label",
     "formats.rows.2.label",
     "formats.rows.3.label",
-    "editions.tableCaption",
-    "editions.cols",
-    "editions.rows.0.label",
-    "editions.rows.1.label",
-    "editions.rows.2.label",
-    "editions.rows.3.label",
-    "editions.rows.4.label",
-    "editions.rows.5.label",
     "editions.ctaHome",
     "footer.linksTitle",
     "footer.links",

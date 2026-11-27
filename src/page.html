@@ -39,30 +39,22 @@
   <symbol id="i-orch-account" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.3-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 6.5h5.5M19 3.5l2.5 3-2.5 3M21.5 15H16M18.5 12L16 15l2.5 3"/></symbol>
 </svg>
 <a class="skip-link" href="#main">{{t:meta.skip}}</a>
-<header class="topbar">
+{{> header}}
+<div class="sn-sub">
   <div class="wrap">
-    <a class="brand" href="#top"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
-    <nav aria-label="{{a:meta.navLabel}}">
+    {{> sub}}
+    <nav class="sn-toc" aria-labelledby="sn-toc-title">
+      <span class="sn-toc-title" id="sn-toc-title">{{t:site.tocLabel}}</span>
       <ul class="navlinks">
         <li><a href="#how">{{t:meta.nav.0}}</a></li>
         <li><a href="#routing">{{t:meta.nav.1}}</a></li>
         <li><a href="#gates">{{t:meta.nav.2}}</a></li>
         <li><a href="#helpers">{{t:meta.nav.3}}</a></li>
         <li><a href="#faq">{{t:meta.nav.4}}</a></li>
-        <li><a href="{{workflowHref}}">{{t:meta.nav.5}}</a></li>
-        <li><a href="{{guideHref}}">{{t:meta.nav.6}}</a></li>
-        <li class="ed-navdoc"><a href="{{docHref}}">{{t:meta.nav.7}}</a></li>
       </ul>
     </nav>
-    <div class="tools">
-      <a class="btn btn-secondary btn-lang" href="{{otherHref}}" hreflang="{{otherLang}}" lang="{{otherLang}}" data-lang-link="{{otherLang}}"><span>{{t:meta.otherLangName}}</span><span class="vh" lang="en"> ({{t:meta.otherLangLabel}})</span></a>
-      <button type="button" class="btn btn-icon btn-theme" data-theme-toggle aria-label="{{a:meta.themeToDark}}" data-label-to-dark="{{a:meta.themeToDark}}" data-label-to-light="{{a:meta.themeToLight}}">
-        <svg class="ico icon-moon" aria-hidden="true"><use href="#i-moon"/></svg>
-        <svg class="ico icon-sun" aria-hidden="true"><use href="#i-sun"/></svg>
-      </button>
-    </div>
   </div>
-</header>
+</div>
 
 <main id="main">
   <!-- 1. hero -->
@@ -80,7 +72,6 @@
           {{#each hero.stats}}<div class="stat"><dt>{{t:.label}}</dt><dd>{{t:.value}}</dd></div>
           {{/each}}
         </dl>
-        <p class="callout ed-pointer"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span>{{t:hero.editions}} <a href="{{docHref}}">{{t:hero.editionsLink}}</a></span></p>
       </div>
       <div class="hero-side">
         <div class="board" aria-hidden="true">
@@ -458,12 +449,14 @@
 </main>
 
 <footer class="site-foot">
+  <div class="wrap">
+    {{> sitemap}}
+  </div>
   <div class="wrap foot-grid">
     <div class="foot-main">
-      <a class="brand" href="#top"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
+      <a class="brand" href="{{siteHref}}" aria-label="{{a:site.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
       <p>{{t:footer.facts}}</p>
       <p>{{t:footer.privacy}}</p>
-      <nav class="ed-footnav" aria-label="{{a:meta.footNavLabel}}"><ul class="foot-links"><li><a href="{{workflowHref}}">{{t:meta.nav.5}}</a></li><li><a href="{{guideHref}}">{{t:meta.nav.6}}</a></li><li><a href="{{docHref}}">{{t:meta.nav.7}}</a></li></ul></nav>
       {{#if footer.fontCredit}}<p class="foot-credit">{{#if footer.fontLink?}}<a href="{{u:footer.fontLink}}">{{t:footer.fontCredit}}</a>{{else}}{{t:footer.fontCredit}}{{/if}}</p>
       {{/if}}
     </div>

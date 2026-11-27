@@ -32,10 +32,12 @@
   <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5.5" r="2.2"/><circle cx="6" cy="18.5" r="2.2"/><circle cx="18" cy="8" r="2.2"/><path d="M6 7.7v8.6M18 10.2c0 4-5 3.5-10.5 6.6"/></symbol>
 </svg>
 <a class="skip-link" href="#main">{{t:meta.skip}}</a>
-<header class="topbar">
+{{> header}}
+<div class="sn-sub">
   <div class="wrap">
-    <a class="brand" href="{{homeHref}}" aria-label="{{a:meta.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
-    <nav aria-label="{{a:meta.navLabel}}">
+    {{> sub}}
+    <nav class="sn-toc" aria-labelledby="sn-toc-title">
+      <span class="sn-toc-title" id="sn-toc-title">{{t:site.tocLabel}}</span>
       <ul class="navlinks">
         <li><a href="#desk">{{t:meta.nav.0}}</a></li>
         <li><a href="#copies">{{t:meta.nav.1}}</a></li>
@@ -44,15 +46,8 @@
         <li><a href="#editions">{{t:meta.nav.4}}</a></li>
       </ul>
     </nav>
-    <div class="tools">
-      <a class="btn btn-secondary btn-lang" href="{{otherHref}}" hreflang="{{otherLang}}" lang="{{otherLang}}" data-lang-link="{{otherLang}}"><span>{{t:meta.otherLangName}}</span><span class="vh" lang="en"> ({{t:meta.otherLangLabel}})</span></a>
-      <button type="button" class="btn btn-icon btn-theme" data-theme-toggle aria-label="{{a:meta.themeToDark}}" data-label-to-dark="{{a:meta.themeToDark}}" data-label-to-light="{{a:meta.themeToLight}}">
-        <svg class="ico icon-moon" aria-hidden="true"><use href="#i-moon"/></svg>
-        <svg class="ico icon-sun" aria-hidden="true"><use href="#i-sun"/></svg>
-      </button>
-    </div>
   </div>
-</header>
+</div>
 
 <main id="main">
   <!-- 1. hero, with an "On this page" list (the top-bar links are hidden on phones) -->
@@ -64,7 +59,7 @@
         <p class="lede band">{{t:hero.lede}}</p>
         <div class="btn-row hero-cta">
           <a class="btn btn-primary" href="#desk">{{t:hero.ctaPrimary}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn btn-secondary" href="{{homeHref}}">{{t:hero.ctaSecondary}}</a>
+          <a class="btn btn-secondary" href="{{siteHref}}">{{t:hero.ctaSecondary}}</a>
         </div>
       </div>
       <nav class="gd-toc" aria-labelledby="toc-title">
@@ -174,7 +169,7 @@
     </div>
   </section>
 
-  <!-- 6. the two editions: Table 2 -->
+  <!-- 6. the two editions (the comparison table is on the project page; #tbl-editions stays as an alias) -->
   <section class="section" id="editions" aria-labelledby="editions-title">
     <div class="wrap">
       <div class="card">
@@ -183,18 +178,8 @@
           <h2 id="editions-title">{{t:editions.h2}}</h2>
           <p class="sub">{{t:editions.p}}</p>
         </div>
-        <div class="tscroll" role="region" tabindex="0" aria-label="{{a:editions.tableCaption}}">
-          <table class="tbl" id="tbl-editions">
-            <caption>{{cap:editions.tableCaption}}</caption>
-            <thead><tr>{{#each editions.cols}}<th scope="col">{{t:.}}</th>{{/each}}</tr></thead>
-            <tbody>
-              {{#each editions.rows}}<tr><th scope="row">{{t:.label}}</th><td>{{t:.orch}}</td><td>{{t:.doc}}</td></tr>
-              {{/each}}
-            </tbody>
-          </table>
-        </div>
-        <div class="btn-row gd-cta">
-          <a class="btn btn-primary" href="{{homeHref}}">{{t:editions.ctaHome}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <div class="btn-row gd-cta" id="tbl-editions">
+          <a class="btn btn-primary" href="{{siteHref}}#compare">{{t:editions.ctaHome}}<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
       </div>
     </div>
@@ -202,9 +187,12 @@
 </main>
 
 <footer class="site-foot">
+  <div class="wrap">
+    {{> sitemap}}
+  </div>
   <div class="wrap foot-grid">
     <div class="foot-main">
-      <a class="brand" href="{{homeHref}}" aria-label="{{a:meta.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
+      <a class="brand" href="{{siteHref}}" aria-label="{{a:site.homeLabel}}"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle class="bm-a" cx="9" cy="12" r="6.5"/><circle class="bm-b" cx="15" cy="12" r="6.5"/></svg><span>{{t:meta.brand}}</span></a>
       <p>{{t:footer.facts}}</p>
       <p>{{t:footer.privacy}}</p>
       {{#if footer.fontCredit}}<p class="foot-credit">{{#if footer.fontLink?}}<a href="{{u:footer.fontLink}}">{{t:footer.fontCredit}}</a>{{else}}{{t:footer.fontCredit}}{{/if}}</p>

@@ -42,7 +42,7 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--nav-h) + 16px);
+  scroll-padding-top: calc(var(--sn-stick) + 16px);
   background: var(--bg);
 }
 body {
@@ -170,6 +170,65 @@ html[lang="ko"] .brand { font-weight: 700; letter-spacing: 0; }
 .navlinks a:hover { color: var(--accent-strong); background: var(--accent-tint); }
 @media (min-width: 860px) { .navlinks { display: flex; } }
 .tools { display: flex; align-items: center; gap: var(--s2); flex-shrink: 0; }
+
+/* site shell: three levels. Top bar = brand (project) + edition links (cc-orch, cc-doc) + tools; sub-bar = the
+   cc-orch page tabs + the page's section links; footer sitemap. From 860 px the top bar and the sub-bar stick
+   together and the edition links sit in the top bar; below 860 px only the top bar sticks and the edition links
+   and tabs are the first rows under it (the edition nav is in the DOM twice, one copy displayed at any width).
+   --sn-stick: height of the sticky block, for scroll-padding-top and the sticky section heads. */
+:root { --sn-sub-h: 48px; --sn-stick: calc(var(--nav-h) + 1px); }
+@media (min-width: 860px) {
+  :root { --sn-stick: calc(var(--nav-h) + 1px + var(--sn-sub-h) + 1px); }
+  :root:has(body.pj) { --sn-stick: calc(var(--nav-h) + 1px); }
+}
+.sn-eds ul, .sn-pages ul, .sn-foot ul { margin: 0; padding: 0; list-style: none; }
+.sn-eds ul, .sn-pages ul { display: flex; gap: var(--s1); }
+.sn-eds a, .sn-pages a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--s2);
+  border-radius: var(--r-s);
+  color: var(--muted);
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.sn-eds a { font-size: 1rem; }
+.sn-pages a { font-size: .9rem; }
+.sn-eds a:hover, .sn-pages a:hover { color: var(--accent-strong); background: var(--accent-tint); }
+/* the current edition and the current page: ink text, 2px accent underline */
+.sn-eds a[aria-current], .sn-pages a[aria-current] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 8px;
+}
+.topbar .sn-eds { display: none; }
+.sn-sub { background: var(--surface); border-bottom: 1px solid var(--line); }
+.sn-sub .wrap { display: flex; flex-direction: column; }
+/* link text lines up with the gutter (each link has its own side padding) */
+.sn-sub :is(.sn-eds, .sn-pages) { margin-left: calc(-1 * var(--s2)); }
+.sn-sub .sn-pages { overflow-x: auto; border-top: 1px solid var(--line); }
+/* the tab row scrolls inside its own box and the phone edition row sits under the sticky top bar, either of which
+   would clip an outer focus ring: in the sub-bar the ring sits inside the link */
+.sn-sub :is(.sn-eds, .sn-pages) a:focus-visible { outline-offset: -3px; }
+.sn-toc { display: none; align-items: center; gap: var(--s2); margin-left: auto; min-width: 0; }
+.sn-toc-title { padding-right: var(--s3); border-right: 1px solid var(--line); color: var(--muted); font-size: var(--fs-xs); white-space: nowrap; }
+.sn-toc .navlinks { display: flex; gap: 0; font-size: .85rem; }
+.sn-toc .navlinks a { font-weight: 400; }
+@media (min-width: 860px) {
+  .topbar .brand { margin-right: 0; }
+  .topbar .sn-eds { display: block; margin-right: auto; padding-left: var(--s2); border-left: 1px solid var(--line); }
+  .sn-sub { position: sticky; top: calc(var(--nav-h) + 1px); z-index: 19; }
+  .sn-sub .wrap { flex-direction: row; align-items: center; gap: var(--s3); min-height: var(--sn-sub-h); }
+  .sn-sub .sn-eds { display: none; }
+  .sn-sub .sn-pages { border-top: 0; }
+  .sn-sub .wrap:not(:has(.sn-pages)) .sn-toc { display: flex; margin-left: 0; }
+  .pj .sn-sub { display: none; }
+}
+@media (min-width: 1024px) { .sn-sub .sn-toc { display: flex; } }
 
 /* sections: each numbered section is one card on the paper page */
 .section { padding: var(--s3) 0; }

@@ -1,6 +1,7 @@
 // Claim coverage check for the content sets and content/claims.md.
-// Content sets (each an EN + KO pair): content/{en,ko}.json (home), content/workflow.{en,ko}.json (workflow),
-// content/guide.{en,ko}.json (guide) and content/doc.{en,ko}.json (doc, the cc-doc page).
+// Content sets (each an EN + KO pair): content/project.{en,ko}.json (project, the site root), content/{en,ko}.json
+// (overview, the cc-orch overview), content/workflow.{en,ko}.json (workflow), content/guide.{en,ko}.json (guide),
+// content/doc.{en,ko}.json (doc, the cc-doc page) and content/site.{en,ko}.json (site, the shared navigation labels).
 // Per set:
 // - every leaf string key of both content files is covered by _claims or _nonclaims
 //   (pattern = exact key (covers its subtree), "prefix.*" (below prefix), "*.leaf" (that name in any section));
@@ -30,10 +31,12 @@ const readJson = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8'));
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const SETS = [
-  { name: 'home', en: 'content/en.json', ko: 'content/ko.json' },
+  { name: 'project', en: 'content/project.en.json', ko: 'content/project.ko.json' },
+  { name: 'overview', en: 'content/en.json', ko: 'content/ko.json' },
   { name: 'workflow', en: 'content/workflow.en.json', ko: 'content/workflow.ko.json' },
   { name: 'guide', en: 'content/guide.en.json', ko: 'content/guide.ko.json' },
   { name: 'doc', en: 'content/doc.en.json', ko: 'content/doc.ko.json' },
+  { name: 'site', en: 'content/site.en.json', ko: 'content/site.ko.json' },
 ];
 const facts = readJson('facts.json');
 const SHA = facts.sourceSha;

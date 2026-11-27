@@ -1,42 +1,55 @@
 #!/usr/bin/env node
 /* cc-orchestra-site / scripts/build.mjs
    Zero-dependency assembly script. A page table (PAGES below) lists each page: one template + two copy
-   tables (EN, KO) -> two outputs, all sharing facts.json and the assets:
-     home      src/page.html      content/en.json, ko.json                    -> index.html, ko/index.html
-     workflow  src/workflow.html  content/workflow.en.json, workflow.ko.json  -> workflow/index.html,
-                                                                                 ko/workflow/index.html
-     guide     src/guide.html     content/guide.en.json, guide.ko.json        -> guide/index.html,
-                                                                                 ko/guide/index.html
+   tables (EN, KO) -> two outputs, all sharing facts.json, the shared copy (content/site.en.json,
+   site.ko.json, read as site.* by every template) and the assets:
+     project   src/project.html   content/project.en.json, project.ko.json    -> index.html, ko/index.html
+     overview  src/page.html      content/en.json, ko.json                    -> cc-orch/index.html,
+                                                                                 ko/cc-orch/index.html
+     workflow  src/workflow.html  content/workflow.en.json, workflow.ko.json  -> cc-orch/workflow/index.html,
+                                                                                 ko/cc-orch/workflow/index.html
+     guide     src/guide.html     content/guide.en.json, guide.ko.json        -> cc-orch/guide/index.html,
+                                                                                 ko/cc-orch/guide/index.html
      doc       src/doc.html       content/doc.en.json, doc.ko.json            -> cc-doc/index.html,
                                                                                  ko/cc-doc/index.html
-   plus shared assets/css/tokens.css (the kit token file, copied verbatim so its ACCENT fences stay),
-   assets/site.css, assets/site.js, the KO-only assets/ko-font.css and the vendored fonts.
+   plus four redirect pages for the old addresses (REDIRECTS below: workflow/, guide/, ko/workflow/, ko/guide/,
+   their text from moved.* of the project copy), shared assets/css/tokens.css (the kit token file, copied verbatim
+   so its ACCENT fences stay), assets/site.css, assets/site.js, the KO-only assets/ko-font.css and the vendored fonts.
 
    Usage: node scripts/build.mjs [--out DIR] [--content-dir DIR] [--facts FILE]
      --out          output directory (default: <repo>/dist). Built in a fresh sibling temp dir and swapped
                     in only after a complete build, so a failed or killed build never leaves a half-written DIR.
                     Refused (exit 1, nothing deleted): the repo or an ancestor, .git, a source dir, $HOME, /, a
                     symlink, or an existing non-empty dir without the .cc-site-build marker every build writes.
-     --content-dir  directory holding every page's copy tables (en.json, ko.json, workflow.en.json,
-                    workflow.ko.json, guide.en.json, guide.ko.json, doc.en.json,
-                    doc.ko.json; default: <repo>/content)
+     --content-dir  directory holding every page's copy tables (project.en.json, project.ko.json, en.json,
+                    ko.json, workflow.en.json, workflow.ko.json, guide.en.json, guide.ko.json, doc.en.json,
+                    doc.ko.json) and the shared copy (site.en.json, site.ko.json); default: <repo>/content
      --facts        facts file (default: <repo>/facts.json)
    Env: SITE_URL (absolute http(s) URL ending in "/"; default https://example.invalid/cc-orchestra-site/),
-        used only for the two <link rel="alternate" hreflang> tags per page.
+        used only for the two <link rel="alternate" hreflang> tags per content page (none on redirect pages).
    Exit 0 on success, 1 on any build error in any page (unknown placeholder, missing content key, leftover
-   "{{", a content key present in one language only, an unknown facts path, disallowed markup in copy).
+   "{{", a content key present in one language only, an unknown facts path, disallowed markup in copy, a
+   shared site.* key no page of a language renders, an unknown partial).
 
-   Template language (src/page.html, src/workflow.html, src/guide.html, src/doc.html):
+   Template language (src/project.html, src/page.html, src/workflow.html, src/guide.html, src/doc.html and
+   the partials they include):
      {{t:REF}}    copy as inline HTML (only <em> <strong> <code> <br> allowed; {{f:..}} inside resolved)
      {{a:REF}}    copy as attribute-safe plain text (tags stripped)
      {{cap:REF}}  like t:, with a leading "Figure 1." / "Table 2." label wrapped in <span class="fig-label">
      {{u:REF}}    an absolute https:// URL from the copy
      {{v:REF}}    a plain value (escaped)       {{f:PATH}}  a facts value (a route renders "Model @ effort")
-     {{name}}     a build variable (lang, root, otherLang, otherHref, homeHref, workflowHref, guideHref, docHref,
-                  hrefEn, hrefKo, headScript)
+     {{name}}     a build variable: lang, root, otherLang, otherHref, hrefEn, hrefKo, headScript, and the
+                  same-language links from this page: siteHref (project page), orchHref (cc-orch overview),
+                  workflowHref, guideHref, docHref; homeHref is the old name of orchHref, still read by the
+                  workflow and guide <main>
+     {{> NAME}}   the partial src/partials/NAME.html, rendered in place with the caller's copy, variables,
+                  view data and used-key set (an unknown NAME fails the build)
      {{#each REF}}..{{/each}}   loop; inside: "." item, ".x" item field, @i (0-based), @n (1-based)
      {{#if REF}}..{{else}}..{{/if}}   "!REF" negates; "REF?" treats a missing key as false
-   REF: "a.b.0" = content path, ".x" = loop item, "$x.y" = computed view data, "@i"/"@n"/"@first"/"@last". */
+   REF: "a.b.0" = content path ("site.x" = shared copy), ".x" = loop item, "$x.y" = computed view data,
+   "@i"/"@n"/"@first"/"@last". View data on every page: $isKo, and $nav for the shell (isProject, isOverview,
+   isWorkflow, isGuide, isDoc, inOrch, and orchCurrent / docCurrent: the aria-current value of the edition
+   links, "page" on that edition's overview, "true" on its other pages, "" elsewhere). */
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -54,25 +67,34 @@ const FONT_FILES = ['SCDream4.otf', 'SCDream6.otf', 'SHA256SUMS', 'LICENSE-S-Cor
 const MARKER = '.cc-site-build';
 const MARKER_TEXT = 'cc-orchestra-site build output (scripts/build.mjs); safe to delete with the rest of this directory\n';
 const SOURCE_DIRS = ['src', 'content', 'scripts', 'fonts', 'tests', '.github', 'design'];
-/* The pages. Per page and language: template, copy table (in --content-dir), output path, asset prefix
-   (root), the language toggle's target (other), the brand/overview link (home), the hreflang URLs (relative
-   to SITE_URL) and the EN-only redirect target (koTarget, see head.js).
+/* The pages. Per page: template, copy table per language (in --content-dir) and route: the page's directory
+   inside each language tree ("" = the root; KO pages live under ko/). Output path, asset prefix, language
+   toggle, hreflang URLs, the EN-only redirect target (koTarget = the EN toggle, see head.js) and every
+   same-language link are derived from the routes (pageVars below).
    unusedOk: copy keys the page does not render on purpose; any other key no template tag reads fails the
    build. meta.langName: the page's own language name (the toggle shows the other one); footer.fontLink:
-   renders only next to the KO-only font credit (empty on EN); lifecycle.tree.0.1: the home root row's empty
-   note (the root folder is shown in the panel head).
-   view: the home page's computed view data (risk levels, gate cells, Viz B curves); other pages get $isKo. */
+   renders only next to the KO-only font credit (empty on EN); lifecycle.tree.0.1: the overview root row's
+   empty note (the root folder is shown in the panel head).
+   view: the overview's computed view data (risk levels, gate cells, Viz B curves); every page gets $isKo, $nav.
+   forwardFrom: the page whose rendered ids (minus this page's own) this page forwards to that page's route
+   when the address has one of them as its #hash (old overview fragments on the project page, see head.js).
+   moved: this page's copy holds moved.*, the text of the redirect pages. */
 const PAGES = [
   {
-    id: 'home',
+    id: 'project',
+    template: 'src/project.html',
+    content: { en: 'project.en.json', ko: 'project.ko.json' },
+    route: '',
+    unusedOk: ['meta.langName', 'footer.fontLink'],
+    view: false,
+    forwardFrom: 'overview',
+    moved: true
+  },
+  {
+    id: 'overview',
     template: 'src/page.html',
     content: { en: 'en.json', ko: 'ko.json' },
-    out: { en: 'index.html', ko: 'ko/index.html' },
-    root: { en: '', ko: '../' },
-    other: { en: 'ko/', ko: '../?lang=en' },
-    home: { en: '#top', ko: '#top' },
-    href: { en: '', ko: 'ko/' },
-    koTarget: 'ko/',
+    route: 'cc-orch/',
     unusedOk: ['meta.langName', 'footer.fontLink', 'lifecycle.tree.0.1'],
     view: true
   },
@@ -80,12 +102,7 @@ const PAGES = [
     id: 'workflow',
     template: 'src/workflow.html',
     content: { en: 'workflow.en.json', ko: 'workflow.ko.json' },
-    out: { en: 'workflow/index.html', ko: 'ko/workflow/index.html' },
-    root: { en: '../', ko: '../../' },
-    other: { en: '../ko/workflow/', ko: '../../workflow/?lang=en' },
-    home: { en: '../', ko: '../' },
-    href: { en: 'workflow/', ko: 'ko/workflow/' },
-    koTarget: '../ko/workflow/',
+    route: 'cc-orch/workflow/',
     unusedOk: ['meta.langName', 'footer.fontLink'],
     view: false
   },
@@ -93,12 +110,7 @@ const PAGES = [
     id: 'guide',
     template: 'src/guide.html',
     content: { en: 'guide.en.json', ko: 'guide.ko.json' },
-    out: { en: 'guide/index.html', ko: 'ko/guide/index.html' },
-    root: { en: '../', ko: '../../' },
-    other: { en: '../ko/guide/', ko: '../../guide/?lang=en' },
-    home: { en: '../', ko: '../' },
-    href: { en: 'guide/', ko: 'ko/guide/' },
-    koTarget: '../ko/guide/',
+    route: 'cc-orch/guide/',
     unusedOk: ['meta.langName', 'footer.fontLink'],
     view: false
   },
@@ -106,20 +118,39 @@ const PAGES = [
     id: 'doc',
     template: 'src/doc.html',
     content: { en: 'doc.en.json', ko: 'doc.ko.json' },
-    out: { en: 'cc-doc/index.html', ko: 'ko/cc-doc/index.html' },
-    root: { en: '../', ko: '../../' },
-    other: { en: '../ko/cc-doc/', ko: '../../cc-doc/?lang=en' },
-    home: { en: '../', ko: '../' },
-    href: { en: 'cc-doc/', ko: 'ko/cc-doc/' },
-    koTarget: '../ko/cc-doc/',
+    route: 'cc-doc/',
     unusedOk: ['meta.langName', 'footer.fontLink'],
     view: false
   }
 ];
-/* the home page's links to the workflow, guide and cc-doc pages (the same relative paths from / and /ko/) */
-const WORKFLOW_HREF = 'workflow/';
-const GUIDE_HREF = 'guide/';
-const DOC_HREF = 'cc-doc/';
+/* the cc-orch edition: its overview first; the other pages of the edition are its tabs */
+const ORCH_PAGES = ['overview', 'workflow', 'guide'];
+const DOC_PAGES = ['doc'];
+/* Redirect pages at the old addresses of the moved pages: output, language (whose moved.* copy it shows) and
+   the new address relative to the output. Each holds a meta refresh, a script that keeps ?query and #hash,
+   and a visible link; no hreflang pair and no SITE_URL. */
+const REDIRECTS = [
+  { out: 'workflow/index.html', lang: 'en', target: '../cc-orch/workflow/' },
+  { out: 'guide/index.html', lang: 'en', target: '../cc-orch/guide/' },
+  { out: 'ko/workflow/index.html', lang: 'ko', target: '../cc-orch/workflow/' },
+  { out: 'ko/guide/index.html', lang: 'ko', target: '../cc-orch/guide/' }
+];
+const REDIRECT_TEMPLATE = `<!doctype html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url={{target}}">
+<title>{{a:moved.title}}</title>
+<script>location.replace("{{target}}" + location.search + location.hash);</script>
+</head>
+<body>
+<p>{{t:moved.text}} <a href="{{target}}">{{t:moved.link}}</a></p>
+</body>
+</html>
+`;
 
 class BuildError extends Error {}
 function fail(msg) { throw new BuildError(msg); }
@@ -258,7 +289,9 @@ function makeCopy(fact) {
 }
 
 /* ---------- template ---------- */
-function parseTemplate(src, name) {
+/* name: the file the error messages name; partials: the chain of partials being parsed (no include cycle);
+   at: prefix of the line numbers inside a partial ("partials/x.html:"), so an error names the partial's line */
+function parseTemplate(src, name, partials = [], at = '') {
   const re = /\{\{([^{}]+)\}\}/g;
   const rootNode = { type: 'root', body: [] };
   const stack = [rootNode];
@@ -266,7 +299,7 @@ function parseTemplate(src, name) {
   let m;
   const cur = () => stack[stack.length - 1];
   const push = (node) => { const n = cur(); (n.inAlt ? n.alt : n.body).push(node); };
-  const line = (idx) => src.slice(0, idx).split('\n').length;
+  const line = (idx) => at + src.slice(0, idx).split('\n').length;
   while ((m = re.exec(src))) {
     if (m.index > last) push({ type: 'text', value: src.slice(last, m.index) });
     last = re.lastIndex;
@@ -286,6 +319,13 @@ function parseTemplate(src, name) {
     } else if (tag === '/each' || tag === '/if') {
       const n = stack.pop();
       if (!n || n.type !== tag.slice(1)) fail(`${name}:${ln}: unexpected {{${tag}}}`);
+    } else if ((mm = /^>\s*([a-z][a-z0-9-]*)$/.exec(tag))) {
+      const file = path.join(REPO, 'src/partials', `${mm[1]}.html`);
+      if (!fs.existsSync(file)) fail(`${name}:${ln}: unknown partial {{> ${mm[1]}}} (no src/partials/${mm[1]}.html)`);
+      if (partials.includes(mm[1])) fail(`${name}:${ln}: partial ${mm[1]} includes itself`);
+      /* without the file's final newline, so an include on its own line leaves no blank line */
+      const sub = parseTemplate(read(file).replace(/\n$/, ''), name, [...partials, mm[1]], `partials/${mm[1]}.html:`);
+      push({ type: 'include', body: sub.body, line: ln });
     } else if ((mm = /^(t|a|cap|u|v|f):(\S+)$/.exec(tag))) {
       push({ type: 'out', kind: mm[1], ref: mm[2], line: ln });
     } else if (/^[A-Za-z][A-Za-z0-9]*$/.test(tag)) {
@@ -348,6 +388,8 @@ function makeRenderer({ name, content, view, vars, copy, fact, used }) {
         } else if (n.kind === 't') out += copy.rich(v, where);
         else if (n.kind === 'a') out += copy.plain(v, where);
         else if (n.kind === 'cap') out += copy.caption(v, where);
+      } else if (n.type === 'include') {
+        out += render(n.body, scope);
       } else if (n.type === 'if') {
         let ref = n.ref; let neg = false; let optional = false;
         if (ref.startsWith('!')) { neg = true; ref = ref.slice(1); }
@@ -424,17 +466,24 @@ function buildView(content, facts, lang) {
 function stripCssComments(css) {
   return css.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map((l) => l.trim()).filter(Boolean).join('\n') + '\n';
 }
-/* head.js carries two marked blocks: the EN-only language redirect and the KO-only font switch.
-   koTarget: the EN page's KO twin, written over the "ko/" string after the @ko-target marker. */
+/* head.js carries three marked blocks: the EN-only language redirect, the KO-only font switch and the
+   project-only forwarder of old overview fragments.
+   koTarget: the EN page's KO twin, written over the "ko/" string after the @ko-target marker.
+   forward: null on every page but the project pages (the block is dropped), else the ids to forward, written
+   over the [] after the @old-ids marker. */
 const KO_TARGET = '/* @ko-target */"ko/"';
-function headScript(lang, koTarget) {
+const OLD_IDS = '/* @old-ids */[]';
+function headScript(lang, koTarget, forward) {
   let js = read(path.join(REPO, 'src/js/head.js'));
   if (js.split(KO_TARGET).length !== 2) fail(`src/js/head.js: expected exactly one ${KO_TARGET} in the EN-only block`);
+  if (js.split(OLD_IDS).length !== 2) fail(`src/js/head.js: expected exactly one ${OLD_IDS} in the project-only block`);
   js = js.replace(KO_TARGET, () => JSON.stringify(koTarget));
-  for (const l of LANGS) {
-    const re = new RegExp(`/\\* @${l}-only \\*/[\\s\\S]*?/\\* @end-${l}-only \\*/`);
-    if (!re.test(js)) fail(`src/js/head.js: missing the /* @${l}-only */ ... /* @end-${l}-only */ block`);
-    if (lang !== l) js = js.replace(re, '');
+  js = js.replace(OLD_IDS, () => JSON.stringify(forward || []));
+  const blocks = LANGS.map((l) => [`${l}-only`, lang === l]).concat([['project-only', forward !== null]]);
+  for (const [b, keep] of blocks) {
+    const re = new RegExp(`/\\* @${b} \\*/[\\s\\S]*?/\\* @end-${b} \\*/`);
+    if (!re.test(js)) fail(`src/js/head.js: missing the /* @${b} */ ... /* @end-${b} */ block`);
+    if (!keep) js = js.replace(re, '');
   }
   js = js.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map((l) => l.trim()).filter(Boolean).join('\n');
   if (/<\/script/i.test(js)) fail('src/js/head.js must not contain "</script"');
@@ -445,6 +494,66 @@ function siteUrl() {
   const u = process.env.SITE_URL === undefined || process.env.SITE_URL === '' ? PLACEHOLDER_URL : process.env.SITE_URL;
   if (!/^https?:\/\/[A-Za-z0-9.-]+(:\d+)?\/([A-Za-z0-9._~-]+\/)*$/.test(u)) fail(`SITE_URL must be an absolute http(s) URL ending in "/" (got ${JSON.stringify(u)})`);
   return u;
+}
+
+/* Every copy string in both files is validated (placeholders against facts.json, inline markup), whether or not
+   a template renders it. _claims/_nonclaims hold ids and key patterns, not copy, but may still carry no placeholder. */
+function validateCopy(content, files, copy) {
+  for (const l of LANGS) {
+    for (const [k, v] of leaves(content[l], '', [])) {
+      if (typeof v !== 'string') continue;
+      if (k.startsWith('_')) {
+        if (/\{\{|\}\}/.test(v)) fail(`placeholder in ${files[l]} ${k}: ${JSON.stringify(v)}`);
+      } else copy.rich(v, `${files[l]} ${k}`);
+    }
+  }
+}
+
+/* Per page and language: output path, hreflang suffixes, koTarget and the build variables, from the routes.
+   KO pages sit one level deeper (ko/). Links between pages stay inside the page's language tree. */
+function pageVars(pg, l, byId) {
+  const depth = pg.route.split('/').filter(Boolean).length;
+  const up = '../'.repeat(depth);
+  const isEn = l === 'en';
+  const rel = (id) => {
+    const r = path.posix.relative(`/${pg.route}`, `/${byId[id].route}`);
+    return r === '' ? './' : `${r}/`;
+  };
+  const other = isEn ? `${up}ko/${pg.route}` : `../${up}${pg.route}?lang=en`;
+  return {
+    out: `${isEn ? '' : 'ko/'}${pg.route}index.html`,
+    href: { en: pg.route, ko: `ko/${pg.route}` },
+    koTarget: `${up}ko/${pg.route}`,
+    vars: {
+      lang: l,
+      root: isEn ? up : `../${up}`,
+      otherLang: isEn ? 'ko' : 'en',
+      otherHref: other,
+      siteHref: rel('project'),
+      orchHref: rel('overview'),
+      homeHref: rel('overview'),
+      workflowHref: rel('workflow'),
+      guideHref: rel('guide'),
+      docHref: rel('doc')
+    }
+  };
+}
+
+/* $nav: which page and which edition is current, for the shell (aria-current) */
+function navView(id) {
+  const inOrch = ORCH_PAGES.includes(id);
+  const inDoc = DOC_PAGES.includes(id);
+  return {
+    isProject: id === 'project', isOverview: id === 'overview', isWorkflow: id === 'workflow', isGuide: id === 'guide', isDoc: id === 'doc',
+    inOrch,
+    orchCurrent: id === ORCH_PAGES[0] ? 'page' : inOrch ? 'true' : '',
+    docCurrent: id === DOC_PAGES[0] ? 'page' : inDoc ? 'true' : ''
+  };
+}
+
+/* every id="..." of a rendered page, in document order */
+function htmlIds(html) {
+  return [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
 }
 
 /* ---------- build ---------- */
@@ -465,65 +574,99 @@ function build(opts, outDir) {
   if (!/SCDream/.test(koCss)) fail('ko-font.css does not declare the SCDream family');
   if (/\{\{/.test(tokensCss + siteCss + siteJs + koCss)) fail('leftover "{{" in CSS or JS');
 
-  const outputs = [];
-  for (const pg of PAGES) {
+  /* shared copy: one table per language, validated like page copy; every site.* key must be rendered by some
+     page of that language */
+  const siteCopy = {};
+  for (const l of LANGS) {
+    siteCopy[l] = readJson(path.join(opts.contentDir, `site.${l}.json`));
+    if (!isObj(siteCopy[l].site)) fail(`content/site.${l}.json: expected a top-level "site" object`);
+    /* only site.* is rendered (and checked for use below), so nothing else may sit next to it */
+    const extra = Object.keys(siteCopy[l]).filter((k) => !['site', '_claims', '_nonclaims'].includes(k));
+    if (extra.length) fail(`content/site.${l}.json: top-level keys other than site, _claims, _nonclaims: ${extra.join(', ')}`);
+  }
+  const siteDiffs = [];
+  compareShape(siteCopy.en, siteCopy.ko, '', siteDiffs);
+  if (siteDiffs.length) fail(['content/site.en.json and content/site.ko.json differ in shape:', ...siteDiffs.slice(0, 40)].join('\n  '));
+  validateCopy(siteCopy, { en: 'site.en.json', ko: 'site.ko.json' }, copy);
+  const siteUsed = { en: new Set(), ko: new Set() };
+
+  const byId = Object.fromEntries(PAGES.map((pg) => [pg.id, pg]));
+  const redirectTree = parseTemplate(REDIRECT_TEMPLATE, 'redirect page');
+  const pageOut = {};
+  const redirectOut = [];
+  /* a page that forwards to another page's ids is rendered after it */
+  for (const pg of [...PAGES.filter((p) => !p.forwardFrom), ...PAGES.filter((p) => p.forwardFrom)]) {
     const content = {};
     for (const l of LANGS) content[l] = readJson(path.join(opts.contentDir, pg.content[l]));
     const diffs = [];
     compareShape(content.en, content.ko, '', diffs);
     if (diffs.length) fail(`content/${pg.content.en} and content/${pg.content.ko} differ in shape:\n  ${diffs.slice(0, 40).join('\n  ')}`);
-
-    /* Every copy string in both files is validated (placeholders against facts.json, inline markup),
-       whether or not the template renders it. _claims/_nonclaims hold ids and key patterns, not copy,
-       but may still carry no placeholder. */
-    for (const l of LANGS) {
-      for (const [k, v] of leaves(content[l], '', [])) {
-        if (typeof v !== 'string') continue;
-        if (k.startsWith('_')) {
-          if (/\{\{|\}\}/.test(v)) fail(`placeholder in ${pg.content[l]} ${k}: ${JSON.stringify(v)}`);
-        } else copy.rich(v, `${pg.content[l]} ${k}`);
-      }
-    }
+    for (const l of LANGS) if (Object.hasOwn(content[l], 'site')) fail(`${pg.content[l]}: the key "site" is reserved for the shared copy`);
+    validateCopy(content, pg.content, copy);
     const name = path.basename(pg.template);
     const tree = parseTemplate(read(path.join(REPO, pg.template)), name);
 
+    pageOut[pg.id] = {};
     for (const l of LANGS) {
-      const used = new Set();
       const isEn = l === 'en';
-      const vars = {
-        lang: l,
-        root: pg.root[l],
-        otherLang: isEn ? 'ko' : 'en',
-        otherHref: pg.other[l],
-        homeHref: pg.home[l],
-        workflowHref: WORKFLOW_HREF,
-        guideHref: GUIDE_HREF,
-        docHref: DOC_HREF,
-        hrefEn: escHtml(SITE + pg.href.en),
-        hrefKo: escHtml(SITE + pg.href.ko),
-        headScript: headScript(l, pg.koTarget)
+      const v = pageVars(pg, l, byId);
+      const view = pg.view ? buildView(content[l], facts, l) : { isKo: l === 'ko' };
+      view.nav = navView(pg.id);
+      const renderPage = (forward) => {
+        const used = new Set();
+        const vars = { ...v.vars, hrefEn: escHtml(SITE + v.href.en), hrefKo: escHtml(SITE + v.href.ko), headScript: headScript(l, v.koTarget, forward) };
+        if (pg.view) {
+          ['arch.risks', 'arch.leadByRisk', 'arch.gateCaption', 'routing.gateText', 'gates.cols', 'providers.claude', 'providers.codex']
+            .forEach((p) => leafPaths(getPath(content[l], p.split('.')).value, p, []).forEach((k) => used.add(k)));
+        }
+        const render = makeRenderer({ name, content: { ...content[l], site: siteCopy[l].site }, view, vars, copy, fact, used });
+        return { html: render(tree.body, {}), used };
       };
-      let view = { isKo: l === 'ko' };
-      if (pg.view) {
-        view = buildView(content[l], facts, l);
-        ['arch.risks', 'arch.leadByRisk', 'arch.gateCaption', 'routing.gateText', 'gates.cols', 'providers.claude', 'providers.codex']
-          .forEach((p) => leafPaths(getPath(content[l], p.split('.')).value, p, []).forEach((k) => used.add(k)));
+      let { html, used } = renderPage(pg.forwardFrom ? [] : null);
+      if (pg.forwardFrom) {
+        /* old fragments: every id of the other page's rendered output (the same in both languages) that this page
+           does not use itself */
+        const own = new Set(htmlIds(html));
+        const from = pageOut[pg.forwardFrom];
+        if (!from) fail(`${pg.id}: forwardFrom ${pg.forwardFrom} is not a page rendered before it`);
+        const fromIds = htmlIds(from[l].html);
+        if (JSON.stringify([...new Set(htmlIds(from.en.html))].sort()) !== JSON.stringify([...new Set(htmlIds(from.ko.html))].sort())) {
+          fail(`${pg.forwardFrom}: the EN and KO pages carry different ids, so the forward list of ${pg.id} would differ`);
+        }
+        ({ html, used } = renderPage([...new Set(fromIds)].filter((id) => !own.has(id))));
       }
-      const render = makeRenderer({ name, content: content[l], view, vars, copy, fact, used });
-      const html = render(tree.body, {});
       if (/\{\{|\}\}/.test(html)) {
         const i = html.search(/\{\{|\}\}/);
-        fail(`leftover "{{" in ${pg.out[l]} near ${JSON.stringify(html.slice(Math.max(0, i - 40), i + 40))}`);
+        fail(`leftover "{{" in ${v.out} near ${JSON.stringify(html.slice(Math.max(0, i - 40), i + 40))}`);
       }
-      if (isEn && /SCDream/.test(html)) fail(`the EN page ${pg.out[l]} must not contain "SCDream"`);
+      if (isEn && /SCDream/.test(html)) fail(`the EN page ${v.out} must not contain "SCDream"`);
       const siteCount = html.split(SITE).length - 1;
-      if (siteCount !== 2) fail(`${pg.out[l]}: expected SITE_URL exactly twice (hreflang pair), found ${siteCount}`);
+      if (siteCount !== 2) fail(`${v.out}: expected SITE_URL exactly twice (hreflang pair), found ${siteCount}`);
+      if (pg.moved) {
+        /* the redirect pages of this language, from this page's moved.* copy */
+        for (const r of REDIRECTS.filter((x) => x.lang === l)) {
+          if (!/^(\.\.\/)+[a-z0-9-]+(\/[a-z0-9-]+)*\/$/.test(r.target)) fail(`redirect ${r.out}: target ${JSON.stringify(r.target)} is not a relative directory URL`);
+          const render = makeRenderer({ name: `redirect page ${r.out}`, content: content[l], view: {}, vars: { lang: l, target: r.target }, copy, fact, used });
+          const rhtml = render(redirectTree.body, {});
+          if (rhtml.includes(SITE)) fail(`${r.out}: a redirect page must not contain SITE_URL`);
+          redirectOut.push([r.out, rhtml]);
+        }
+      }
       /* unused copy is an error, so a key the template never reads cannot carry an unchecked claim */
+      for (const k of used) if (k.startsWith('site.')) siteUsed[l].add(k);
       const unused = leafPaths(content[l], '', []).filter((k) => !k.startsWith('_') && !pg.unusedOk.includes(k) && !used.has(k));
       if (unused.length) fail(`${pg.content[l]}: copy keys the template never uses: ${unused.join(', ')}`);
-      outputs.push([pg.out[l], html]);
+      pageOut[pg.id][l] = { out: v.out, html };
     }
   }
+  for (const l of LANGS) {
+    const unused = leafPaths(siteCopy[l].site, 'site', []).filter((k) => !siteUsed[l].has(k));
+    if (unused.length) fail(`site.${l}.json: copy keys no page renders: ${unused.join(', ')}`);
+  }
+  const outputs = [];
+  for (const pg of PAGES) for (const l of LANGS) outputs.push([pageOut[pg.id][l].out, pageOut[pg.id][l].html]);
+  if (REDIRECTS.some((r) => !redirectOut.some(([o]) => o === r.out))) fail('a redirect page was not written (no page has moved: true)');
+  outputs.push(...redirectOut);
 
   const w = (rel, data) => {
     const p = path.join(outDir, rel);
@@ -542,7 +685,7 @@ function build(opts, outDir) {
 
   const report = [
     ...outputs, ['assets/css/tokens.css', tokensCss], ['assets/site.css', siteCss], ['assets/ko-font.css', koCss], ['assets/site.js', siteJs]
-  ].map(([n, d]) => `  ${n.padEnd(24)} ${String(Buffer.byteLength(d)).padStart(7)} B  gz ${String(gz(Buffer.from(d))).padStart(6)} B`);
+  ].map(([n, d]) => `  ${n.padEnd(32)} ${String(Buffer.byteLength(d)).padStart(7)} B  gz ${String(gz(Buffer.from(d))).padStart(6)} B`);
   return { report, site: SITE };
 }
 

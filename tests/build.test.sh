@@ -59,5 +59,11 @@ run 1 "b5 an en-only toString key is present in en only" "toString: present in e
 fresh
 run 1 "b6 constructor is an unknown argument" "unknown argument: constructor" constructor "$W/dist$n"
 
+# a built output, then a shared copy with an extra top-level key in both languages: the build fails and the output stays
+fresh; run 0 "b7a unmodified copy builds into the output" "build: OK" --out "$W/dist$n"
+json content/site.en.json 'j.extra = "x"'; json content/site.ko.json 'j.extra = "x"'
+run 1 "b7 an extra top-level key in content/site.*.json fails the build" "top-level keys other than site, _claims, _nonclaims: extra" --out "$W/dist$n"
+if [ -f "$W/dist$n/index.html" ] && [ -f "$W/dist$n/.cc-site-build" ]; then ok "b7b the earlier output is kept"; else bad "b7b the earlier output is gone"; fi
+
 echo "# build tests: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

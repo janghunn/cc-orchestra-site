@@ -1,14 +1,12 @@
 {
   "meta": {
-    "title": "cc-orchestra for beginners: what it is and when it is worth using",
-    "description": "An introduction for newcomers: when Claude Code on its own is enough, how each cc-orchestra agent gets its role, where rules and task state are kept, and what the harness costs in time and procedure.",
+    "title": "cc-orch for beginners: what it is and when it is worth using",
+    "description": "An introduction for newcomers: when Claude Code on its own is enough, how each cc-orch agent gets its role, where rules and task state are kept, and what the harness costs in time and procedure.",
     "langName": "English",
     "otherLangName": "한국어",
     "otherLangLabel": "Read this page in Korean",
     "skip": "Skip to content",
     "brand": "cc-orchestra",
-    "homeLabel": "cc-orchestra overview",
-    "navLabel": "Primary",
     "nav": [
       "Do I need it?",
       "Roles",
@@ -21,8 +19,8 @@
   },
   "hero": {
     "eyebrow": "For beginners",
-    "h1": "What cc-orchestra is, <em>and when it is worth using.</em>",
-    "lede": "In its default mode, cc-orchestra runs on Claude Code and Codex CLI. An orchestrator agent talks to you and splits the request into tasks, a lead agent owns each task, Codex writes the code by default, the Claude lead reads the real diff, and separate Codex gates verify and review the result. Leads and the agents below them work from files rather than from your conversation, and the state of the work is kept in files.",
+    "h1": "What cc-orch is, <em>and when it is worth using.</em>",
+    "lede": "In its default mode, cc-orch runs on Claude Code and Codex CLI. An orchestrator agent talks to you and splits the request into tasks, a lead agent owns each task, Codex writes the code by default, the Claude lead reads the real diff, and separate Codex gates verify and review the result. Leads and the agents below them work from files rather than from your conversation, and the state of the work is kept in files.",
     "ctaPrimary": "Start with the basics",
     "ctaSecondary": "Full overview",
     "tocTitle": "On this page"
@@ -30,7 +28,7 @@
   "why": {
     "kicker": "Do I need it?",
     "h2": "Often, Claude Code on its own is the better choice",
-    "p": "For a quick question, a fix to one or two files or exploratory work, a single Claude Code session is faster and cheaper. cc-orchestra's extra procedure pays off when you run several tasks at once, need checks you can rely on, or work on something that spans weeks.",
+    "p": "For a quick question, a fix to one or two files or exploratory work, a single Claude Code session is faster and cheaper. cc-orch's extra procedure pays off when you run several tasks at once, need checks you can rely on, or work on something that spans weeks.",
     "cards": [
       {
         "icon": "sessions",
@@ -115,13 +113,13 @@
   },
   "compare": {
     "kicker": "Compared",
-    "h2": "cc-orchestra and the editor extensions on their own",
+    "h2": "cc-orch and the editor extensions on their own",
     "p": "The comparison here is with the Claude Code and Codex extensions installed in an editor and no harness files of your own: no CLAUDE.md, AGENTS.md, skills or hooks. How the work is done is then mostly settled in the chat, one request at a time.",
-    "tableCaption": "Table 1. The editor extensions alone compared with cc-orchestra.",
+    "tableCaption": "Table 1. The editor extensions alone compared with cc-orch.",
     "cols": [
       "Aspect",
       "Extensions alone",
-      "cc-orchestra"
+      "cc-orch"
     ],
     "rows": [
       {
@@ -162,9 +160,9 @@
     ],
     "betterTitle": "Where the extensions alone are better",
     "better": [
-      "Speed: a question or a one-file fix ends within one session, while the same work through cc-orchestra goes through investigation, design, implementation and gates.",
+      "Speed: a question or a one-file fix ends within one session, while the same work through cc-orch goes through investigation, design, implementation and gates.",
       "Cost: one agent runs, and no gate rounds repeat.",
-      "Control: you watch the diff in the editor and change direction at once. In cc-orchestra your instructions reach the code through a lead.",
+      "Control: you watch the diff in the editor and change direction at once. In cc-orch your instructions reach the code through a lead.",
       "No new concepts: slots, risk levels, gates and round caps stay out of your way."
     ],
     "issuesTitle": "Problems that come up with the extensions alone",
@@ -173,7 +171,7 @@
       "The reasons behind a change live only in the chat and are hard to find weeks later.",
       "An edit to a file nobody asked about is caught only by your own eyes."
     ],
-    "closing": "With the extensions alone, you are the manager and the checker. cc-orchestra moves much of that work into written rules, cross-family reading of the code and scripted checks, and charges for it in time, tokens and procedure."
+    "closing": "With the extensions alone, you are the manager and the checker. cc-orch moves much of that work into written rules, cross-family reading of the code and scripted checks, and charges for it in time, tokens and procedure."
   },
   "costs": {
     "kicker": "Trade-offs",
@@ -210,11 +208,11 @@
       },
       {
         "situation": "A project that runs for days, or several tasks in parallel",
-        "use": "cc-orchestra"
+        "use": "cc-orch"
       },
       {
         "situation": "Code where the checks matter, such as an experiment pipeline or a public tool",
-        "use": "cc-orchestra"
+        "use": "cc-orch"
       }
     ],
     "ctaHome": "Read the full overview",

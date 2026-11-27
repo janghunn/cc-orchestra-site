@@ -29,7 +29,14 @@ Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compar
 
 ## Components
 
-- **Nav** (`.topbar`): sticky `--surface` bar, 1px `--line` rule, 60 px. Brand = two-circle mark (`--compare`, `--accent`) + name, 900 (KO 700), `--accent`. Section links 700 `--muted`, 44 px, hover `--accent-tint`; hidden below 860 px. The language link and theme button are kit controls: 44 px pills with a 2px `--control` border (the theme button 44 × 44).
+- **Nav**: three levels, the same shell on all ten pages (snippets `header.html`, `editions.html`, `sub.html`, `sitemap.html` in `src/partials/`; labels in `content/site.*.json`). Every link of the top bar, the sub-bar and the footer sitemap is at least 44 px high.
+  - Level 1, project. The top bar (`header.topbar`): `--surface` bar, 1px `--line` rule. Brand = two-circle mark (`--compare`, `--accent`) + name, 900 (KO 700), `--accent`; it links to the project page, accessible name `site.homeLabel`. The language link and theme button are kit controls: 44 px pills with a 2px `--control` border (the theme button 44 × 44).
+  - Level 2, editions (`nav.sn-eds`, `site.edsLabel`): cc-orch and cc-doc, 700 `--muted`, hover `--accent-tint`; the current edition is `--ink` with a 2px `--accent` underline (`aria-current="page"` on that edition's overview, `"true"` on its other pages). The project page marks neither. The edition nav is in the DOM twice, one copy per layout (in the top bar next to the brand from 860 px, at the top of the sub-bar below 860 px); exactly one is displayed at any width.
+  - Level 3, the edition's pages: the sub-bar (`.sn-sub`, right after the top bar). Inside cc-orch it holds the tabs (`nav.sn-pages`, `site.orchPagesLabel`) Overview · For researchers · For beginners, 700 `--muted` one size smaller than the edition links, the current one marked the same way (`aria-current="page"`); the tab row may scroll sideways inside its own box; the first tab's accessible name is `site.orchOverviewLabel` ("cc-orch overview"). cc-doc has one page and no tabs.
+  - Section links of the current page (`nav.sn-toc` with `ul.navlinks`, the copy's `meta.nav`) sit in the sub-bar after the visible prefix `site.tocLabel` ("Page sections"), 400 `--muted` and smaller than the tabs, hover `--accent-tint`: at the right of the tabs on the cc-orch pages from 1024 px, on the cc-doc page (no tabs) from 860 px. The project page has none.
+  - Sticky: from 860 px the top bar and the sub-bar stick together, and `scroll-padding-top` and the sticky `.split > .section-head` use the block's height (`--sn-stick`), so a fragment target opens below it. On the project page the sub-bar holds nothing from 860 px and is not shown, so only the top bar sticks there. Below 860 px only the top bar sticks (brand, language, theme; at most 64 px); the edition links and the tabs are the first rows on the page under it and scroll away with it.
+  - Footer sitemap (`nav.sn-foot`, `site.footLabel`) on every page: cc-orchestra (the project page); cc-orch with its three pages; cc-doc with its page. cc-orch and cc-doc are group headings, not links; the two "Overview" links are named `site.orchOverviewLabel` / `site.docOverviewLabel`; the current page has `aria-current="page"`. Header and footer brand links both go to the project page.
+  - Class prefixes: shell rules have a `.sn-` class in their selector, project-page rules a `.pj-` class. The old entry points of the overview (`.ed-pointer` in the hero, `.ed-footnav` in the footer, `.ed-navdoc` in the top bar) and their rules are gone.
 - **Hero**: `--surface` with a 6px `--accent` bottom rule; columns 7fr / 5fr, stacking at ≤ 900 px. The eyebrow is a kit tag; `h1` 900 (KO 700) in `--ink`, its `em` in `--accent` (no gradient text). Stats are kit stat tiles (`--accent-tint`, number in `--accent`).
 - **Takeaway band**: the hero lede (`.lede.band`), in place: `--band` fill, `--on-band` 700 text, radius 16 px. One per page.
 - **Section cards**: every numbered section is `section > .wrap > .card` (2px `--line`, radius 16 px, `--surface`) on the `--bg` page. The section number in the kicker is a numbered disc (`.disc`, 46-60 px, `--accent` / `--on-accent`, Lato 900) left of the kicker + `h2` pair; the separator `.kicker-sep` stays in the DOM, visually hidden.
@@ -41,7 +48,7 @@ Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compar
 
 ## Korean type
 
-- `ko-font.css` is linked from the four KO pages (`/ko/`, `/ko/workflow/`, `/ko/guide/`, `/ko/cc-doc/`) and from no EN page. It is the only stylesheet that names the KO family `SCDream`; the KO pages' inlined head script names it to load the faces, and no EN page, `site.css` or `site.js` does. It holds 400 = `SCDream4.otf` and 700 = `SCDream6.otf`, both unmodified, with `font-display: swap`. The faces use no `local()`, and there is no preload.
+- `ko-font.css` is linked from the five KO content pages (`/ko/`, `/ko/cc-orch/`, `/ko/cc-orch/workflow/`, `/ko/cc-orch/guide/`, `/ko/cc-doc/`) and from no EN page and no redirect page. It is the only stylesheet that names the KO family `SCDream`; the KO pages' inlined head script names it to load the faces, and no EN page, `site.css` or `site.js` does. It holds 400 = `SCDream4.otf` and 700 = `SCDream6.otf`, both unmodified, with `font-display: swap`. The faces use no `local()`, and there is no preload.
 - Shared CSS carries the kit's fallback stack only (`--font-ko`); `ko-font.css` puts the families first on KO pages.
 - First paint uses `"SCDream Fallback"`, a `local()` Noto Sans CJK KR / Noto Sans KR face with metric overrides (values measured in Chrome):
   - 400: `size-adjust` 104.35%. Hangul advance is .96 em in S-Core Dream and .92 em in Noto.
@@ -89,31 +96,45 @@ Claude = comparison (left in Viz B), Codex = accent (right), as the kit's compar
 
 ## Build contract (template)
 
-`scripts/build.mjs` documents the template tags. The overview page structure that QA relies on (overview only; the workflow, guide and cc-doc pages have their own contracts below):
+`scripts/build.mjs` documents the template tags. The cc-orch overview's structure that QA relies on (the `OVERVIEW` constant in `scripts/qa.mjs`; overview only; the project, workflow, guide and cc-doc pages have their own contracts below):
 - `main > section[id]` × 10: `hero problem how routing gates providers lifecycle helpers limits faq`.
 - `figure[id]`: `fig-problem fig-arch fig-gates fig-providers fig-lifecycle`.
 - Tables: `tbl-routing tbl-codex tbl-gates`.
 
-Both overview pages (`/`, `/ko/`) come from the same template, so they have the same DOM. The ten-section count, these figures and the "at least one figure with controls" browser check belong to the overview (and, with its own figure list, the workflow page); they are page-specific contracts, not site-wide ones.
+Both overview pages (`/cc-orch/`, `/ko/cc-orch/`, the site root until the project page took it) come from the same template, so they have the same DOM. The ten-section count, these figures and the "at least one figure with controls" browser check belong to the overview (and, with its own figure list, the workflow page); they are page-specific contracts, not site-wide ones.
 
 ## Documented limits
 
 1. JavaScript off: the light theme (kit limit (a)); the old `prefers-color-scheme` dark fallback is removed on purpose.
 2. No EN webfont: the kit's stack starts with Lato, which renders only where it is installed; otherwise `Segoe UI` / system sans. The site's QA requires zero font requests on EN pages.
-3. The kit checker run on the built site (`check_kit.py --site dist`): token contract and contrast (check 2) and no hard-coded colours (check 7) pass. Check 6 does not apply (each page needs its two absolute `hreflang` links, which the site's own no-network QA exempts), nor does check 9 (the kit's single `assets/fonts/` layout with Lato; the site keeps S-Core Dream in `fonts/ko`, linked only from KO pages).
-4. Section links are hidden below 860 px, as before (no kit menu sheet).
+3. The kit checker run on the built site (`check_kit.py --site dist`): token contract and contrast (check 2) and no hard-coded colours (check 7) pass. Check 6 does not apply (each content page needs its two absolute `hreflang` links, which the site's own no-network QA exempts), nor does check 9 (the kit's single `assets/fonts/` layout with Lato; the site keeps S-Core Dream in `fonts/ko`, linked only from KO pages).
+4. The sub-bar's section links (`nav.sn-toc`) are hidden below 860 px, as before (no kit menu sheet), and on the cc-orch pages also from 860 to 1023 px, where the tabs take the row; the edition links, the tabs and the footer sitemap are shown at every width. The guide, cc-doc and project pages carry their sections in the page itself.
 5. Visual taste is advisory (kit limit (d)); the gates cover contrast, targets, overflow and behaviour.
+6. Redirect pages: GitHub Pages cannot send HTTP redirects, so `/workflow/`, `/guide/`, `/ko/workflow/` and `/ko/guide/` are small pages (`noindex`, in their language, no hreflang pair, linked from no page, not in Lighthouse) that leave by script with the query and fragment kept, with a meta refresh and a visible link as fallbacks; without JavaScript the refresh drops the query and the fragment.
+7. Old overview fragments (`/#how` and the like) are forwarded to `/cc-orch/` by an inline script on the two project pages, on load and when the hash changes on the open page, from a list the build derives (every `id` of the rendered overview that the project page does not use); without JavaScript they open the project page at its top. Fragments the project page owns (`#main`, `#editions`, `#compare`, `#tbl-editions`, ...) are never forwarded.
 
-## Workflow page (`/workflow/`, `/ko/workflow/`)
+## Project page (`/`, `/ko/`)
 
-A second page pair for researchers, built from `src/workflow.html` and `content/workflow.{en,ko}.json` through the page table in `scripts/build.mjs`. It shares the top bar, theme and motion controls, fonts, tokens and both asset bundles with the home page, and the same identity components: the kit landing hero (the lede is the page's one takeaway band), section cards with numbered discs, inner panels, callout, Illustrative chip, text twins and footer. Its own styles are in `src/css/workflow.css` (appended to `assets/site.css`; every selector is a `wf-*` or `loop-*` class) and Figure 1's controller is `src/js/loop.js` (appended to `assets/site.js`; it does nothing on a page without `[data-viz-loop]`). The home page links to it from the 6th top-bar item.
+The site root: the project as a whole, leading into the two editions. Built from `src/project.html` and `content/project.{en,ko}.json` through the page table in `scripts/build.mjs` (page key `project`). It uses the guide's shell (`<body class="gd pj">`, head, the shared nav, footer) and existing components; page-specific rules have a `.pj-` class. It is text only: no `<figure>`, no hero illustration.
+
+Page structure that QA relies on (the `PROJECT` constant in `scripts/qa.mjs`):
+- `main > section[id]` × 3 in this order: `hero editions compare`. Sections 01-02 are `section > .wrap > .card` with a disc.
+- `hero`: eyebrow, `h1`, the lede as the page's one takeaway band, and two buttons of the same class, one per edition (cc-orch, cc-doc).
+- `editions` (01): two edition cards of the same component and weight, side by side from 760 px and stacked below: platform tag, name (`h3`), title, text, a check list "A good fit when", and the edition's pages, each a link with one line, then one button to the edition's overview.
+- `compare` (02): the comparison of the two editions, `.tscroll > table.tbl#tbl-editions` (caption, three columns, six rows, row label as row header), moved from the cc-doc page.
+- No sub-bar tabs or section links (`nav.sn-pages`, `nav.sn-toc`); the edition links and the footer sitemap as on every page.
+- The inline old-fragment forwarder (limit 7) runs on these two pages only, on load and on a hash change.
+
+## Workflow page (`/cc-orch/workflow/`, `/ko/cc-orch/workflow/`)
+
+A cc-orch page pair for researchers, built from `src/workflow.html` and `content/workflow.{en,ko}.json` through the page table in `scripts/build.mjs`. It shares the shared nav, theme and motion controls, fonts, tokens and both asset bundles with the cc-orch overview, and the same identity components: the kit landing hero (the lede is the page's one takeaway band), section cards with numbered discs, inner panels, callout, Illustrative chip, text twins and footer. Its own styles are in `src/css/workflow.css` (appended to `assets/site.css`; every selector is a `wf-*` or `loop-*` class) and Figure 1's controller is `src/js/loop.js` (appended to `assets/site.js`; it does nothing on a page without `[data-viz-loop]`). The cc-orch tabs and the footer sitemap link to it on every page; its old address `/workflow/` is a redirect page (limit 6).
 
 Page structure that QA relies on:
-- `main > section[id]` × 7: `hero loop methods flows roles manual tips`. Sections 01-06 are `section > .wrap > .card`, each headed by a disc (`.kicker > .disc + .kicker-sep`) as on the home page.
+- `main > section[id]` × 7: `hero loop methods flows roles manual tips`. Sections 01-06 are `section > .wrap > .card`, each headed by a disc (`.kicker > .disc + .kicker-sep`) as on the cc-orch overview.
 - `figure[id]`: `fig-loop fig-pipeline fig-reviews fig-gpu fig-roles`. Each one holds a `details.twin[data-twin]` ("Show as text") with the ordered lists and, for the reviews, the GPU board and the roles, a real `<table>` (`tbl-reviews tbl-gpu tbl-roles`).
 - The Illustrative chip (`.wf-ill`, `meta.illustrative`) is on `fig-loop` (stage chips), `fig-reviews` (score strip) and `fig-gpu` (lock board).
 
-Role mapping on this page (the home table applies; these are the page's own marks):
+Role mapping on this page (the table above applies; these are the page's own marks):
 
 | mark | token |
 |---|---|
@@ -141,35 +162,35 @@ Figures:
   - The score strip shows each label on a six-level meter (`data-level` per chip, fixed in the template for the synthetic rows) with an open-majors badge.
   - The lock board places holds on a ten half-hour grid from 1024 px (`--span` per hold, fixed for the synthetic rows) and stacks them on phones. The grid is the page's only gradient: a hard-stop `repeating-linear-gradient` of 1px `--line` rules, no colour blending.
 - **Figure 5** `#fig-roles`: six role cards with a family bar and model chip (Claude `--fam-a`: orchestrator, lead, Claude dev; Codex `--fam-b`: Codex, gates; both: mock reviewers).
-- Methods: ten icon tiles (icon ids from the copy: `branch worktree repo macro gpu review cross pen palette gauge`), as the home helper tiles. There are four columns from 1024 px, and the last two tiles span two columns.
+- Methods: ten icon tiles (icon ids from the copy: `branch worktree repo macro gpu review cross pen palette gauge`), as the overview's helper tiles. There are four columns from 1024 px, and the last two tiles span two columns.
 
 Motion on this page: Figure 1's hand, card lift and arrival ring, and the kit reveal (including a staggered step reveal in Figures 2–4). Nothing else moves (the old hero glow is gone), and every one of these stops under reduced motion and Pause motion.
 
 Icons are inline SVG symbols in the template's sprite (24 × 24, stroke 2, `currentColor`). Loops pick per-position icons through alias symbols (`i-stage-n`, `i-pipe-n`, `i-rev-n`, `i-shared-n`, `i-remote-n`, `i-manual-n`), each a `<use>` of a base icon.
 
-## Beginners' guide page (`/guide/`, `/ko/guide/`)
+## Beginners' guide page (`/cc-orch/guide/`, `/ko/cc-orch/guide/`)
 
-A third page pair for newcomers, built from `src/guide.html` and `content/guide.{en,ko}.json` through the page table in `scripts/build.mjs` (page key `guide`). It is text only: no `<figure>` and no interactive figure. It reuses the workflow page's head, top bar, footer and components (section cards with numbered discs, `.wf-tiles`, `.wf-manual`, callout, `.tscroll` + `.tbl` tables with a caption, `.cmp` card pairs, `.btn-row`); any page-specific style is one block at the end of `src/css/workflow.css`, every selector under `body.gd`.
+A cc-orch page pair for newcomers, built from `src/guide.html` and `content/guide.{en,ko}.json` through the page table in `scripts/build.mjs` (page key `guide`). It is text only: no `<figure>` and no interactive figure. It reuses the workflow page's head, the shared nav, footer and components (section cards with numbered discs, `.wf-tiles`, `.wf-manual`, callout, `.tscroll` + `.tbl` tables with a caption, `.cmp` card pairs, `.btn-row`); any page-specific style is one block at the end of `src/css/workflow.css`, every selector under `body.gd`.
 
 Page structure that QA relies on (the `GUIDE` constant in `scripts/qa.mjs`):
 - `<body class="gd">`; `main > section[id]` × 7 in this order: `hero why roles files compare costs choose`. Sections 01-06 (`why` … `choose`) are `section > .wrap > .card` with a disc.
 - No `figure` element, so the browser check's "at least one figure with controls" minimum does not apply to the guide.
-- Links: home `../` (brand, hero secondary button, closing button) and the research page `../workflow/` (closing button); the language toggle follows the workflow pattern (`../ko/guide/`, `../../guide/?lang=en`).
-- Top-bar section links: `#why #roles #files #compare #choose`. Because those links are hidden below 860 px, the hero carries an "On this page" list with the same five anchors.
+- Links: the cc-orch overview `../` (hero secondary button, closing button) and the research page `../workflow/` (closing button); the brand goes to the project page `../../`; the language toggle follows the workflow pattern (`../../ko/cc-orch/guide/`, `../../../cc-orch/guide/?lang=en`).
+- Sub-bar section links: `#why #roles #files #compare #choose`. Because those links are hidden below 860 px, the hero carries an "On this page" list with the same five anchors.
 
-Entry points: the overview pages carry the guide link (`guide/`, label `meta.nav.6`, "For beginners" / "입문 안내") as the item right after "For researchers" in both the top-bar `.navlinks` (shown from 860 px) and the footer `.foot-links` list (all widths). On phones the entry is therefore in the footer, beside the research link, exactly where the research link already is; the 390 px top bar gets no new element. The workflow pages do not link to the guide.
+Entry points: the cc-orch tab "For beginners" (`site.orchPages.2`, the label the overview's top bar used before) and the footer sitemap on every page, at every width; the project page's cc-orch card lists it too. Its old address `/guide/` is a redirect page (limit 6).
 
 ## cc-doc page (`/cc-doc/`, `/ko/cc-doc/`)
 
-A fourth page pair on the cc-doc edition, built from `src/doc.html` and `content/doc.{en,ko}.json` through the page table in `scripts/build.mjs` (page key `doc`). It is text only, like the guide: no `<figure>` and no interactive figure, so the browser check's "at least one figure with controls" minimum does not apply to it. It uses the guide's shell (`<body class="gd">`, head, top bar, footer) and the guide's components: section cards with numbered discs, `.wf-tiles`, numbered steps (`.wf-manual.gd-steps`), the callout (`.callout.gd-note`), the check list (`.wf-tips.gd-tips`), `.tscroll` + `.tbl` tables with a caption, the sub-block title and paragraph (`.gd-sub-title`, `.gd-sub-p`) and the button row (`.gd-cta`).
+The page pair of the cc-doc edition, built from `src/doc.html` and `content/doc.{en,ko}.json` through the page table in `scripts/build.mjs` (page key `doc`). It is text only, like the guide: no `<figure>` and no interactive figure, so the browser check's "at least one figure with controls" minimum does not apply to it. It uses the guide's shell (`<body class="gd">`, head, the shared nav, footer) and the guide's components: section cards with numbered discs, `.wf-tiles`, numbered steps (`.wf-manual.gd-steps`), the callout (`.callout.gd-note`), the check list (`.wf-tips.gd-tips`), `.tscroll` + `.tbl` tables with a caption, the sub-block title and paragraph (`.gd-sub-title`, `.gd-sub-p`) and the button row (`.gd-cta`).
 
 Page structure that QA relies on (the `DOC` constant in `scripts/qa.mjs`):
-- `main > section[id]` × 6 in this order: `hero desk copies guard formats editions`. Sections 01-05 (`desk` … `editions`) are `section > .wrap > .card` with a disc; the tables are `tbl-formats` and `tbl-editions`.
-- Links: home `../`; the language toggle follows the guide pattern (`../ko/cc-doc/`, `../../cc-doc/?lang=en`). Every URL is relative (no `href="/` or `src="/`), so the page works under the Pages project path.
-- Top-bar section links: the five section anchors; the hero repeats them in an "On this page" list for widths below 860 px.
+- `main > section[id]` × 6 in this order: `hero desk copies guard formats editions`. Sections 01-05 (`desk` … `editions`) are `section > .wrap > .card` with a disc; the table is `tbl-formats`. The `editions` section keeps its head and paragraph; its comparison table moved to the project page, and its button row, which links there (`../#compare`), carries `id="tbl-editions"`, so an old link to `/cc-doc/#tbl-editions` lands at the way to the comparison.
+- Links: the project page `../` (brand, hero secondary button) and `../#compare`; the language toggle follows the guide pattern (`../ko/cc-doc/`, `../../cc-doc/?lang=en`). Every URL is relative (no `href="/` or `src="/`), so the page works under the Pages project path.
+- Sub-bar section links: the five section anchors; the hero repeats them in an "On this page" list for widths below 860 px.
 
-Entry points on the overview pages (`cc-doc/`): the top-bar `.navlinks` item after the guide entry (shown from 860 px); at every width, the third item of the footer navigation (`<nav class="ed-footnav">` around the `.foot-links` list, a labelled landmark) and a short pointer paragraph with a link in the hero. The workflow and guide pages carry no cc-doc entry; they link back to the overview.
+Entry points: the cc-doc edition link in the shared nav and the footer sitemap on every page, at every width, and the project page's cc-doc card and hero button.
 
-Saved language: on every EN page the head script (`src/js/head.js`, EN-only block) sends a visitor whose saved language is Korean to that page's KO twin, keeping the `#hash`; `?lang=en` records English and never redirects. So a link on an EN page, followed after the visitor chose Korean (for example in another tab), opens the KO page: this is the site's language memory, and it applies to the overview's links to the workflow, guide and cc-doc pages alike. The link itself points at the same-language page (`cc-doc/` from `/` and from `/ko/`), which is what `browser-qa` asserts.
+Saved language: on every EN content page the head script (`src/js/head.js`, EN-only block) sends a visitor whose saved language is Korean to that page's KO twin, keeping the `#hash`; `?lang=en` records English and never redirects. The inlined target is the same relative URL as the page's language toggle. So a link on an EN page, followed after the visitor chose Korean (for example in another tab), opens the KO page: this is the site's language memory, and it applies to every link between pages alike. The link itself points at the same-language page (`cc-doc/` from `/` and from `/ko/`), which is what `browser-qa` asserts.
 
-Class prefixes: new classes for the cc-doc page start with `cd-`, overview additions with `ed-`. A rule added for either has a `.cd-` or `.ed-` class in its selector, so it cannot match the workflow or guide pages.
+Class prefixes: classes for the cc-doc page start with `cd-`; a rule added for it has a `.cd-` class in its selector, so it cannot match the other pages.

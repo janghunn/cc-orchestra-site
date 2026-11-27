@@ -1,7 +1,8 @@
 // Lighthouse (pinned devDependency, default mobile config) against the local static server.
 // Usage: node scripts/lighthouse.mjs      Env: DIST (default dist), CHROME_PATH (default
 // /usr/bin/google-chrome), LH_RUNS (runs per page, default 3; the median score per category counts).
-// Thresholds per page (/, /ko/, /workflow/, /ko/workflow/, /guide/, /ko/guide/, /cc-doc/, /ko/cc-doc/):
+// Thresholds per content page (/, /ko/, /cc-orch/, /ko/cc-orch/, /cc-orch/workflow/, /ko/cc-orch/workflow/,
+// /cc-orch/guide/, /ko/cc-orch/guide/, /cc-doc/, /ko/cc-doc/; the redirect pages at the old addresses are not audited):
 // Performance >= 95, Accessibility = 100, Best Practices >= 95, SEO >= 95. Reports go to
 // .lighthouse/<page>-<run>.json (git-ignored), one file per page and run. Prints "LIGHTHOUSE <path> PASS|FAIL ...".
 // Exit 0 all PASS, 1 any FAIL, 77 environment unavailable (no Chrome, or no loopback socket).
@@ -20,12 +21,14 @@ const CLI = path.join(ROOT, 'node_modules/lighthouse/cli/index.js');
 const MIN = { performance: 95, accessibility: 100, 'best-practices': 95, seo: 95 };
 // [report-file slug, path below the server root]
 const PAGES = [
-  ['home-en', ''],
-  ['home-ko', 'ko/'],
-  ['workflow-en', 'workflow/'],
-  ['workflow-ko', 'ko/workflow/'],
-  ['guide-en', 'guide/'],
-  ['guide-ko', 'ko/guide/'],
+  ['project-en', ''],
+  ['project-ko', 'ko/'],
+  ['overview-en', 'cc-orch/'],
+  ['overview-ko', 'ko/cc-orch/'],
+  ['workflow-en', 'cc-orch/workflow/'],
+  ['workflow-ko', 'ko/cc-orch/workflow/'],
+  ['guide-en', 'cc-orch/guide/'],
+  ['guide-ko', 'ko/cc-orch/guide/'],
   ['doc-en', 'cc-doc/'],
   ['doc-ko', 'ko/cc-doc/'],
 ];

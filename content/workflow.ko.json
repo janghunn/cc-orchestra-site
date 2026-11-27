@@ -1,16 +1,14 @@
 {
   "meta": {
-    "title": "cc-orchestra로 하는 연구: 자동화된 논문 작업 흐름",
-    "description": "연구자 한 명이 cc-orchestra로 논문 프로젝트를 운영하는 방식입니다. 연구 루프, 스크립트로 생성한 수치와 그림, 공유 GPU 잠금, 반복되는 mock review, Claude와 Codex의 교차 확인을 그림으로 보여 줍니다.",
+    "title": "cc-orch로 하는 연구: 자동화된 논문 작업 흐름",
+    "description": "연구자 한 명이 cc-orch로 논문 프로젝트를 운영하는 방식입니다. 연구 루프, 스크립트로 생성한 수치와 그림, 공유 GPU 잠금, 반복되는 mock review, Claude와 Codex의 교차 확인을 그림으로 보여 줍니다.",
     "langName": "한국어",
     "otherLangName": "English",
     "otherLangLabel": "Read this page in English",
     "skip": "본문으로 건너뛰기",
     "brand": "cc-orchestra",
-    "homeLabel": "cc-orchestra 개관",
-    "navLabel": "주 메뉴",
     "nav": [
-      "개관",
+      "루프",
       "방법",
       "자동화",
       "역할",
@@ -26,10 +24,10 @@
   "hero": {
     "eyebrow": "연구자용",
     "h1": "제 논문 프로젝트는 <em>자동화된 연구 루프로 돌아갑니다.</em>",
-    "lede": "세 프로젝트에서 실험, 원고 섹션, review가 모두 cc-orchestra 작업입니다. Codex가 만들고 Claude가 확인하며, 스크립트가 결과를 논문으로 옮깁니다.",
+    "lede": "세 프로젝트에서 실험, 원고 섹션, review가 모두 cc-orch 작업입니다. Codex가 만들고 Claude가 확인하며, 스크립트가 결과를 논문으로 옮깁니다.",
     "note": "프로젝트는 A, B, C라고 부르며, 내용·관련 인물·머신은 싣지 않았습니다. 예시 산출물은 합성한 것이며 ‘예시’ 표시가 붙어 있습니다.",
     "ctaPrimary": "개관 보기",
-    "ctaSecondary": "cc-orchestra 개관"
+    "ctaSecondary": "cc-orch 개관"
   },
   "loop": {
     "kicker": "개관",
@@ -411,7 +409,7 @@
     "facts": "이 페이지의 harness 사실 정보는 {{f:sourceDate}} ({{f:sourceSha}}) 기준이며, 프로젝트의 정책 파일에서 가져왔습니다.",
     "workflow": "작업 흐름에 관한 사실 정보는 2026-11-04 기준이며, 프로젝트 A, B, C의 기록에서 가져왔습니다.",
     "privacy": "쿠키, 분석 도구, 제삼자 요청이 없습니다.",
-    "linksTitle": "cc-orchestra가 연결하는 두 CLI",
+    "linksTitle": "cc-orch가 연결하는 두 CLI",
     "links": [
       {
         "text": "Claude Code",

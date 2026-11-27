@@ -23,15 +23,19 @@ printf 'a\nb\nc\nd\ne\n' >"$W/ws/q/docs/guide.md"
 printf 'only\n' >"$W/ws/z/one.txt"
 printf '# synthetic roots\nQ\t%s\nZ\tws/z\n' "$W/ws/q" >"$W/roots.tsv"   # Z is relative to the TSV file
 
+project='{ "hero": { "h1": "One", "lede": "L" }, "moved": { "title": "M" }, "_claims": { "hero.lede": ["P01"] }, "_nonclaims": ["hero.h1", "moved"] }'
 home='{ "hero": { "title": "T", "lede": "L" }, "_claims": { "hero.lede": ["H01"] }, "_nonclaims": ["hero.title"] }'
 flow='{ "intro": { "p": ["one", "two"] }, "label": "x", "_claims": { "intro.p": ["W01", "W02"] }, "_nonclaims": ["label"] }'
 guide='{ "why": { "p": "P", "cards": ["a", "b"] }, "kicker": "k", "_claims": { "why": ["G01"] }, "_nonclaims": ["kicker"] }'
 doc='{ "desk": { "title": "D", "p": "P" }, "_claims": { "desk.p": ["D01"] }, "_nonclaims": ["desk.title"] }'
+site='{ "site": { "homeLabel": "H", "orchPages": ["a", "b", "c"] }, "_claims": {}, "_nonclaims": ["site"] }'
 write_content() {
+  printf '%s\n' "$project" >"$R/content/project.en.json"; printf '%s\n' "$project" >"$R/content/project.ko.json"
   printf '%s\n' "$1" >"$R/content/en.json";          printf '%s\n' "$1" >"$R/content/ko.json"
   printf '%s\n' "$2" >"$R/content/workflow.en.json"; printf '%s\n' "$2" >"$R/content/workflow.ko.json"
   printf '%s\n' "$guide" >"$R/content/guide.en.json"; printf '%s\n' "$guide" >"$R/content/guide.ko.json"
   printf '%s\n' "$doc" >"$R/content/doc.en.json";     printf '%s\n' "$doc" >"$R/content/doc.ko.json"
+  printf '%s\n' "$site" >"$R/content/site.en.json";   printf '%s\n' "$site" >"$R/content/site.ko.json"
 }
 claims() { # $1 = source cell of W02
   cat >"$R/content/claims.md" <<EOF
@@ -40,6 +44,7 @@ claims() { # $1 = source cell of W02
 | H01 | Home claim. | docs/a.md:1-2@$PIN1 | |
 | G01 | Guide claim. | framing | |
 | D01 | Doc claim. | docs/d.md:1@$PIN2 | |
+| P01 | Project claim. | framing | |
 | W01 | Workflow claim one. | ws:Q/docs/guide.md:2-4@2026-01-02; ws:site/design/notes.md:3@2026-01-02 | |
 | W02 | Workflow claim two. | $1 | |
 EOF
@@ -58,7 +63,7 @@ RT="CLAIMS_WORKSPACE_ROOTS=$W/roots.tsv"
 write_content "$home" "$flow"
 claims 'ws:Z/one.txt:1@2026-01-02'
 run 0 "format only without CLAIMS_WORKSPACE_ROOTS" "workspace ranges not checked: CLAIMS_WORKSPACE_ROOTS unset" NOOP=1
-run 0 "all four content sets counted, both pins listed" "content sets: home 2, workflow 3, guide 4, doc 2; pins: abc1234, def5678" NOOP=1
+run 0 "all six content sets counted, both pins listed" "content sets: project 3, overview 2, workflow 3, guide 4, doc 2, site 4; pins: abc1234, def5678" NOOP=1
 run 0 "ranges checked with roots (relative dir resolves from the TSV)" "workspace ranges checked (3 of 3, 2 alias(es) + site)" "$RT"
 
 claims 'ws:Y/one.txt:1@2026-01-02'
@@ -181,6 +186,12 @@ run 1 "a missing guide file fails" "guide: content file(s) missing: content/guid
 write_content "$home" "$flow"
 rm "$R/content/doc.ko.json"
 run 1 "a missing doc file fails" "doc: content file(s) missing: content/doc.ko.json" NOOP=1
+write_content "$home" "$flow"
+rm "$R/content/project.en.json"
+run 1 "a missing project file fails" "project: content file(s) missing: content/project.en.json" NOOP=1
+write_content "$home" "$flow"
+rm "$R/content/site.ko.json"
+run 1 "a missing site file fails" "site: content file(s) missing: content/site.ko.json" NOOP=1
 
 echo "# check-claims tests: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

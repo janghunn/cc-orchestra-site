@@ -633,3 +633,25 @@
 @media (min-width: 640px) { .gd .gd-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); } }
 .gd .gd-closing { max-width: 60ch; margin: var(--sp-5) 0 0; font-size: var(--fs-base); line-height: 1.55; }
 .gd .gd-cta { margin-top: var(--sp-5); }
+
+/* project page (body.pj, with the guide's .gd components): hero without a figure, two edition cards of the same
+   shape (side by side from 760 px), the comparison table */
+.pj .pj-hero { max-width: 62rem; }
+.pj .pj-hero h1 { max-width: 22ch; }
+/* the edition names in the band never break at their hyphen and keep the band's weight */
+.pj .pj-hero .band strong { font-weight: inherit; white-space: nowrap; }
+.pj .pj-eds { display: grid; gap: var(--sp-4); }
+@media (min-width: 760px) { .pj .pj-eds { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pj .pj-ed { display: flex; flex-direction: column; border-top-color: var(--accent); }
+@media (max-width: 600px) { .pj .pj-ed { padding: var(--sp-4); } }
+.pj .pj-ed .tag { align-self: flex-start; margin: 0 0 var(--sp-3); }
+.pj .pj-ed h3 { margin: 0 0 2px; font-size: clamp(1.35rem, 1.1rem + .8vw, 1.6rem); }
+.pj .pj-ed-title { margin: 0 0 var(--sp-3); color: var(--muted); font-weight: 700; }
+.pj .pj-ed-text { margin: 0; font-size: var(--fs-sm); line-height: 1.6; }
+.pj .pj-ed-sub { margin: var(--sp-5) 0 var(--sp-2); color: var(--muted); font-size: var(--fs-sm); line-height: 1.4; }
+.pj .pj-fits { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+.pj .pj-pages { margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); }
+.pj .pj-pages li { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--sp-3); padding: 2px 0; border-top: 1px solid var(--line); color: var(--muted); line-height: 1.45; }
+.pj .pj-pages li:last-child { border-bottom: 1px solid var(--line); }
+.pj .pj-pages a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.pj .pj-ed-cta { margin-top: auto; padding-top: var(--sp-5); }

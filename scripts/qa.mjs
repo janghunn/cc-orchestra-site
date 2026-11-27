@@ -25,30 +25,69 @@ const OFFICIAL = {
   'SCDream6.otf': '7dd3e0240002feedd37d0f33033a44e17b1ab11f84a93acf8482184adc33aa1a',
 };
 const BUDGET = { html: 40960, css: 25600, js: 30720, enFonts: 122880 };
-// The workflow page's contract: section ids and figure ids in order; figures that must show the Illustrative chip.
+// The project page's contract (the site root): section ids in order; no <figure>; the comparison table.
+const PROJECT = { sections: ['hero', 'editions', 'compare'], table: 'tbl-editions' };
+// The cc-orch overview's contract: its ten section ids in order.
+const OVERVIEW = { sections: ['hero', 'problem', 'how', 'routing', 'gates', 'providers', 'lifecycle', 'helpers', 'limits', 'faq'] };
+// The workflow page's contract: section ids and figure ids in order; figures that must show the Illustrative chip;
+// a link to the cc-orch overview (../).
 const WORKFLOW = {
   sections: ['hero', 'loop', 'methods', 'flows', 'roles', 'manual', 'tips'],
   figures: ['fig-loop', 'fig-pipeline', 'fig-reviews', 'fig-gpu', 'fig-roles'],
   illustrative: ['fig-loop', 'fig-reviews', 'fig-gpu'],
+  links: ['../'],
 };
-// The beginners' guide contract: section ids in order; no <figure>; links home (../) and to the research page (../workflow/).
+// The beginners' guide contract: section ids in order; no <figure>; links to the cc-orch overview (../) and to the
+// research page (../workflow/).
 const GUIDE = { sections: ['hero', 'why', 'roles', 'files', 'compare', 'costs', 'choose'], links: ['../', '../workflow/'] };
-// The cc-doc page contract: section ids in order; no <figure>; links home (../).
-const DOC = { sections: ['hero', 'desk', 'copies', 'guard', 'formats', 'editions'], links: ['../'] };
-// The built pages. hreflang: the absolute URLs of the page pair; toggle: the language link's hreflang and href.
+// The cc-doc page contract: section ids in order; no <figure>; no comparison table (it moved to the project page), but
+// id="tbl-editions" stays on a non-table element (the editions section's button row); links to the project page (../)
+// and its comparison (../#compare).
+const DOC = { sections: ['hero', 'desk', 'copies', 'guard', 'formats', 'editions'], links: ['../', '../#compare'], alias: 'tbl-editions' };
+// Same-language link targets on each page kind (KO pages use the same values inside /ko/).
+const LINKS = {
+  project: { project: './', overview: 'cc-orch/', workflow: 'cc-orch/workflow/', guide: 'cc-orch/guide/', doc: 'cc-doc/' },
+  overview: { project: '../', overview: './', workflow: 'workflow/', guide: 'guide/', doc: '../cc-doc/' },
+  workflow: { project: '../../', overview: '../', workflow: './', guide: '../guide/', doc: '../../cc-doc/' },
+  guide: { project: '../../', overview: '../', workflow: '../workflow/', guide: './', doc: '../../cc-doc/' },
+  doc: { project: '../', overview: '../cc-orch/', workflow: '../cc-orch/workflow/', guide: '../cc-orch/guide/', doc: './' },
+};
+// Page kinds of the cc-orch edition (they carry the nav.sn-pages tabs) and the edition overview of each page kind.
+const ORCH_KINDS = ['overview', 'workflow', 'guide'];
+const EDITION = { overview: 'overview', workflow: 'overview', guide: 'overview', doc: 'doc' };
+// The ten content pages. hreflang: the absolute URLs of the page pair; toggle: the language link's hreflang and href.
 const PAGES = [
-  { page: 'home', lang: 'en', file: 'index.html', hreflang: ['', 'ko/'], toggle: ['ko', 'ko/'] },
-  { page: 'home', lang: 'ko', file: 'ko/index.html', hreflang: ['', 'ko/'], toggle: ['en', '../?lang=en'] },
-  { page: 'workflow', lang: 'en', file: 'workflow/index.html', hreflang: ['workflow/', 'ko/workflow/'], toggle: ['ko', '../ko/workflow/'] },
-  { page: 'workflow', lang: 'ko', file: 'ko/workflow/index.html', hreflang: ['workflow/', 'ko/workflow/'], toggle: ['en', '../../workflow/?lang=en'] },
-  { page: 'guide', lang: 'en', file: 'guide/index.html', hreflang: ['guide/', 'ko/guide/'], toggle: ['ko', '../ko/guide/'] },
-  { page: 'guide', lang: 'ko', file: 'ko/guide/index.html', hreflang: ['guide/', 'ko/guide/'], toggle: ['en', '../../guide/?lang=en'] },
+  { page: 'project', lang: 'en', file: 'index.html', hreflang: ['', 'ko/'], toggle: ['ko', 'ko/'] },
+  { page: 'project', lang: 'ko', file: 'ko/index.html', hreflang: ['', 'ko/'], toggle: ['en', '../?lang=en'] },
+  { page: 'overview', lang: 'en', file: 'cc-orch/index.html', hreflang: ['cc-orch/', 'ko/cc-orch/'], toggle: ['ko', '../ko/cc-orch/'] },
+  { page: 'overview', lang: 'ko', file: 'ko/cc-orch/index.html', hreflang: ['cc-orch/', 'ko/cc-orch/'], toggle: ['en', '../../cc-orch/?lang=en'] },
+  { page: 'workflow', lang: 'en', file: 'cc-orch/workflow/index.html', hreflang: ['cc-orch/workflow/', 'ko/cc-orch/workflow/'], toggle: ['ko', '../../ko/cc-orch/workflow/'] },
+  { page: 'workflow', lang: 'ko', file: 'ko/cc-orch/workflow/index.html', hreflang: ['cc-orch/workflow/', 'ko/cc-orch/workflow/'], toggle: ['en', '../../../cc-orch/workflow/?lang=en'] },
+  { page: 'guide', lang: 'en', file: 'cc-orch/guide/index.html', hreflang: ['cc-orch/guide/', 'ko/cc-orch/guide/'], toggle: ['ko', '../../ko/cc-orch/guide/'] },
+  { page: 'guide', lang: 'ko', file: 'ko/cc-orch/guide/index.html', hreflang: ['cc-orch/guide/', 'ko/cc-orch/guide/'], toggle: ['en', '../../../cc-orch/guide/?lang=en'] },
   { page: 'doc', lang: 'en', file: 'cc-doc/index.html', hreflang: ['cc-doc/', 'ko/cc-doc/'], toggle: ['ko', '../ko/cc-doc/'] },
   { page: 'doc', lang: 'ko', file: 'ko/cc-doc/index.html', hreflang: ['cc-doc/', 'ko/cc-doc/'], toggle: ['en', '../../cc-doc/?lang=en'] },
 ];
-const CONTENT = { home: 'content/{lang}.json', workflow: 'content/workflow.{lang}.json', guide: 'content/guide.{lang}.json', doc: 'content/doc.{lang}.json' };
+// The redirect pages at the old workflow and guide addresses: not content pages (no hreflang pair, not linked, not in
+// Lighthouse or the crawl), but written by every build and checked on their own.
+const REDIRECTS = [
+  { file: 'workflow/index.html', lang: 'en', target: '../cc-orch/workflow/' },
+  { file: 'guide/index.html', lang: 'en', target: '../cc-orch/guide/' },
+  { file: 'ko/workflow/index.html', lang: 'ko', target: '../cc-orch/workflow/' },
+  { file: 'ko/guide/index.html', lang: 'ko', target: '../cc-orch/guide/' },
+];
+const CONTENT = {
+  project: 'content/project.{lang}.json',
+  overview: 'content/{lang}.json',
+  workflow: 'content/workflow.{lang}.json',
+  guide: 'content/guide.{lang}.json',
+  doc: 'content/doc.{lang}.json',
+  site: 'content/site.{lang}.json',
+};
 // A real SITE_URL appears exactly in the two hreflang alternates of every page in PAGES (never counted from the output).
 const ALLOW_COUNT = 2 * PAGES.length;
+// Every HTML file a build writes: the content pages and the redirect pages.
+const HTML_FILES = [...PAGES.map((p) => p.file), ...REDIRECTS.map((r) => r.file)];
 const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const rel = (p) => path.relative(ROOT, p) || '.';
@@ -97,10 +136,10 @@ const checks = {
     const started = Date.now() - 2000;
     const r = sh(process.execPath, ['scripts/build.mjs', '--out', DIST]);
     const fresh = (p) => exists(p) && fs.statSync(p).mtimeMs >= started;
-    const stale = PAGES.map((p) => p.file).filter((f) => !fresh(path.join(DIST, f)));
+    const stale = HTML_FILES.filter((f) => !fresh(path.join(DIST, f)));
     const ok = r.ran && r.code === 0 && stale.length === 0;
     if (!ok && r.out.trim()) show(indent(r.out));
-    line('build', ok ? 'PASS' : 'FAIL', `node scripts/build.mjs --out ${rel(DIST)} -> exit ${r.code}; ${ok ? `${PAGES.map((p) => p.file).join(', ')} written by this run` : `missing or not rewritten by this run: ${stale.join(', ') || '(none)'}`}`);
+    line('build', ok ? 'PASS' : 'FAIL', `node scripts/build.mjs --out ${rel(DIST)} -> exit ${r.code}; ${ok ? `${HTML_FILES.length} HTML files (${PAGES.length} content pages, ${REDIRECTS.length} redirect pages) written by this run: ${HTML_FILES.join(', ')}` : `missing or not rewritten by this run: ${stale.join(', ') || '(none)'}`}`);
   },
 
   facts() {
@@ -113,7 +152,10 @@ const checks = {
     const sources = [...contentFiles, ...walk(path.join(ROOT, 'src'))];
     const used = new Set();
     for (const f of sources) {
-      if (!exists(f)) continue;
+      if (!exists(f)) {
+        problems.push(`${rel(f)} missing`);
+        continue;
+      }
       for (const m of read(f).matchAll(/\{\{f:([A-Za-z0-9_.]+)\}\}/g)) used.add(m[1]);
     }
     // Own properties only, as in build.mjs getPath: `in` and `v[seg]` would resolve toString, constructor, ... through Object.prototype.
@@ -130,8 +172,42 @@ const checks = {
   structure() {
     const problems = [];
     const info = {};
-    const attr = (tag, name) => new RegExp(`\\b${name}=["']([^"']*)["']`, 'i').exec(tag)?.[1];
+    const attr = (tag, name) => new RegExp(`(?:^|\\s)${name}\\s*=\\s*["']([^"']*)["']`, 'i').exec(tag)?.[1];
+    const hasClass = (tag, c) => (attr(tag, 'class') || '').split(/\s+/).includes(c);
+    const decode = (s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
     const text = (html) => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+    const plain = (html) => decode(text(html)).trim();
+    const anchorsOf = (html) => [...html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)].map((m) => ({ tag: m[0].slice(0, m[0].indexOf('>') + 1), inner: m[2], index: m.index }));
+    // accessible name of a link: aria-label, else its text
+    const nameOf = (a) => decode(attr(a.tag, 'aria-label') ?? plain(a.inner));
+    const navsOf = (html, c) => [...html.matchAll(/<nav\b([^>]*)>([\s\S]*?)<\/nav>/gi)].filter((m) => hasClass(m[0], c)).map((m) => ({ tag: `<nav${m[1]}>`, inner: m[2], index: m.index }));
+    const idsOf = (html) => [...html.matchAll(/<[a-z][a-z0-9-]*\b[^>]*?\sid=["']([^"']+)["']/gi)].map((m) => m[1]);
+    const scriptsOf = (html) => [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((m) => m[1]);
+    const FORWARD = /location\.replace\(\s*["']cc-orch\/["']\s*\+\s*(?:\w+\.)?location\.search\s*\+\s*(?:\w+\.)?location\.hash\s*\)/;
+    // the old-fragment list of a project page's forwarder: a JS array of strings, or one string of space-separated ids
+    const forwardList = (html) => {
+      const js = scriptsOf(html).find((s) => FORWARD.test(s));
+      if (js === undefined) return null;
+      const arrays = [...js.matchAll(/\[\s*((?:"[^"]*"|'[^']*')(?:\s*,\s*(?:"[^"]*"|'[^']*'))*)\s*,?\s*\]/g)].map((m) => [...m[1].matchAll(/"([^"]*)"|'([^']*)'/g)].map((x) => x[1] ?? x[2]));
+      const strings = [...js.matchAll(/"([^"]*)"|'([^']*)'/g)].map((x) => x[1] ?? x[2]).filter((v) => /^[\s,|]*[A-Za-z][\w-]*(?:[\s,|]+[A-Za-z][\w-]*)+[\s,|]*$/.test(v)).map((v) => v.split(/[\s,|]+/).filter(Boolean));
+      const all = [...arrays, ...strings].sort((a, b) => b.length - a.length);
+      return all[0] || null;
+    };
+    // the EN page's inlined saved-language target: location.replace("<target>" + location.hash)
+    const koTargets = (html) => scriptsOf(html).flatMap((s) => [...s.matchAll(/location\.replace\(\s*["']([^"']*)["']\s*\+\s*(?:\w+\.)?location\.hash\s*\)/g)].map((m) => m[1]));
+    const site = {};
+    for (const lang of ['en', 'ko']) {
+      const f = path.join(ROOT, CONTENT.site.replace('{lang}', lang));
+      if (!exists(f)) problems.push(`${rel(f)} missing`);
+      else site[lang] = JSON.parse(read(f)).site || {};
+    }
+    const project = {};
+    for (const lang of ['en', 'ko']) {
+      const f = path.join(ROOT, CONTENT.project.replace('{lang}', lang));
+      if (!exists(f)) problems.push(`${rel(f)} missing`);
+      else project[lang] = JSON.parse(read(f));
+    }
+    const built = {};
     for (const p of PAGES) {
       const file = path.join(DIST, p.file);
       const tag = p.file;
@@ -140,6 +216,9 @@ const checks = {
         continue;
       }
       const html = read(file);
+      built[p.file] = html;
+      const S = site[p.lang] || {};
+      const L = LINKS[p.page];
       const htmlTag = /<html\b[^>]*>/i.exec(html)?.[0] || '';
       if (!new RegExp(`\\blang=["']${p.lang}["']`).test(htmlTag)) problems.push(`${tag}: <html lang="${p.lang}"> missing`);
       const alts = [...html.matchAll(/<link\b[^>]*>/gi)].map((m) => m[0]).filter((t) => /\brel=["']?alternate/i.test(t) && /\bhreflang=/i.test(t));
@@ -153,19 +232,111 @@ const checks = {
       const [tLang, tHref] = p.toggle;
       const toggle = anchors.find((a) => attr(a, 'hreflang') === tLang && attr(a, 'href') === tHref);
       if (!toggle) problems.push(`${tag}: language toggle link missing (hreflang="${tLang}" href="${tHref}")`);
-      if (p.page === 'home') for (const h of ['workflow/', 'guide/', 'cc-doc/']) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no nav link href="${h}"`);
-      if (p.page === 'home') {
-        // the cc-doc link must also sit in a navigation landmark other than the top-bar list (hidden below 860 px)
-        const navs = [...html.matchAll(/<nav\b([^>]*)>([\s\S]*?)<\/nav>/gi)].filter((m) => !/\bclass=["'][^"']*\bnavlinks\b/i.test(m[1]) && !/<[a-z]+\b[^>]*\bclass=["'][^"']*\bnavlinks\b/i.test(m[2]));
-        if (!navs.some((m) => [...m[2].matchAll(/<a\b[^>]*>/gi)].some((a) => attr(a[0], 'href') === 'cc-doc/'))) problems.push(`${tag}: no a href="cc-doc/" inside a <nav> other than the top-bar list`);
-      }
       for (const m of html.matchAll(/\s(href|src)=["']\//gi)) problems.push(`${tag}: root-relative ${m[1]}="/..." (breaks under the Pages project path)`);
-      if (p.page === 'workflow' && !anchors.some((a) => attr(a, 'href') === '../')) problems.push(`${tag}: no home link href="../"`);
+      // saved language: the EN page's inlined target is its toggle href
+      if (p.lang === 'en') {
+        const t = koTargets(html);
+        if (t.length !== 1 || t[0] !== tHref) problems.push(`${tag}: inlined saved-language target(s) [${t.join(', ')}], want exactly [${tHref}] (the toggle href)`);
+      }
+      // the old-fragment forwarder runs on the project pages only
+      if (p.page !== 'project' && scriptsOf(html).some((s) => FORWARD.test(s))) problems.push(`${tag}: has the old-fragment forwarder (project pages only)`);
+
+      // the shell: header, sub-bar, footer sitemap
+      const header = /<header\b[^>]*>([\s\S]*?)<\/header>/i.exec(html);
+      if (!header || !hasClass(header[0].slice(0, header[0].indexOf('>') + 1), 'topbar')) problems.push(`${tag}: no header.topbar`);
+      const headerHtml = header?.[1] || '';
+      const mainAt = html.search(/<main\b/i);
+      const mainEnd = html.search(/<\/main>/i);
+      if (mainAt < 0 || mainEnd < 0) problems.push(`${tag}: no <main>`);
+      const brands = anchorsOf(html).filter((a) => hasClass(a.tag, 'brand'));
+      if (!anchorsOf(headerHtml).some((a) => hasClass(a.tag, 'brand'))) problems.push(`${tag}: no a.brand in the top bar`);
+      for (const a of brands) {
+        if (attr(a.tag, 'href') !== L.project) problems.push(`${tag}: a.brand href="${attr(a.tag, 'href')}", want "${L.project}" (project page)`);
+        if (nameOf(a) !== S.homeLabel) problems.push(`${tag}: a.brand accessible name "${nameOf(a)}", want "${S.homeLabel}" (site.homeLabel)`);
+      }
+      const eds = navsOf(html, 'sn-eds');
+      if (!navsOf(headerHtml, 'sn-eds').length) problems.push(`${tag}: no nav.sn-eds in the top bar`);
+      const edCurrent = p.page === 'project' ? {} : p.page === EDITION[p.page] ? { [EDITION[p.page]]: 'page' } : { [EDITION[p.page]]: 'true' };
+      for (const n of eds) {
+        const links = anchorsOf(n.inner);
+        const hrefs = links.map((a) => attr(a.tag, 'href'));
+        if (hrefs.join(' ') !== `${L.overview} ${L.doc}`) problems.push(`${tag}: nav.sn-eds links [${hrefs.join(', ')}], want exactly [${L.overview}, ${L.doc}]`);
+        if (attr(n.tag, 'aria-label') !== S.edsLabel) problems.push(`${tag}: nav.sn-eds aria-label "${attr(n.tag, 'aria-label')}", want "${S.edsLabel}"`);
+        for (const [ed, a] of [['overview', links[0]], ['doc', links[1]]]) {
+          if (!a) continue;
+          const got = attr(a.tag, 'aria-current');
+          if (got !== edCurrent[ed]) problems.push(`${tag}: nav.sn-eds link ${attr(a.tag, 'href')} aria-current="${got ?? ''}", want "${edCurrent[ed] ?? ''}"`);
+        }
+      }
+      const sub = /<\/header>\s*(?:<!--[\s\S]*?-->\s*)*(<[a-z][a-z0-9-]*\b[^>]*>)/i.exec(html);
+      const subAt = sub ? sub.index : -1;
+      if (!sub || !hasClass(sub[1], 'sn-sub')) problems.push(`${tag}: the element right after </header> is not .sn-sub (${sub ? sub[1].slice(0, 60) : 'none'})`);
+      const inSub = (n) => subAt >= 0 && n.index > subAt && (mainAt < 0 || n.index < mainAt);
+      const pages = navsOf(html, 'sn-pages');
+      if (ORCH_KINDS.includes(p.page)) {
+        if (pages.length !== 1) problems.push(`${tag}: ${pages.length} nav.sn-pages, want 1`);
+        for (const n of pages) {
+          if (!inSub(n)) problems.push(`${tag}: nav.sn-pages is not in the sub-bar`);
+          if (attr(n.tag, 'aria-label') !== S.orchPagesLabel) problems.push(`${tag}: nav.sn-pages aria-label "${attr(n.tag, 'aria-label')}", want "${S.orchPagesLabel}"`);
+          const links = anchorsOf(n.inner);
+          const hrefs = links.map((a) => attr(a.tag, 'href'));
+          if (hrefs.join(' ') !== `${L.overview} ${L.workflow} ${L.guide}`) problems.push(`${tag}: nav.sn-pages links [${hrefs.join(', ')}], want [${L.overview}, ${L.workflow}, ${L.guide}]`);
+          const cur = links.filter((a) => attr(a.tag, 'aria-current') === 'page').map((a) => attr(a.tag, 'href'));
+          if (cur.join() !== './') problems.push(`${tag}: nav.sn-pages aria-current="page" on [${cur.join(', ')}], want exactly [./]`);
+          if (links[0] && attr(links[0].tag, 'aria-label') !== S.orchOverviewLabel) problems.push(`${tag}: first nav.sn-pages link aria-label "${attr(links[0].tag, 'aria-label')}", want "${S.orchOverviewLabel}"`);
+        }
+      } else if (pages.length) problems.push(`${tag}: ${pages.length} nav.sn-pages, want none outside cc-orch`);
+      const toc = navsOf(html, 'sn-toc');
+      if (p.page === 'project') {
+        if (toc.length) problems.push(`${tag}: ${toc.length} nav.sn-toc, want none on the project page`);
+      } else {
+        if (toc.length !== 1) problems.push(`${tag}: ${toc.length} nav.sn-toc, want 1`);
+        for (const n of toc) {
+          if (!inSub(n)) problems.push(`${tag}: nav.sn-toc is not in the sub-bar`);
+          if (!/<ul\b[^>]*\bclass=["'][^"']*\bnavlinks\b/i.test(n.inner)) problems.push(`${tag}: nav.sn-toc has no ul.navlinks`);
+          const by = attr(n.tag, 'aria-labelledby');
+          const byEl = by ? new RegExp(`<([a-z][a-z0-9-]*)\\b[^>]*\\sid=["']${escRe(by)}["'][^>]*>([\\s\\S]*?)</\\1>`, 'i').exec(html) : null;
+          const name = attr(n.tag, 'aria-label') ?? (byEl ? plain(byEl[2]) : undefined);
+          if (name !== S.tocLabel) problems.push(`${tag}: nav.sn-toc name "${name ?? ''}", want "${S.tocLabel}" (site.tocLabel)`);
+          if (!plain(n.inner).includes(S.tocLabel) && !(byEl && plain(byEl[2]) === S.tocLabel)) problems.push(`${tag}: nav.sn-toc does not show the prefix "${S.tocLabel}"`);
+          const ids = new Set(idsOf(html));
+          const links = anchorsOf(n.inner).map((a) => attr(a.tag, 'href'));
+          if (!links.length) problems.push(`${tag}: nav.sn-toc has no links`);
+          for (const h of links) if (!h?.startsWith('#') || !ids.has(h.slice(1))) problems.push(`${tag}: nav.sn-toc link ${h} is not a section of this page`);
+        }
+      }
+      const foot = navsOf(html, 'sn-foot');
+      if (foot.length !== 1) problems.push(`${tag}: ${foot.length} nav.sn-foot, want 1`);
+      for (const n of foot) {
+        if (mainEnd >= 0 && n.index < mainEnd) problems.push(`${tag}: nav.sn-foot is not after </main>`);
+        if (attr(n.tag, 'aria-label') !== S.footLabel) problems.push(`${tag}: nav.sn-foot aria-label "${attr(n.tag, 'aria-label')}", want "${S.footLabel}"`);
+        const links = anchorsOf(n.inner);
+        const hrefs = new Set(links.map((a) => attr(a.tag, 'href')));
+        const want = Object.values(L);
+        const missing = want.filter((h) => !hrefs.has(h));
+        const extra = [...hrefs].filter((h) => !want.includes(h));
+        if (missing.length || extra.length) problems.push(`${tag}: nav.sn-foot links missing [${missing.join(', ')}], unexpected [${extra.join(', ')}]`);
+        const cur = links.filter((a) => attr(a.tag, 'aria-current') === 'page').map((a) => attr(a.tag, 'href'));
+        if (cur.join() !== './') problems.push(`${tag}: nav.sn-foot aria-current="page" on [${cur.join(', ')}], want exactly [./]`);
+        for (const [h, label, key] of [[L.overview, S.orchOverviewLabel, 'orchOverviewLabel'], [L.doc, S.docOverviewLabel, 'docOverviewLabel']]) {
+          const a = links.find((x) => attr(x.tag, 'href') === h);
+          if (a && attr(a.tag, 'aria-label') !== label) problems.push(`${tag}: nav.sn-foot link ${h} aria-label "${attr(a.tag, 'aria-label')}", want "${label}" (site.${key})`);
+        }
+      }
+
+      // page contracts
       const sections = [...html.matchAll(/<section\b[^>]*\bid=["']([^"']+)["']/gi)].map((m) => m[1]);
       const figures = [...html.matchAll(/<figure\b[^>]*\bid=["']([^"']+)["']/gi)].map((m) => m[1]);
-      if (p.page === 'home' && sections.length !== 10) problems.push(`${tag}: ${sections.length} sections with an id, want 10`);
+      // the page's own links are counted inside <main> only: the shared tabs and sitemap carry the same hrefs
+      const mainHrefs = mainAt >= 0 && mainEnd > mainAt ? anchorsOf(html.slice(mainAt, mainEnd)).map((a) => attr(a.tag, 'href')) : [];
+      const contract = { project: PROJECT, overview: OVERVIEW, workflow: WORKFLOW, guide: GUIDE, doc: DOC }[p.page];
+      if (sections.join() !== contract.sections.join()) problems.push(`${tag}: section ids [${sections}], want [${contract.sections}]`);
+      for (const h of contract.links || []) if (!mainHrefs.includes(h)) problems.push(`${tag}: no link href="${h}" inside <main>`);
+      if (p.page === 'project') {
+        if (/<figure\b/i.test(html)) problems.push(`${tag}: has a <figure>, the project page has none`);
+        if (!new RegExp(`<table\\b[^>]*\\sid=["']${PROJECT.table}["']`, 'i').test(html)) problems.push(`${tag}: no table#${PROJECT.table}`);
+      }
       if (p.page === 'workflow') {
-        if (sections.join() !== WORKFLOW.sections.join()) problems.push(`${tag}: section ids [${sections}], want [${WORKFLOW.sections}]`);
         if (figures.join() !== WORKFLOW.figures.join()) problems.push(`${tag}: figure ids [${figures}], want [${WORKFLOW.figures}]`);
         const chip = JSON.parse(read(path.join(ROOT, CONTENT.workflow.replace('{lang}', p.lang)))).meta?.illustrative;
         if (!chip) problems.push(`${tag}: meta.illustrative missing in the ${p.lang} workflow content`);
@@ -179,15 +350,11 @@ const checks = {
           if (chip && WORKFLOW.illustrative.includes(id) && !text(m[2]).includes(chip)) problems.push(`${tag}: figure ${id} lacks the "${chip}" chip`);
         }
       }
-      if (p.page === 'guide') {
-        if (sections.join() !== GUIDE.sections.join()) problems.push(`${tag}: section ids [${sections}], want [${GUIDE.sections}]`);
-        if (/<figure\b/i.test(html)) problems.push(`${tag}: has a <figure>, the guide has none`);
-        for (const h of GUIDE.links) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no link href="${h}"`);
-      }
+      if (p.page === 'guide' && /<figure\b/i.test(html)) problems.push(`${tag}: has a <figure>, the guide has none`);
       if (p.page === 'doc') {
-        if (sections.join() !== DOC.sections.join()) problems.push(`${tag}: section ids [${sections}], want [${DOC.sections}]`);
         if (/<figure\b/i.test(html)) problems.push(`${tag}: has a <figure>, the cc-doc page has none`);
-        for (const h of DOC.links) if (!anchors.some((a) => attr(a, 'href') === h)) problems.push(`${tag}: no link href="${h}"`);
+        if (new RegExp(`<table\\b[^>]*\\sid=["']${DOC.alias}["']`, 'i').test(html)) problems.push(`${tag}: still has table#${DOC.alias} (it moved to the project page)`);
+        if (!idsOf(html).includes(DOC.alias)) problems.push(`${tag}: no id="${DOC.alias}" (the alias for old links)`);
       }
       const main = /<main\b[\s\S]*<\/main>/i.exec(html)?.[0] || html;
       const skeleton = [...main.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*)>/gi)]
@@ -212,13 +379,75 @@ const checks = {
       }
       summary.push(`${page}: ${en.sections.length} sections [${en.sections.join(', ')}], figures [${en.figures.join(', ')}], same <main> structure EN = KO (${en.skeleton.split('\n').length} elements)`);
     }
+
+    // old overview fragments: each project page forwards every id of the built overview that it does not use itself
+    const ovEn = built['cc-orch/index.html'];
+    const ovKo = built['ko/cc-orch/index.html'];
+    let forwardCount = 0;
+    if (ovEn && ovKo) {
+      const ov = new Set(idsOf(ovEn));
+      const ovK = new Set(idsOf(ovKo));
+      if ([...ov].sort().join() !== [...ovK].sort().join()) problems.push('overview: the EN and KO pages have different id sets');
+      for (const f of ['index.html', 'ko/index.html']) {
+        const html = built[f];
+        if (!html) continue;
+        const own = new Set(idsOf(html));
+        const list = forwardList(html);
+        if (!list) {
+          problems.push(`${f}: no old-fragment forwarder with a list of ids (location.replace("cc-orch/" + location.search + location.hash))`);
+          continue;
+        }
+        forwardCount = list.length;
+        const set = new Set(list);
+        const want = [...ov].filter((id) => !own.has(id));
+        const missing = want.filter((id) => !set.has(id));
+        const owned = list.filter((id) => own.has(id));
+        const extra = list.filter((id) => !ov.has(id));
+        if (missing.length) problems.push(`${f}: forward list lacks overview id(s) ${missing.slice(0, 8).join(', ')}${missing.length > 8 ? ` (+${missing.length - 8})` : ''}`);
+        if (owned.length) problems.push(`${f}: forward list holds id(s) the project page uses: ${owned.join(', ')}`);
+        if (extra.length) problems.push(`${f}: forward list holds id(s) that are not on the overview: ${extra.join(', ')}`);
+      }
+    } else problems.push('old fragments: the built overview pages are missing');
+
+    // the redirect pages at the old addresses
+    for (const r of REDIRECTS) {
+      const file = path.join(DIST, r.file);
+      if (!exists(file)) {
+        problems.push(`${rel(file)} missing`);
+        continue;
+      }
+      const html = read(file);
+      const tag = r.file;
+      const T = escRe(r.target);
+      const moved = project[r.lang]?.moved || {};
+      if (!new RegExp(`<html\\b[^>]*\\slang=["']${r.lang}["']`, 'i').test(html)) problems.push(`${tag}: <html lang="${r.lang}"> missing`);
+      if (!/<meta\b(?=[^>]*\sname=["']robots["'])(?=[^>]*\scontent=["']noindex["'])[^>]*>/i.test(html)) problems.push(`${tag}: no <meta name="robots" content="noindex">`);
+      if (!new RegExp(`<meta\\b(?=[^>]*\\shttp-equiv=["']refresh["'])(?=[^>]*\\scontent=["']0;\\s*url=${T}["'])[^>]*>`, 'i').test(html)) problems.push(`${tag}: no <meta http-equiv="refresh" content="0; url=${r.target}">`);
+      if (!scriptsOf(html).some((s) => new RegExp(`location\\.replace\\(\\s*["']${T}["']\\s*\\+\\s*(?:\\w+\\.)?location\\.search\\s*\\+\\s*(?:\\w+\\.)?location\\.hash\\s*\\)`).test(s))) problems.push(`${tag}: no script location.replace("${r.target}" + location.search + location.hash)`);
+      const links = anchorsOf(html).filter((a) => attr(a.tag, 'href') === r.target);
+      if (!links.length) problems.push(`${tag}: no fallback link href="${r.target}"`);
+      if (moved.link && !links.some((a) => plain(a.inner) === moved.link)) problems.push(`${tag}: fallback link text is not "${moved.link}" (moved.link)`);
+      const title = plain(/<title>([\s\S]*?)<\/title>/i.exec(html)?.[1] || '');
+      if (!moved.title || title !== moved.title) problems.push(`${tag}: <title> "${title}", want "${moved.title}" (moved.title)`);
+      if (/<link\b[^>]*\bhreflang=/i.test(html)) problems.push(`${tag}: has an hreflang link`);
+      if (html.includes(SITE_URL) || html.includes(PLACEHOLDER)) problems.push(`${tag}: contains the SITE_URL`);
+      if (/\ssrc\s*=/i.test(html) || /<link\b[^>]*\brel=["']?(?:stylesheet|preload|modulepreload)/i.test(html)) problems.push(`${tag}: loads an external asset`);
+      for (const m of html.matchAll(/\s(href|src)=["']\//gi)) problems.push(`${tag}: root-relative ${m[1]}="/..."`);
+      const dest = path.join(path.dirname(file), r.target, 'index.html');
+      if (!exists(dest)) problems.push(`${tag}: target ${r.target} resolves to ${rel(dest)}, which is not in the build`);
+    }
+
     line(
       'structure',
       problems.length ? 'FAIL' : 'PASS',
       problems.length
         ? problems.join('; ')
-        : `${PAGES.length} pages; lang en/ko; 2 absolute hreflang links per page from ${SITE_URL}; toggle links; no root-relative href or src; home nav links workflow/, guide/ and cc-doc/, cc-doc/ also inside a <nav> other than the top bar; workflow home link ../; ` +
-            `guide sections [${GUIDE.sections.join(', ')}], no figure, links ${GUIDE.links.join(' and ')}; doc sections [${DOC.sections.join(', ')}], no figure, link ${DOC.links.join(' and ')}; workflow figures have [data-twin] and Illustrative chips; ${summary.join('; ')}`,
+        : `${PAGES.length} content pages; lang en/ko; 2 absolute hreflang links per page from ${SITE_URL}; toggle links; EN saved-language target = toggle href; no root-relative href or src; ` +
+            `shell on every page: a.brand -> project page, nav.sn-eds with the two edition links, .sn-sub after the header, nav.sn-pages (3 links, one aria-current="page") on the ${ORCH_KINDS.length * 2} cc-orch pages only, nav.sn-toc on the old page kinds, nav.sn-foot with the five same-language pages; ` +
+            `project sections [${PROJECT.sections.join(', ')}], no figure, table#${PROJECT.table}; overview sections [${OVERVIEW.sections.join(', ')}]; workflow figures have [data-twin] and Illustrative chips, link ${WORKFLOW.links.join(' and ')} in <main>; ` +
+            `guide sections [${GUIDE.sections.join(', ')}], no figure, links ${GUIDE.links.join(' and ')} in <main>; doc sections [${DOC.sections.join(', ')}], no figure, no table#${DOC.alias} (id kept as alias), links ${DOC.links.join(' and ')} in <main>; ` +
+            `old fragments: both project pages forward the ${forwardCount} overview ids they do not use, and no other page forwards; ` +
+            `${REDIRECTS.length} redirect pages (${REDIRECTS.map((r) => r.file).join(', ')}): refresh, script and fallback link to their target, lang, noindex, no hreflang, no SITE_URL, target in the build; ${summary.join('; ')}`,
     );
   },
 
@@ -316,6 +545,7 @@ const checks = {
     for (const f of cssFiles) cssUrls(read(f), rel(f), new URL(path.relative(DIST, f).split(path.sep).join('/'), BASE).href);
     for (const f of jsFiles) jsBad(read(f), rel(f));
     if (!htmlFiles.length) problems.push(`no HTML files in ${rel(DIST)}`);
+    for (const f of HTML_FILES) if (!htmlFiles.includes(path.join(DIST, f))) problems.push(`${f} missing, so not checked`);
     line(
       'no-network',
       problems.length ? 'FAIL' : 'PASS',
@@ -349,6 +579,8 @@ const checks = {
     }
     const enPages = PAGES.filter((p) => p.lang === 'en').map((p) => path.join(DIST, p.file));
     const koPages = PAGES.filter((p) => p.lang === 'ko').map((p) => path.join(DIST, p.file));
+    // the redirect pages load no stylesheet and name no font
+    const redirectPages = REDIRECTS.map((r) => path.join(DIST, r.file));
     const linked = (file) =>
       exists(file)
         ? [...read(file).matchAll(/<link\b[^>]*rel=["']?stylesheet[^>]*>/gi)]
@@ -357,7 +589,7 @@ const checks = {
             .map((h) => path.resolve(path.dirname(file), h.split(/[?#]/)[0]))
         : [];
     const enCss = enPages.flatMap(linked);
-    const noSc = [...enPages, path.join(DIST, 'assets/site.css'), path.join(DIST, 'assets/site.js'), ...enCss];
+    const noSc = [...enPages, ...redirectPages, path.join(DIST, 'assets/site.css'), path.join(DIST, 'assets/site.js'), ...enCss];
     for (const f of [...new Set(noSc)]) {
       if (!exists(f)) problems.push(`${rel(f)} missing`);
       else if (read(f).includes('SCDream')) problems.push(`"SCDream" found in ${rel(f)}`);
@@ -365,12 +597,12 @@ const checks = {
     const koFont = path.join(DIST, 'assets/ko-font.css');
     if (!exists(koFont) || !read(koFont).includes('SCDream')) problems.push('dist/assets/ko-font.css missing or without SCDream');
     for (const ko of koPages) if (!linked(ko).includes(koFont)) problems.push(`${path.relative(DIST, ko)} does not link assets/ko-font.css`);
-    for (const en of enPages) if (linked(en).includes(koFont)) problems.push(`${path.relative(DIST, en)} links assets/ko-font.css`);
+    for (const en of [...enPages, ...redirectPages]) if (linked(en).includes(koFont)) problems.push(`${path.relative(DIST, en)} links assets/ko-font.css`);
     const names = (fs_) => fs_.map((f) => path.relative(DIST, f)).join(', ');
     line(
       'fonts',
       problems.length ? 'FAIL' : 'PASS',
-      problems.length ? problems.join('; ') : `sha256 OK and official for ${seen.join(', ')}; no "SCDream" in ${names(enPages)}, site.css, site.js; ${names(koPages)} link ko-font.css (SCDream), ${names(enPages)} do not`,
+      problems.length ? problems.join('; ') : `sha256 OK and official for ${seen.join(', ')}; no "SCDream" in ${names(enPages)}, the ${redirectPages.length} redirect pages, site.css, site.js; ${names(koPages)} link ko-font.css (SCDream), ${names(enPages)} and the redirect pages do not`,
     );
   },
 
@@ -382,7 +614,7 @@ const checks = {
     };
     const problems = [];
     const parts = [];
-    for (const { file: p } of PAGES) {
+    for (const p of HTML_FILES) {
       const f = path.join(DIST, p);
       if (!exists(f)) {
         problems.push(`${p} missing`);

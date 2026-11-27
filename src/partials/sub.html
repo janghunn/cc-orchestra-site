@@ -1,0 +1,9 @@
+{{> editions}}
+    {{#if $nav.inOrch}}<nav class="sn-pages" aria-label="{{a:site.orchPagesLabel}}">
+      <ul>
+        <li><a href="{{orchHref}}" aria-label="{{a:site.orchOverviewLabel}}"{{#if $nav.isOverview}} aria-current="page"{{/if}}>{{t:site.orchPages.0}}</a></li>
+        <li><a href="{{workflowHref}}"{{#if $nav.isWorkflow}} aria-current="page"{{/if}}>{{t:site.orchPages.1}}</a></li>
+        <li><a href="{{guideHref}}"{{#if $nav.isGuide}} aria-current="page"{{/if}}>{{t:site.orchPages.2}}</a></li>
+      </ul>
+    </nav>
+    {{/if}}

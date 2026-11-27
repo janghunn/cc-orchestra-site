@@ -7,8 +7,6 @@
     "otherLangLabel": "Read this page in English",
     "skip": "본문으로 건너뛰기",
     "brand": "cc-orchestra",
-    "homeLabel": "cc-orchestra 개관",
-    "navLabel": "주 메뉴",
     "nav": [
       "개요",
       "사본",
@@ -24,7 +22,7 @@
     "h1": "원본은 그대로, <em>작업은 사본에서</em>",
     "lede": "문서가 있는 폴더에서 cc-doc을 실행하면 Windows 11에서 문서 작업용 Claude Code 세션이 열립니다. Claude 계정의 connector는 꺼져 있습니다. desk 에이전트 하나가 그 세션만의 작업 폴더에 사본을 만들어 작업하고 결과는 아직 쓰이지 않은 이름으로 돌려줍니다. write guard는 Claude Code의 파일 쓰기 도구와 도구 서버 호출이 지정한 경로를 확인해 작업 폴더 밖이면 거부합니다. guard의 한계는 아래에 따로 적었습니다.",
     "ctaPrimary": "작동 방식 보기",
-    "ctaSecondary": "전체 개요",
+    "ctaSecondary": "두 가지 판 보기",
     "tocTitle": "이 페이지 내용"
   },
   "desk": {
@@ -147,46 +145,8 @@
   "editions": {
     "kicker": "두 가지 판",
     "h2": "cc-orchestra의 두 가지 판",
-    "p": "cc-orchestra에는 두 가지 판이 있고 각 판의 이름은 그 판의 명령에서 따왔습니다. cc-orch는 Linux 서버에서 실행하며 이 사이트의 다른 페이지가 설명합니다. cc-doc은 Windows 11에서 실행하며 이 페이지가 설명합니다.",
-    "tableCaption": "표 2. cc-orch와 cc-doc 비교",
-    "cols": [
-      "항목",
-      "cc-orch",
-      "cc-doc"
-    ],
-    "rows": [
-      {
-        "label": "실행 환경",
-        "orch": "Linux, bash와 tmux",
-        "doc": "Windows 11"
-      },
-      {
-        "label": "하는 일",
-        "orch": "코드 작업 요청을 작업 단위로 나눠 계획·구현·검증까지 진행합니다. 연구 프로젝트의 실험과 원고 작업도 이런 작업으로 진행합니다.",
-        "doc": "한글, Word, PowerPoint 파일을 다루는 문서 작업"
-      },
-      {
-        "label": "에이전트",
-        "orch": "네 tier: orchestrator, 작업별 lead, 구현 담당, 검증 담당",
-        "doc": "desk 에이전트 하나"
-      },
-      {
-        "label": "모델",
-        "orch": "두 모델 계열: Claude Code와 Codex CLI",
-        "doc": "Claude: 실행 명령은 Claude Code 세션 하나를 시작하고 desk는 다른 provider를 쓰지 않도록 지시받습니다"
-      },
-      {
-        "label": "파일을 지키는 방식",
-        "orch": "작업마다 별도 git branch를 쓰고 lead는 사용자의 branch에 commit하지 않음",
-        "doc": "사본 작업, 한계가 문서화된 write guard, 덮어쓰지 않는 돌려주기"
-      },
-      {
-        "label": "보고 전 확인",
-        "orch": "작업 위험도에 따라 정해지는 gate",
-        "doc": "desk가 초안을 점검하고 확인하지 못한 것을 밝히도록 지시받음"
-      }
-    ],
-    "ctaHome": "cc-orchestra 개관"
+    "p": "cc-orchestra에는 두 가지 판이 있고 각 판의 이름은 그 판의 명령에서 따왔습니다. cc-orch는 Linux 서버에서 실행합니다. cc-doc은 Windows 11에서 실행하며 이 페이지가 설명합니다. 두 판을 나란히 비교한 표는 프로젝트 페이지에 있습니다.",
+    "ctaHome": "두 판 비교 보기"
   },
   "footer": {
     "facts": "cc-doc 관련 내용은 {{f:docSourceDate}} ({{f:docSourceSha}}) 기준입니다.",
@@ -382,52 +342,8 @@
     "editions.p": [
       "D19",
       "D01",
-      "C37"
-    ],
-    "editions.rows.0.orch": [
-      "C37"
-    ],
-    "editions.rows.0.doc": [
-      "D01"
-    ],
-    "editions.rows.1.orch": [
-      "C02",
-      "W01"
-    ],
-    "editions.rows.1.doc": [
-      "D02",
-      "D10",
-      "D11"
-    ],
-    "editions.rows.2.orch": [
-      "C04"
-    ],
-    "editions.rows.2.doc": [
-      "D03"
-    ],
-    "editions.rows.3.orch": [
-      "C02",
-      "C05"
-    ],
-    "editions.rows.3.doc": [
-      "D02",
-      "D17"
-    ],
-    "editions.rows.4.orch": [
-      "C24",
-      "C25"
-    ],
-    "editions.rows.4.doc": [
-      "D04",
-      "D05",
-      "D06",
-      "D07"
-    ],
-    "editions.rows.5.orch": [
-      "C13"
-    ],
-    "editions.rows.5.doc": [
-      "D14"
+      "C37",
+      "P01"
     ],
     "footer.facts": [
       "D21"
@@ -461,14 +377,6 @@
     "formats.rows.1.label",
     "formats.rows.2.label",
     "formats.rows.3.label",
-    "editions.tableCaption",
-    "editions.cols",
-    "editions.rows.0.label",
-    "editions.rows.1.label",
-    "editions.rows.2.label",
-    "editions.rows.3.label",
-    "editions.rows.4.label",
-    "editions.rows.5.label",
     "editions.ctaHome",
     "footer.linksTitle",
     "footer.links",

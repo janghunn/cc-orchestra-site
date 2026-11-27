@@ -1,16 +1,14 @@
 {
   "meta": {
-    "title": "Research with cc-orchestra: an automated paper workflow",
-    "description": "How one researcher runs paper projects with cc-orchestra: a research loop, generated numbers and figures, shared GPU locks, repeated mock reviews and Claude-Codex cross-checks, shown as figures.",
+    "title": "Research with cc-orch: an automated paper workflow",
+    "description": "How one researcher runs paper projects with cc-orch: a research loop, generated numbers and figures, shared GPU locks, repeated mock reviews and Claude-Codex cross-checks, shown as figures.",
     "langName": "English",
     "otherLangName": "한국어",
     "otherLangLabel": "Read this page in Korean",
     "skip": "Skip to content",
     "brand": "cc-orchestra",
-    "homeLabel": "cc-orchestra overview",
-    "navLabel": "Primary",
     "nav": [
-      "Overview",
+      "The loop",
       "Methods",
       "Automation",
       "Roles",
@@ -26,10 +24,10 @@
   "hero": {
     "eyebrow": "For researchers",
     "h1": "My paper projects run as <em>an automated research loop.</em>",
-    "lede": "Experiments, manuscript sections and reviews are cc-orchestra tasks across three of my projects. Codex builds, Claude checks, and scripts carry results into the paper.",
+    "lede": "Experiments, manuscript sections and reviews are cc-orch tasks across three of my projects. Codex builds, Claude checks, and scripts carry results into the paper.",
     "note": "Projects are called A, B and C; their content, people and machines are left out. Example artifacts are synthetic and labelled Illustrative.",
     "ctaPrimary": "See the overview",
-    "ctaSecondary": "cc-orchestra overview"
+    "ctaSecondary": "cc-orch overview"
   },
   "loop": {
     "kicker": "Overview",

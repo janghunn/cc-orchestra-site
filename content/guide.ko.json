@@ -1,14 +1,12 @@
 {
   "meta": {
-    "title": "처음 보는 분을 위한 cc-orchestra 입문 안내",
-    "description": "cc-orchestra를 처음 접하는 분을 위한 안내입니다. Claude Code만으로 충분한 경우, 각 에이전트가 역할을 받는 방식, 규칙과 작업 상태를 두는 곳, harness를 쓰는 데 드는 시간과 절차를 설명합니다.",
+    "title": "처음 보는 분을 위한 cc-orch 입문 안내",
+    "description": "cc-orch를 처음 접하는 분을 위한 안내입니다. Claude Code만으로 충분한 경우, 각 에이전트가 역할을 받는 방식, 규칙과 작업 상태를 두는 곳, harness를 쓰는 데 드는 시간과 절차를 설명합니다.",
     "langName": "한국어",
     "otherLangName": "English",
     "otherLangLabel": "Read this page in English",
     "skip": "본문으로 건너뛰기",
     "brand": "cc-orchestra",
-    "homeLabel": "cc-orchestra 개관",
-    "navLabel": "주 메뉴",
     "nav": [
       "필요할까",
       "역할",
@@ -21,8 +19,8 @@
   },
   "hero": {
     "eyebrow": "입문 안내",
-    "h1": "cc-orchestra는 무엇이고 <em>언제 쓸 만한가</em>",
-    "lede": "기본 모드의 cc-orchestra는 Claude Code와 Codex CLI 위에서 돌아갑니다. orchestrator가 사용자와 대화하며 요청을 작업으로 나누고 작업마다 lead 하나가 끝까지 맡습니다. 코드는 기본적으로 Codex가 쓰고 Claude lead가 실제 diff를 읽은 뒤 별도의 Codex gate가 결과를 verify하고 review합니다. lead와 그 아래 에이전트는 사용자와의 대화가 아니라 파일을 보고 일하며 작업 상태도 파일에 남습니다.",
+    "h1": "cc-orch는 무엇이고 <em>언제 쓸 만한가</em>",
+    "lede": "기본 모드의 cc-orch는 Claude Code와 Codex CLI 위에서 돌아갑니다. orchestrator가 사용자와 대화하며 요청을 작업으로 나누고 작업마다 lead 하나가 끝까지 맡습니다. 코드는 기본적으로 Codex가 쓰고 Claude lead가 실제 diff를 읽은 뒤 별도의 Codex gate가 결과를 verify하고 review합니다. lead와 그 아래 에이전트는 사용자와의 대화가 아니라 파일을 보고 일하며 작업 상태도 파일에 남습니다.",
     "ctaPrimary": "기본부터 읽기",
     "ctaSecondary": "전체 개요",
     "tocTitle": "이 페이지 내용"
@@ -30,7 +28,7 @@
   "why": {
     "kicker": "필요할까",
     "h2": "Claude Code만 쓰는 편이 나을 때가 많습니다",
-    "p": "짧은 질문, 파일 한두 개 수정, 탐색하듯 해 보는 작업이라면 Claude Code 세션 하나가 더 빠르고 저렴합니다. cc-orchestra의 추가 절차는 여러 작업을 동시에 굴리거나, 검증을 믿고 맡기고 싶거나, 몇 주씩 이어지는 일을 할 때 값을 합니다.",
+    "p": "짧은 질문, 파일 한두 개 수정, 탐색하듯 해 보는 작업이라면 Claude Code 세션 하나가 더 빠르고 저렴합니다. cc-orch의 추가 절차는 여러 작업을 동시에 굴리거나, 검증을 믿고 맡기고 싶거나, 몇 주씩 이어지는 일을 할 때 값을 합니다.",
     "cards": [
       {
         "icon": "sessions",
@@ -117,11 +115,11 @@
     "kicker": "비교",
     "h2": "에디터 extension만 쓸 때와 비교하면",
     "p": "여기서 비교 대상은 에디터에 Claude Code와 Codex extension을 설치하기만 하고 CLAUDE.md, AGENTS.md, skill, hook 같은 harness 파일은 따로 두지 않은 상태입니다. 이때 일하는 방식은 대부분 요청할 때마다 대화로 정해집니다.",
-    "tableCaption": "표 1. extension만 쓸 때와 cc-orchestra 비교.",
+    "tableCaption": "표 1. extension만 쓸 때와 cc-orch 비교.",
     "cols": [
       "항목",
       "extension만 사용",
-      "cc-orchestra"
+      "cc-orch"
     ],
     "rows": [
       {
@@ -162,9 +160,9 @@
     ],
     "betterTitle": "extension만 쓸 때가 나은 점",
     "better": [
-      "빠릅니다. 질문이나 파일 하나 수정은 세션 하나에서 끝나지만 cc-orchestra에서는 같은 일도 조사, 설계, 구현, gate를 거칩니다.",
+      "빠릅니다. 질문이나 파일 하나 수정은 세션 하나에서 끝나지만 cc-orch에서는 같은 일도 조사, 설계, 구현, gate를 거칩니다.",
       "저렴합니다. 에이전트 하나만 돌고 gate 회차도 반복되지 않습니다.",
-      "에디터에서 diff를 보며 바로 방향을 바꿀 수 있습니다. cc-orchestra에서는 지시가 lead를 거쳐 코드에 닿습니다.",
+      "에디터에서 diff를 보며 바로 방향을 바꿀 수 있습니다. cc-orch에서는 지시가 lead를 거쳐 코드에 닿습니다.",
       "슬롯, 위험도, gate, 회차 한도 같은 개념을 익히지 않아도 됩니다."
     ],
     "issuesTitle": "extension만 쓸 때 생기기 쉬운 문제",
@@ -173,7 +171,7 @@
       "왜 그렇게 고쳤는지가 대화에만 남아 몇 주 뒤에는 찾기 어렵습니다.",
       "요청하지 않은 파일을 고쳐도 막아 주는 것은 사람의 눈뿐입니다."
     ],
-    "closing": "extension만 쓰면 사람이 관리자와 검증자 역할을 직접 맡습니다. cc-orchestra는 그 역할의 상당 부분을 글로 적은 규칙, 다른 모델 계열의 코드 읽기, 스크립트 점검으로 옮겼고 그 대가로 시간과 token과 절차가 더 듭니다."
+    "closing": "extension만 쓰면 사람이 관리자와 검증자 역할을 직접 맡습니다. cc-orch는 그 역할의 상당 부분을 글로 적은 규칙, 다른 모델 계열의 코드 읽기, 스크립트 점검으로 옮겼고 그 대가로 시간과 token과 절차가 더 듭니다."
   },
   "costs": {
     "kicker": "득실",
@@ -210,11 +208,11 @@
       },
       {
         "situation": "며칠 이상 이어지는 프로젝트, 여러 작업의 병렬 진행",
-        "use": "cc-orchestra"
+        "use": "cc-orch"
       },
       {
         "situation": "검증이 중요한 코드(실험 파이프라인, 공개 도구)",
-        "use": "cc-orchestra"
+        "use": "cc-orch"
       }
     ],
     "ctaHome": "전체 개요 읽기",
@@ -223,7 +221,7 @@
   "footer": {
     "facts": "이 페이지의 harness 사실 정보는 {{f:sourceDate}} ({{f:sourceSha}}) 기준입니다.",
     "privacy": "제삼자 요청이 없습니다.",
-    "linksTitle": "cc-orchestra가 연결하는 두 CLI",
+    "linksTitle": "cc-orch가 연결하는 두 CLI",
     "links": [
       {
         "text": "Claude Code",
